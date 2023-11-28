@@ -106,6 +106,8 @@ extension PaymentSheet {
         /// If not set, Payment Sheet will display suitable default labels
         /// for payment and setup intents.
         public var primaryButtonLabel: String?
+        
+        public var walletSubview: UIView?
 
         private var styleRawValue: Int = 0  // SheetStyle.automatic.rawValue
         /// The color styling to use for PaymentSheet UI

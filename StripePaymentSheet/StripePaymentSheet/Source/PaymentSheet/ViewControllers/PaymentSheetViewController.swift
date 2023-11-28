@@ -117,6 +117,7 @@ class PaymentSheetViewController: UIViewController {
             options: walletOptions,
             appearance: configuration.appearance,
             applePayButtonType: configuration.applePay?.buttonType ?? .plain,
+            walletSubview: configuration.walletSubview,
             delegate: self
         )
         return header
