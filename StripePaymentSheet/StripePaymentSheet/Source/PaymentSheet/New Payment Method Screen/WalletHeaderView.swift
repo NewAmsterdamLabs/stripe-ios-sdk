@@ -126,7 +126,9 @@ extension PaymentSheetViewController {
             stackView.axis = .vertical
             stackView.spacing = Constants.buttonSpacing
 
-            if let lastButton = buttons.last {
+            if let walletSubview = walletSubview {
+                stackView.setCustomSpacing(Constants.labelSpacing, after: walletSubview)
+            } else if let lastButton = buttons.last {
                 stackView.setCustomSpacing(Constants.labelSpacing, after: lastButton)
             }
 
