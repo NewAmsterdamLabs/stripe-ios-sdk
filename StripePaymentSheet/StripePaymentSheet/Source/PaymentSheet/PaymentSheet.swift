@@ -191,12 +191,14 @@ public class PaymentSheet {
         presentingViewController.presentAsBottomSheet(bottomSheetViewController, appearance: configuration.appearance)
     }
     
-    public func dismiss(animated: Bool) {
+    public func dismiss(animated: Bool, completion: @escaping () -> Void) {
         if let presentingViewController = self.bottomSheetViewController.presentingViewController {
             // Calling `dismiss()` on the presenting view controller causes
             // the bottom sheet and any presented view controller by
             // bottom sheet (i.e. Link) to be dismissed all at the same time.
-            presentingViewController.dismiss(animated: animated)
+            presentingViewController.dismiss(animated: animated) {
+                completion()
+            }
         }
     }
 
