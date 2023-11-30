@@ -190,6 +190,15 @@ public class PaymentSheet {
         self.bottomSheetViewController.contentStack = [self.loadingViewController]
         presentingViewController.presentAsBottomSheet(bottomSheetViewController, appearance: configuration.appearance)
     }
+    
+    public func dismiss(animated: Bool) {
+        if let presentingViewController = self.bottomSheetViewController.presentingViewController {
+            // Calling `dismiss()` on the presenting view controller causes
+            // the bottom sheet and any presented view controller by
+            // bottom sheet (i.e. Link) to be dismissed all at the same time.
+            presentingViewController.dismiss(animated: animated)
+        }
+    }
 
     /// Deletes all persisted authentication state associated with a customer.
     ///
@@ -232,7 +241,7 @@ public class PaymentSheet {
     lazy var paymentHandler: STPPaymentHandler = { STPPaymentHandler(apiClient: configuration.apiClient, formSpecPaymentHandler: PaymentSheetFormSpecPaymentHandler()) }()
 
     /// The parent view controller to present
-    public lazy var bottomSheetViewController: BottomSheetViewController = {
+    lazy var bottomSheetViewController: BottomSheetViewController = {
         let isTestMode = configuration.apiClient.isTestmode
 
         let vc = BottomSheetViewController(
