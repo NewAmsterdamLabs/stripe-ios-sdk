@@ -41,19 +41,9 @@ class PaymentSheetViewController: UIViewController {
 
     let isLinkEnabled: Bool
 
-    var isWalletEnabled: Bool {
-        return isApplePayEnabled || isLinkEnabled
-    }
+    let isWalletEnabled = true
 
-    var shouldShowWalletHeader: Bool {
-        switch mode {
-        case .addingNew:
-            return isWalletEnabled
-        case .selectingSaved:
-            // When selecting saved we only add the wallet header for Link -- ApplePay by itself is inlined
-            return isLinkEnabled
-        }
-    }
+    let shouldShowWalletHeader = true
 
     // MARK: - Writable Properties
     weak var delegate: PaymentSheetViewControllerDelegate?
