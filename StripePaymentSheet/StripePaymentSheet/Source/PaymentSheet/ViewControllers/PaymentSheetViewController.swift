@@ -29,6 +29,9 @@ protocol PaymentSheetViewControllerDelegate: AnyObject {
     func paymentSheetViewControllerDidSelectPayWithLink(
         _ paymentSheetViewController: PaymentSheetViewController
     )
+    func paymentSheetViewControllerDidTapBuy(
+        _ paymentSheetViewController: PaymentSheetViewController
+    )
 }
 
 /// For internal SDK use only
@@ -44,6 +47,10 @@ class PaymentSheetViewController: UIViewController {
     let isWalletEnabled = true
 
     let shouldShowWalletHeader = true
+    
+    var isConfirmed: Bool
+    
+    var paymentOption: PaymentOption?
 
     // MARK: - Writable Properties
     weak var delegate: PaymentSheetViewControllerDelegate?
@@ -168,6 +175,7 @@ class PaymentSheetViewController: UIViewController {
         configuration: PaymentSheet.Configuration,
         isApplePayEnabled: Bool,
         isLinkEnabled: Bool,
+        isConfirmed: Bool,
         delegate: PaymentSheetViewControllerDelegate
     ) {
         self.intent = intent
@@ -175,6 +183,7 @@ class PaymentSheetViewController: UIViewController {
         self.configuration = configuration
         self.isApplePayEnabled = isApplePayEnabled
         self.isLinkEnabled = isLinkEnabled
+        self.isConfirmed = isConfirmed
         self.delegate = delegate
 
         if savedPaymentMethods.isEmpty {
@@ -430,6 +439,19 @@ class PaymentSheetViewController: UIViewController {
             pay(with: selectedPaymentOption)
         }
     }
+    
+    func confirmPayment() {
+        guard let paymentOption = paymentOption else {
+            // VBC TODO: error handling if somehow we got to this point and there's no payment option
+            return
+        }
+        isConfirmed = true
+        pay(with: paymentOption)
+    }
+    
+    func presentError() {
+        // VBC TODO: error handling from external sources
+    }
 
     func pay(with paymentOption: PaymentOption) {
         view.endEditing(true)
@@ -437,61 +459,64 @@ class PaymentSheetViewController: UIViewController {
         // Clear any errors
         error = nil
         updateUI()
-
-        // Confirm the payment with the payment option
-        let startTime = NSDate.timeIntervalSinceReferenceDate
-        self.delegate?.paymentSheetViewControllerShouldConfirm(self, with: paymentOption) { result, deferredIntentConfirmationType in
-            let elapsedTime = NSDate.timeIntervalSinceReferenceDate - startTime
-            DispatchQueue.main.asyncAfter(
-                deadline: .now() + max(PaymentSheetUI.minimumFlightTime - elapsedTime, 0)
-            ) {
-                STPAnalyticsClient.sharedClient.logPaymentSheetPayment(
-                    isCustom: false,
-                    paymentMethod: paymentOption.analyticsValue,
-                    result: result,
-                    linkEnabled: self.intent.supportsLink,
-                    activeLinkSession: LinkAccountContext.shared.account?.sessionState == .verified,
-                    linkSessionType: self.intent.linkPopupWebviewOption,
-                    currency: self.intent.currency,
-                    intentConfig: self.intent.intentConfig,
-                    deferredIntentConfirmationType: deferredIntentConfirmationType,
-                    paymentMethodTypeAnalyticsValue: paymentOption.paymentMethodTypeAnalyticsValue,
-                    error: result.error
-                )
-
-                self.isPaymentInFlight = false
-                switch result {
-                case .canceled:
-                    // Do nothing, keep customer on payment sheet
-                    self.updateUI()
-                case .failed(let error):
-                    #if !STP_BUILD_FOR_VISION
-                    UINotificationFeedbackGenerator().notificationOccurred(.error)
-                    #endif
-                    // Update state
-                    self.error = error
-                    // Handle error
-                    if PaymentSheetError.isUnrecoverable(error: error) {
-                        self.delegate?.paymentSheetViewControllerDidFinish(self, result: result)
-                    }
-                    self.updateUI()
-                    UIAccessibility.post(notification: .layoutChanged, argument: self.errorLabel)
-                case .completed:
-                    // We're done!
-                    let delay: TimeInterval =
+        if isConfirmed {
+            // Confirm the payment with the payment option
+            let startTime = NSDate.timeIntervalSinceReferenceDate
+            self.delegate?.paymentSheetViewControllerShouldConfirm(self, with: paymentOption) { result, deferredIntentConfirmationType in
+                let elapsedTime = NSDate.timeIntervalSinceReferenceDate - startTime
+                DispatchQueue.main.asyncAfter(
+                    deadline: .now() + max(PaymentSheetUI.minimumFlightTime - elapsedTime, 0)
+                ) {
+                    STPAnalyticsClient.sharedClient.logPaymentSheetPayment(
+                        isCustom: false,
+                        paymentMethod: paymentOption.analyticsValue,
+                        result: result,
+                        linkEnabled: self.intent.supportsLink,
+                        activeLinkSession: LinkAccountContext.shared.account?.sessionState == .verified,
+                        linkSessionType: self.intent.linkPopupWebviewOption,
+                        currency: self.intent.currency,
+                        intentConfig: self.intent.intentConfig,
+                        deferredIntentConfirmationType: deferredIntentConfirmationType,
+                        paymentMethodTypeAnalyticsValue: paymentOption.paymentMethodTypeAnalyticsValue,
+                        error: result.error
+                    )
+                    
+                    self.isPaymentInFlight = false
+                    switch result {
+                    case .canceled:
+                        // Do nothing, keep customer on payment sheet
+                        self.updateUI()
+                    case .failed(let error):
+#if !STP_BUILD_FOR_VISION
+                        UINotificationFeedbackGenerator().notificationOccurred(.error)
+#endif
+                        // Update state
+                        self.error = error
+                        // Handle error
+                        if PaymentSheetError.isUnrecoverable(error: error) {
+                            self.delegate?.paymentSheetViewControllerDidFinish(self, result: result)
+                        }
+                        self.updateUI()
+                        UIAccessibility.post(notification: .layoutChanged, argument: self.errorLabel)
+                    case .completed:
+                        // We're done!
+                        let delay: TimeInterval =
                         self.presentedViewController?.isBeingDismissed == true ? 1 : 0
-                    // Hack: PaymentHandler calls the completion block while SafariVC is still being dismissed - "wait" until it's finished before updating UI
-                    DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                        #if !STP_BUILD_FOR_VISION
-                        UINotificationFeedbackGenerator().notificationOccurred(.success)
-                        #endif
-                        self.buyButton.update(state: .succeeded, animated: true) {
-                            // Wait a bit before closing the sheet
-                            self.delegate?.paymentSheetViewControllerDidFinish(self, result: .completed)
+                        // Hack: PaymentHandler calls the completion block while SafariVC is still being dismissed - "wait" until it's finished before updating UI
+                        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+#if !STP_BUILD_FOR_VISION
+                            UINotificationFeedbackGenerator().notificationOccurred(.success)
+#endif
+                            self.buyButton.update(state: .succeeded, animated: true) {
+                                // Wait a bit before closing the sheet
+                                self.delegate?.paymentSheetViewControllerDidFinish(self, result: .completed)
+                            }
                         }
                     }
                 }
             }
+        } else {
+            // VBC TODO: call delegate
         }
     }
 }

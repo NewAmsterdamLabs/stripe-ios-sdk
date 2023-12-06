@@ -155,7 +155,8 @@ public class PaymentSheet {
                         savedPaymentMethods: savedPaymentMethods,
                         configuration: self.configuration,
                         isApplePayEnabled: isApplePayEnabled,
-                        isLinkEnabled: isLinkEnabled,
+                        isLinkEnabled: isLinkEnabled, 
+                        isConfirmed: self.configuration.delegate == nil,
                         delegate: self
                     )
 
@@ -200,6 +201,15 @@ public class PaymentSheet {
                 completion()
             }
         }
+    }
+    
+    public func confirmPayment() {
+        let psvc = self.findPaymentSheetViewController()
+        psvc?.confirmPayment()
+    }
+    
+    public func presentError(_ error: Error) {
+        // VBC TODO
     }
 
     /// Deletes all persisted authentication state associated with a customer.
@@ -324,6 +334,11 @@ extension PaymentSheet: PaymentSheetViewControllerDelegate {
             intent: paymentSheetViewController.intent
         )
     }
+    
+    func paymentSheetViewControllerDidTapBuy(_ paymentSheetViewController: PaymentSheetViewController) {
+        self.configuration.delegate?.paymentSheetDidTapBuy(self)
+    }
+
 }
 
 extension PaymentSheet: LoadingViewControllerDelegate {
@@ -386,4 +401,10 @@ private extension PaymentSheet {
         payWithLinkVC.present(over: presentingController)
     }
 
+}
+
+// MARK: - PaymentSheetDelegate
+
+public protocol PaymentSheetDelegate: AnyObject {
+    func paymentSheetDidTapBuy(_ paymentSheet: PaymentSheet)
 }

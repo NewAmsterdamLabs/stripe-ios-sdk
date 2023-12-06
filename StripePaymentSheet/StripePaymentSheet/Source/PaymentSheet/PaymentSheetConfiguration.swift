@@ -192,6 +192,8 @@ extension PaymentSheet {
         /// - Note: If you omit payment methods from this list, they’ll be automatically ordered by Stripe after the ones you provide. Invalid payment methods are ignored.
         @_spi(ExternalPaymentMethodsPrivateBeta)
         public var paymentMethodOrder: [String]?
+        
+        public weak var delegate: PaymentSheetDelegate?
     }
 
     /// Configuration related to the Stripe Customer
