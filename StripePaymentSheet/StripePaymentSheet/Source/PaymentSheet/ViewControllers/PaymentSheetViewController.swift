@@ -516,7 +516,8 @@ class PaymentSheetViewController: UIViewController {
                 }
             }
         } else {
-            // VBC TODO: call delegate
+            self.paymentOption = paymentOption
+            delegate?.paymentSheetViewControllerDidTapBuy(self)
         }
     }
 }
