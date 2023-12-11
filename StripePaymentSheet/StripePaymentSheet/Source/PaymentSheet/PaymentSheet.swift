@@ -246,7 +246,7 @@ public class PaymentSheet {
         delegate: self,
         appearance: configuration.appearance,
         isTestMode: configuration.apiClient.isTestmode,
-        loadingViewHeight: 244
+        loadingViewHeight: configuration.actionSheetInitialHeight
     )
 
     /// The STPPaymentHandler instance

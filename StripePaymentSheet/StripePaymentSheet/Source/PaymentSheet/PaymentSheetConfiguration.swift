@@ -193,6 +193,9 @@ extension PaymentSheet {
         @_spi(ExternalPaymentMethodsPrivateBeta)
         public var paymentMethodOrder: [String]?
         
+        /// The height of the action sheet in its loading state
+        public var actionSheetInitialHeight: CGFloat = 244.0
+        
         public weak var delegate: PaymentSheetDelegate?
     }
 
