@@ -209,7 +209,8 @@ public class PaymentSheet {
     }
     
     public func presentError(_ error: Error) {
-        // VBC TODO
+        let psvc = self.findPaymentSheetViewController()
+        psvc?.presentError(error)
     }
 
     /// Deletes all persisted authentication state associated with a customer.

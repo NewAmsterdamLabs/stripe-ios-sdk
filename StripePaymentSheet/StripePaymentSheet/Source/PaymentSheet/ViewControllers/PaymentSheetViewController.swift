@@ -63,6 +63,7 @@ class PaymentSheetViewController: UIViewController {
     private(set) var error: Error?
     private var isPaymentInFlight: Bool = false
     private(set) var isDismissable: Bool = true
+    private var isConfirming: Bool = false
 
     // MARK: - Views
 
@@ -449,8 +450,8 @@ class PaymentSheetViewController: UIViewController {
         pay(with: paymentOption)
     }
     
-    func presentError() {
-        // VBC TODO: error handling from external sources
+    func presentError(_ error: Error) {
+        isConfirming = false
     }
 
     func pay(with paymentOption: PaymentOption) {
@@ -458,7 +459,9 @@ class PaymentSheetViewController: UIViewController {
         isPaymentInFlight = true
         // Clear any errors
         error = nil
-        updateUI()
+        if !isConfirming {
+            updateUI()
+        }
         if isConfirmed {
             // Confirm the payment with the payment option
             let startTime = NSDate.timeIntervalSinceReferenceDate
@@ -515,8 +518,10 @@ class PaymentSheetViewController: UIViewController {
                     }
                 }
             }
+            isConfirming = false
         } else {
             self.paymentOption = paymentOption
+            isConfirming = true
             delegate?.paymentSheetViewControllerDidTapBuy(self)
         }
     }
