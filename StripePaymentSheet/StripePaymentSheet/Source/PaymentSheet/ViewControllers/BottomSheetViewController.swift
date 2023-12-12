@@ -100,11 +100,13 @@ class BottomSheetViewController: UIViewController, BottomSheetPresentable {
                     contentViewController.requiresFullScreen
             }
             self.contentContainerView.layoutIfNeeded()
-
-            animateHeightChange(forceAnimation: true)
+            
             oldContentViewController.footerView.removeFromSuperview()
             footerViewContainerView.subviews.forEach({ $0.removeFromSuperview() })
             footerViewContainerView.addArrangedSubview(contentViewController.footerView)
+            footerViewContainerView.layoutIfNeeded()
+
+            animateHeightChange(forceAnimation: true)
             // Add its navigation bar if necessary
             oldContentViewController.navigationBar.removeFromSuperview()
             navigationBarContainerView.addArrangedSubview(contentViewController.navigationBar)
