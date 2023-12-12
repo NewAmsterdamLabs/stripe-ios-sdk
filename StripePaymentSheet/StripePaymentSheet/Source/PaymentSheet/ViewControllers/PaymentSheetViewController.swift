@@ -77,7 +77,6 @@ class PaymentSheetViewController: UIViewController {
     private lazy var savedPaymentOptionsViewController: SavedPaymentOptionsViewController = {
         let showApplePay = !shouldShowWalletHeader && isApplePayEnabled
         let showLink = !shouldShowWalletHeader && isLinkEnabled
-
         return SavedPaymentOptionsViewController(
             savedPaymentMethods: savedPaymentMethods,
             configuration: .init(
@@ -214,9 +213,11 @@ class PaymentSheetViewController: UIViewController {
         let stackView = UIStackView(arrangedSubviews: [
             headerLabel, walletHeader, paymentContainerView, errorLabel, bottomNoticeTextField,
         ])
+        
         stackView.directionalLayoutMargins = PaymentSheetUI.defaultMargins
         stackView.isLayoutMarginsRelativeArrangement = true
         stackView.spacing = PaymentSheetUI.defaultPadding
+        stackView.setCustomSpacing(8.0, after: walletHeader)
         stackView.axis = .vertical
         stackView.bringSubviewToFront(headerLabel)
 

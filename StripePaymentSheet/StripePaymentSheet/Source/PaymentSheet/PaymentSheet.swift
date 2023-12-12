@@ -136,58 +136,55 @@ public class PaymentSheet {
             completion(.failed(error: error))
             return
         }
-        let seconds = 1.0
-        DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
-            // Configure the Payment Sheet VC after loading the PI/SI, Customer, etc.
-            PaymentSheetLoader.load(
-                mode: self.mode,
-                configuration: self.configuration
-            ) { result in
-                switch result {
-                case .success(let intent, let savedPaymentMethods, let isLinkEnabled):
-                    // Set the PaymentSheetViewController as the content of our bottom sheet
-                    let isApplePayEnabled = StripeAPI.deviceSupportsApplePay()
-                        && self.configuration.applePay != nil
-                        && intent.isApplePayEnabled
+        // Configure the Payment Sheet VC after loading the PI/SI, Customer, etc.
+        PaymentSheetLoader.load(
+            mode: self.mode,
+            configuration: self.configuration
+        ) { result in
+            switch result {
+            case .success(let intent, let savedPaymentMethods, let isLinkEnabled):
+                // Set the PaymentSheetViewController as the content of our bottom sheet
+                let isApplePayEnabled = StripeAPI.deviceSupportsApplePay()
+                    && self.configuration.applePay != nil
+                    && intent.isApplePayEnabled
 
-                    let presentPaymentSheetVC = { (justVerifiedLinkOTP: Bool) in
-                        let paymentSheetVC = PaymentSheetViewController(
-                            intent: intent,
-                            savedPaymentMethods: savedPaymentMethods,
-                            configuration: self.configuration,
-                            isApplePayEnabled: isApplePayEnabled,
-                            isLinkEnabled: isLinkEnabled,
-                            isConfirmed: self.configuration.delegate == nil,
-                            delegate: self
-                        )
+                let presentPaymentSheetVC = { (justVerifiedLinkOTP: Bool) in
+                    let paymentSheetVC = PaymentSheetViewController(
+                        intent: intent,
+                        savedPaymentMethods: savedPaymentMethods,
+                        configuration: self.configuration,
+                        isApplePayEnabled: isApplePayEnabled,
+                        isLinkEnabled: isLinkEnabled,
+                        isConfirmed: self.configuration.delegate == nil,
+                        delegate: self
+                    )
 
-                        self.configuration.style.configure(paymentSheetVC)
+                    self.configuration.style.configure(paymentSheetVC)
 
-                        let updateBottomSheet: () -> Void = {
-                            self.bottomSheetViewController.contentStack = [paymentSheetVC]
-                        }
-
-                        if LinkAccountContext.shared.account?.sessionState == .verified {
-                            self.presentPayWithLinkController(
-                                from: self.bottomSheetViewController,
-                                intent: intent,
-                                shouldOfferApplePay: justVerifiedLinkOTP,
-                                shouldFinishOnClose: true,
-                                completion: {
-                                    // Update the bottom sheet after presenting the Link controller
-                                    // to avoid briefly flashing the PaymentSheet in the middle of
-                                    // the View Controller transition.
-                                    updateBottomSheet()
-                                }
-                            )
-                        } else {
-                            updateBottomSheet()
-                        }
+                    let updateBottomSheet: () -> Void = {
+                        self.bottomSheetViewController.contentStack = [paymentSheetVC]
                     }
-                    presentPaymentSheetVC(false)
-                case .failure(let error):
-                    completion(.failed(error: error))
+
+                    if LinkAccountContext.shared.account?.sessionState == .verified {
+                        self.presentPayWithLinkController(
+                            from: self.bottomSheetViewController,
+                            intent: intent,
+                            shouldOfferApplePay: justVerifiedLinkOTP,
+                            shouldFinishOnClose: true,
+                            completion: {
+                                // Update the bottom sheet after presenting the Link controller
+                                // to avoid briefly flashing the PaymentSheet in the middle of
+                                // the View Controller transition.
+                                updateBottomSheet()
+                            }
+                        )
+                    } else {
+                        updateBottomSheet()
+                    }
                 }
+                presentPaymentSheetVC(false)
+            case .failure(let error):
+                completion(.failed(error: error))
             }
         }
         
