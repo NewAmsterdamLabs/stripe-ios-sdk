@@ -132,6 +132,9 @@ class PaymentSheetViewController: UIViewController {
     private lazy var bottomNoticeTextField: UITextView = {
         return ElementsUI.makeNoticeTextField(theme: configuration.appearance.asElementsTheme)
     }()
+    internal lazy var footerView: UIView = {
+        return SheetFooterView(button: buyButton)
+    }()
     private lazy var buyButton: ConfirmButton = {
         let callToAction: ConfirmButton.CallToActionType = {
             if let customCtaLabel = configuration.primaryButtonLabel {
@@ -209,15 +212,13 @@ class PaymentSheetViewController: UIViewController {
 
         // One stack view contains all our subviews
         let stackView = UIStackView(arrangedSubviews: [
-            headerLabel, walletHeader, paymentContainerView, errorLabel, buyButton, bottomNoticeTextField,
+            headerLabel, walletHeader, paymentContainerView, errorLabel, bottomNoticeTextField,
         ])
         stackView.directionalLayoutMargins = PaymentSheetUI.defaultMargins
         stackView.isLayoutMarginsRelativeArrangement = true
         stackView.spacing = PaymentSheetUI.defaultPadding
         stackView.axis = .vertical
         stackView.bringSubviewToFront(headerLabel)
-        stackView.setCustomSpacing(32, after: paymentContainerView)
-        stackView.setCustomSpacing(0, after: buyButton)
 
         // Hack: Payment container needs to extend to the edges, so we'll 'cancel out' the layout margins with negative padding
         paymentContainerView.directionalLayoutMargins = .insets(

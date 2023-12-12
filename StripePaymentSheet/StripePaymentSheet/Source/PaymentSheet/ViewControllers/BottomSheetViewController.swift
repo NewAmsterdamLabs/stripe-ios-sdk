@@ -17,10 +17,17 @@ protocol BottomSheetContentViewController: UIViewController {
 
     /// - Note: Implementing `navigationBar` as a computed variable will result in undefined behavior.
     var navigationBar: SheetNavigationBar { get }
+    var footerView: UIView { get }
     var requiresFullScreen: Bool { get }
     func didTapOrSwipeToDismiss()
 }
 
+
+extension BottomSheetContentViewController {
+    var footerView: UIView {
+        return UIView()
+    }
+}
 /// A VC containing a content view controller and manages the layout of its SheetNavigationBar.
 /// For internal SDK use only
 @objc(STP_Internal_BottomSheetViewController)
@@ -39,6 +46,9 @@ class BottomSheetViewController: UIViewController, BottomSheetPresentable {
         return UIStackView()
     }()
     private lazy var contentContainerView: UIStackView = {
+        return UIStackView()
+    }()
+    private lazy var footerViewContainerView: UIStackView = {
         return UIStackView()
     }()
 
@@ -92,6 +102,9 @@ class BottomSheetViewController: UIViewController, BottomSheetPresentable {
             self.contentContainerView.layoutIfNeeded()
 
             animateHeightChange(forceAnimation: true)
+            oldContentViewController.footerView.removeFromSuperview()
+            footerViewContainerView.subviews.forEach({ $0.removeFromSuperview() })
+            footerViewContainerView.addArrangedSubview(contentViewController.footerView)
             // Add its navigation bar if necessary
             oldContentViewController.navigationBar.removeFromSuperview()
             navigationBarContainerView.addArrangedSubview(contentViewController.navigationBar)
@@ -121,6 +134,7 @@ class BottomSheetViewController: UIViewController, BottomSheetPresentable {
 
         addChild(contentViewController)
         contentViewController.didMove(toParent: self)
+        footerViewContainerView.addArrangedSubview(contentViewController.footerView)
         contentContainerView.addArrangedSubview(contentViewController.view)
         navigationBarContainerView.addArrangedSubview(contentViewController.navigationBar)
         self.view.backgroundColor = appearance.colors.background
@@ -139,7 +153,7 @@ class BottomSheetViewController: UIViewController, BottomSheetPresentable {
 
         view.backgroundColor = .systemBackground
         registerForKeyboardNotifications()
-        [scrollView, navigationBarContainerView].forEach({  // Note: Order important here, navigation bar should be on top
+        [footerViewContainerView, scrollView, navigationBarContainerView].forEach({  // Note: Order important here, navigation bar should be on top
             view.addSubview($0)
             $0.translatesAutoresizingMaskIntoConstraints = false
         })
@@ -147,11 +161,15 @@ class BottomSheetViewController: UIViewController, BottomSheetPresentable {
             navigationBarContainerView.topAnchor.constraint(equalTo: view.topAnchor),  // For unknown reasons, safeAreaLayoutGuide can have incorrect padding; we'll rely on our superview instead
             navigationBarContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             navigationBarContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            footerViewContainerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            footerViewContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            footerViewContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 
             scrollView.topAnchor.constraint(equalTo: navigationBarContainerView.bottomAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: footerViewContainerView.topAnchor),
+            
         ])
 
         contentContainerView.translatesAutoresizingMaskIntoConstraints = false
