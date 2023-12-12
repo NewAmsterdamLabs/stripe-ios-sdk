@@ -77,11 +77,31 @@ class SheetFooterView: UIView {
     
     private func setupConstraints() {
         stackView.translatesAutoresizingMaskIntoConstraints = false
+        
+        let bottomConstraint: NSLayoutConstraint
+        
+        if #available(iOS 11.0, *) {
+            // Check if the device has a bottom safe area inset
+            if let window = UIApplication.shared.windows.first {
+                let bottomSafeAreaInset = window.safeAreaInsets.bottom
+                if bottomSafeAreaInset > 0 {
+                    // Device has a bottom safe area inset, no need for additional padding
+                    bottomConstraint = stackView.bottomAnchor.constraint(equalTo: bottomAnchor)
+                } else {
+                    // Device does not have a bottom safe area inset, add padding
+                    bottomConstraint = stackView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -20)
+                }
+            }
+        } else {
+            // Fallback for earlier iOS versions
+            bottomConstraint = stackView.bottomAnchor.constraint(equalTo: bottomAnchor)
+        }
+        
         NSLayoutConstraint.activate([
             stackView.leadingAnchor.constraint(equalTo: leadingAnchor),
             stackView.trailingAnchor.constraint(equalTo: trailingAnchor),
             stackView.topAnchor.constraint(equalTo: topAnchor),
-            stackView.bottomAnchor.constraint(equalTo: bottomAnchor)
+            bottomConstraint
         ])
     }
 }
