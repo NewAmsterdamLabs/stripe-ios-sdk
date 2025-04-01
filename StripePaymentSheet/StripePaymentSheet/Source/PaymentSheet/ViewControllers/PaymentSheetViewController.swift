@@ -114,6 +114,11 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
     private lazy var bottomNoticeTextField: UITextView = {
         return ElementsUI.makeNoticeTextField(theme: configuration.appearance.asElementsTheme)
     }()
+    
+    // VBC added property
+    internal lazy var footerView: UIView = {
+        return SheetFooterView(button: buyButton)
+    }()
     private lazy var buyButton: ConfirmButton = {
         let callToAction: ConfirmButton.CallToActionType = {
             if let customCtaLabel = configuration.primaryButtonLabel {
