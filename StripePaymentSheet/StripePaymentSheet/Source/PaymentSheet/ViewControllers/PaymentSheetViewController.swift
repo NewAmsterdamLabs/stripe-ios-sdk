@@ -32,18 +32,11 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
     let isLinkEnabled: Bool
     let isCVCRecollectionEnabled: Bool
 
-    var isWalletEnabled: Bool {
-        return isApplePayEnabled || isLinkEnabled
-    }
-
-    var shouldShowWalletHeader: Bool {
-        switch mode {
-        case .addingNew:
-            return isWalletEnabled
-        case .selectingSaved:
-            return isLinkEnabled || isApplePayEnabled
-        }
-    }
+    let isWalletEnabled: Bool = true
+    let shouldShowWalletHeader: Bool = true
+    var isConfirmed: Bool
+    private var isConfirming: Bool = false
+    var paymentOption: PaymentOption?
     let intent: Intent
     let elementsSession: STPElementsSession
     let loadResult: PaymentSheetLoader.LoadResult
@@ -104,6 +97,7 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
             appearance: configuration.appearance,
             applePayButtonType: configuration.applePay?.buttonType ?? .plain,
             isPaymentIntent: intent.isPaymentIntent,
+            walletSubview: configuration.walletSubview,
             delegate: self
         )
         return header
@@ -150,6 +144,7 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
         configuration: PaymentSheet.Configuration,
         loadResult: PaymentSheetLoader.LoadResult,
         analyticsHelper: PaymentSheetAnalyticsHelper,
+        isConfirmed: Bool,
         delegate: PaymentSheetViewControllerDelegate
     ) {
         // Only call loadResult.intent.cvcRecollectionEnabled once per load
@@ -162,6 +157,7 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
         self.isApplePayEnabled = PaymentSheet.isApplePayEnabled(elementsSession: elementsSession, configuration: configuration)
         self.isLinkEnabled = PaymentSheet.isLinkEnabled(elementsSession: elementsSession, configuration: configuration)
         self.isCVCRecollectionEnabled = isCVCRecollectionEnabled
+        self.isConfirmed = isConfirmed
         self.delegate = delegate
         self.savedPaymentOptionsViewController = SavedPaymentOptionsViewController(
             savedPaymentMethods: loadResult.savedPaymentMethods,
@@ -208,15 +204,14 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
 
         // One stack view contains all our subviews
         let stackView = UIStackView(arrangedSubviews: [
-            headerLabel, walletHeader, paymentContainerView, errorLabel, buyButton, bottomNoticeTextField,
+            headerLabel, walletHeader, paymentContainerView, errorLabel, bottomNoticeTextField,
         ])
         stackView.directionalLayoutMargins = PaymentSheetUI.defaultMargins
         stackView.isLayoutMarginsRelativeArrangement = true
         stackView.spacing = PaymentSheetUI.defaultPadding
         stackView.axis = .vertical
         stackView.bringSubviewToFront(headerLabel)
-        stackView.setCustomSpacing(32, after: paymentContainerView)
-        stackView.setCustomSpacing(0, after: buyButton)
+        stackView.setCustomSpacing(8.0, after: walletHeader)
 
         // Hack: Payment container needs to extend to the edges, so we'll 'cancel out' the layout margins with negative padding
         paymentContainerView.directionalLayoutMargins = .insets(
@@ -441,53 +436,76 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
         pay(with: paymentOption)
     }
 
+    func confirmPayment() {
+        guard let paymentOption = paymentOption else {
+            // VBC TODO: error handling if somehow we got to this point and there's no payment option
+            return
+        }
+        isConfirmed = true
+        pay(with: paymentOption)
+    }
+
+    func presentError(_ error: Error) {
+        isConfirming = false
+    }
+    
     func pay(with paymentOption: PaymentOption) {
         view.endEditing(true)
         isPaymentInFlight = true
         // Clear any errors
         error = nil
-        updateUI()
+        
+        if !isConfirming {
+            updateUI()
+        }
 
-        // Confirm the payment with the payment option
-        let startTime = NSDate.timeIntervalSinceReferenceDate
-        self.delegate?.paymentSheetViewControllerShouldConfirm(self, with: paymentOption) { result, deferredIntentConfirmationType in
-            let elapsedTime = NSDate.timeIntervalSinceReferenceDate - startTime
-            DispatchQueue.main.asyncAfter(
-                deadline: .now() + max(PaymentSheetUI.minimumFlightTime - elapsedTime, 0)
-            ) {
-                self.analyticsHelper.logPayment(
-                    paymentOption: paymentOption,
-                    result: result,
-                    deferredIntentConfirmationType: deferredIntentConfirmationType
-                )
-                self.isPaymentInFlight = false
-                switch result {
-                case .canceled:
-                    // Do nothing, keep customer on payment sheet
-                    self.updateUI()
-                case .failed(let error):
-                    #if !canImport(CompositorServices)
-                    UINotificationFeedbackGenerator().notificationOccurred(.error)
-                    #endif
-                    // Update state
-                    self.error = error
-                    self.updateUI()
-                    UIAccessibility.post(notification: .layoutChanged, argument: self.errorLabel)
-                case .completed:
-                    // We're done!
-                    let delay: TimeInterval = self.presentedViewController?.isBeingDismissed == true ? 1 : 0
-                    // Hack: PaymentHandler calls the completion block while SafariVC is still being dismissed - "wait" until it's finished before updating UI
-                    DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+        if isConfirmed {
+            // Confirm the payment with the payment option
+            let startTime = NSDate.timeIntervalSinceReferenceDate
+            self.delegate?.paymentSheetViewControllerShouldConfirm(self, with: paymentOption) { result, deferredIntentConfirmationType in
+                let elapsedTime = NSDate.timeIntervalSinceReferenceDate - startTime
+                DispatchQueue.main.asyncAfter(
+                    deadline: .now() + max(PaymentSheetUI.minimumFlightTime - elapsedTime, 0)
+                ) {
+                    self.analyticsHelper.logPayment(
+                        paymentOption: paymentOption,
+                        result: result,
+                        deferredIntentConfirmationType: deferredIntentConfirmationType
+                    )
+                    self.isPaymentInFlight = false
+                    switch result {
+                    case .canceled:
+                        // Do nothing, keep customer on payment sheet
+                        self.updateUI()
+                    case .failed(let error):
 #if !canImport(CompositorServices)
-                        UINotificationFeedbackGenerator().notificationOccurred(.success)
+                        UINotificationFeedbackGenerator().notificationOccurred(.error)
 #endif
-                        self.buyButton.update(state: .succeeded, animated: true) {
-                            // Wait a bit before closing the sheet
-                            self.delegate?.paymentSheetViewControllerDidFinish(self, result: .completed)
+                        // Update state
+                        self.error = error
+                        self.updateUI()
+                        UIAccessibility.post(notification: .layoutChanged, argument: self.errorLabel)
+                    case .completed:
+                        // We're done!
+                        let delay: TimeInterval = self.presentedViewController?.isBeingDismissed == true ? 1 : 0
+                        // Hack: PaymentHandler calls the completion block while SafariVC is still being dismissed - "wait" until it's finished before updating UI
+                        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+#if !canImport(CompositorServices)
+                            UINotificationFeedbackGenerator().notificationOccurred(.success)
+#endif
+                            self.buyButton.update(state: .succeeded, animated: true) {
+                                // Wait a bit before closing the sheet
+                                self.delegate?.paymentSheetViewControllerDidFinish(self, result: .completed)
+                            }
                         }
                     }
                 }
             }
+            isConfirming = false
+        } else {
+            self.paymentOption = paymentOption
+            isConfirming = true
+            delegate?.paymentSheetViewControllerDidTapBuy(self)
         }
     }
 }

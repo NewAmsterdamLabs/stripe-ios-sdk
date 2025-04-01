@@ -218,6 +218,12 @@ extension PaymentSheet {
 
         /// Flag used to stage the development of updating payment method
         @_spi(UpdatePaymentMethodBeta) public var updatePaymentMethodEnabled: Bool = false
+        
+        // MARK: - VBC added properties
+        public var walletSubview: UIView?
+        /// The height of the action sheet in its loading state
+        public var actionSheetInitialHeight: CGFloat = 244.0
+        public weak var delegate: PaymentSheetDelegate?
     }
 
     /// Defines the layout orientations available for displaying payment methods in PaymentSheet.
