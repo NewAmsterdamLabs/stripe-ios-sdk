@@ -58,6 +58,7 @@ extension PaymentSheetViewController {
         private let options: WalletOptions
         private let appearance: PaymentSheet.Appearance
         private let applePayButtonType: PKPaymentButtonType
+        private let walletSubview: UIView?
         private let isPaymentIntent: Bool
         private var stackView = UIStackView()
 
@@ -104,11 +105,13 @@ extension PaymentSheetViewController {
              appearance: PaymentSheet.Appearance = PaymentSheet.Appearance.default,
              applePayButtonType: PKPaymentButtonType = .plain,
              isPaymentIntent: Bool = true,
+             walletSubview: UIView? = nil,
              delegate: WalletHeaderViewDelegate?) {
             self.options = options
             self.appearance = appearance
             self.applePayButtonType = applePayButtonType
             self.isPaymentIntent = isPaymentIntent
+            self.walletSubview = walletSubview
             self.delegate = delegate
             super.init(frame: .zero)
 
@@ -141,8 +144,10 @@ extension PaymentSheetViewController {
             if supportsPayWithLink {
                 buttons.append(payWithLinkButton)
             }
-
-            stackView = UIStackView(arrangedSubviews: buttons + [separatorLabel])
+            
+            let arrangedSubviews = (buttons + [walletSubview] + [separatorLabel]).compactMap({ $0 })
+            
+            stackView = UIStackView(arrangedSubviews: arrangedSubviews)
             stackView.axis = .vertical
             stackView.spacing = Constants.buttonSpacing
 
