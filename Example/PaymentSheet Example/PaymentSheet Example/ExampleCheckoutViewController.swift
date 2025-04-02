@@ -54,10 +54,14 @@ class ExampleCheckoutViewController: UIViewController {
                 configuration.paymentMethodLayout = .horizontal
                 configuration.returnURL = "payments-example://stripe-redirect"
                 // Set allowsDelayedPaymentMethods to true if your business can handle payment methods that complete payment after a delay, like SEPA Debit and Sofort.
+                
+                let intentConfig = PaymentSheet.IntentConfiguration(mode: .payment(amount: 100, currency: "USD", setupFutureUsage: .onSession, captureMethod: .automatic)) { [weak self] paymentMethod, shouldSavePaymentMethod, intentCreationCallback in
+                    guard let self else { return }
+                    self.handleConfirm(paymentMethod, shouldSavePaymentMethod, intentCreationCallback)
+                }
+                
                 configuration.allowsDelayedPaymentMethods = true
-                self.paymentSheet = PaymentSheet(
-                    paymentIntentClientSecret: paymentIntentClientSecret,
-                    configuration: configuration)
+                self.paymentSheet = PaymentSheet(intentConfiguration: intentConfig, configuration: configuration)
 
                 DispatchQueue.main.async {
                     self.buyButton.isEnabled = true
@@ -92,5 +96,19 @@ class ExampleCheckoutViewController: UIViewController {
         }
         alertController.addAction(OKAction)
         present(alertController, animated: true, completion: nil)
+    }
+    
+    func handleConfirm(_ paymentMethod: STPPaymentMethod, _ shouldSavePaymentMethod: Bool, _ intentCreationCallback: @escaping (Swift.Result<String, Error>) -> Void) {
+        print("handling confirm here")
+        
+        let myServerResponse: Swift.Result<String, Error> = .success("client_secret")
+        switch myServerResponse {
+        case .success(let clientSecret):
+            // Call the `intentCreationCallback` with the client secret
+            intentCreationCallback(.success(clientSecret))
+        case .failure(let error):
+            // Call the `intentCreationCallback` with the error
+            intentCreationCallback(.failure(error))
+        }
     }
 }

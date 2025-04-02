@@ -220,7 +220,6 @@ extension PaymentSheet {
         public var walletSubview: UIView?
         /// The height of the action sheet in its loading state
         public var actionSheetInitialHeight: CGFloat = 244.0
-        public weak var delegate: PaymentSheetDelegate?
     }
 
     /// Defines the layout orientations available for displaying payment methods in PaymentSheet.
