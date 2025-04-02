@@ -214,6 +214,9 @@ public class PaymentSheet {
             presentingViewController.dismiss(animated: animated) {
                 completion()
             }
+        } else {
+            // call completion regardless
+            completion()
         }
     }
 
