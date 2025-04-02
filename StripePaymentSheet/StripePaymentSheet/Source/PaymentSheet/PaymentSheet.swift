@@ -162,6 +162,7 @@ public class PaymentSheet {
                                 configuration: self.configuration,
                                 loadResult: loadResult,
                                 analyticsHelper: self.analyticsHelper,
+                                isConfirmed: self.configuration.delegate == nil,
                                 delegate: self
                             )
                         case .vertical, .automatic:
@@ -213,6 +214,13 @@ public class PaymentSheet {
             presentingViewController.dismiss(animated: animated) {
                 completion()
             }
+        }
+    }
+
+    public func confirmPayment() {
+        let psvc = self.findPaymentSheetViewController()
+        if let paymentViewController = psvc as? PaymentSheetViewController {
+            paymentViewController.confirmPayment()
         }
     }
 
@@ -374,6 +382,10 @@ extension PaymentSheet: PaymentSheetViewControllerDelegate {
             )
         }
     }
+    
+    func paymentSheetViewControllerDidTapBuy(_ paymentSheetViewController: PaymentSheetViewController) {
+        self.configuration.delegate?.paymentSheetDidTapBuy(self)
+    }
 }
 
 extension PaymentSheet: LoadingViewControllerDelegate {
@@ -411,4 +423,11 @@ protocol PaymentSheetViewControllerDelegate: AnyObject {
     )
     func paymentSheetViewControllerDidCancel(_ paymentSheetViewController: PaymentSheetViewControllerProtocol)
     func paymentSheetViewControllerDidSelectPayWithLink(_ paymentSheetViewController: PaymentSheetViewControllerProtocol)
+    func paymentSheetViewControllerDidTapBuy(_ paymentSheetViewController: PaymentSheetViewController)
+}
+
+// MARK: - PaymentSheetDelegate
+
+public protocol PaymentSheetDelegate: AnyObject {
+    func paymentSheetDidTapBuy(_ paymentSheet: PaymentSheet)
 }
