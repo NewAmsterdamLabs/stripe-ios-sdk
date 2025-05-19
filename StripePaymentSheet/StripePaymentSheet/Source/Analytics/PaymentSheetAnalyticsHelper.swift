@@ -14,6 +14,9 @@ final class PaymentSheetAnalyticsHelper {
     let integrationShape: IntegrationShape
     let configuration: PaymentElementConfiguration
 
+    /// Logs analytics to `r.stripe.com`.
+    let analyticsClientV2: AnalyticsClientV2Protocol
+
     // Vars set later as PaymentSheet successfully loads, etc.
     var intent: Intent?
     var elementsSession: STPElementsSession?
@@ -40,11 +43,16 @@ final class PaymentSheetAnalyticsHelper {
     init(
         integrationShape: IntegrationShape,
         configuration: PaymentElementConfiguration,
-        analyticsClient: STPAnalyticsClient = .sharedClient
+        analyticsClient: STPAnalyticsClient = .sharedClient,
+        analyticsClientV2: AnalyticsClientV2Protocol = AnalyticsClientV2(
+            clientId: "stripe-mobile-sdk",
+            origin: "stripe-mobile-sdk-ios"
+        )
     ) {
         self.integrationShape = integrationShape
         self.configuration = configuration
         self.analyticsClient = analyticsClient
+        self.analyticsClientV2 = analyticsClientV2
     }
 
     func logInitialized() {
@@ -133,6 +141,7 @@ final class PaymentSheetAnalyticsHelper {
             let linkMode: String = elementsSession.linkPassthroughModeEnabled ? "passthrough" : "payment_method_mode"
             params["link_mode"] = linkMode
         }
+        params["link_display"] = configuration.link.display.rawValue
         if elementsSession.customer?.customerSession != nil {
             let setAsDefaultEnabled = elementsSession.paymentMethodSetAsDefaultForPaymentSheet
             params["set_as_default_enabled"] = setAsDefaultEnabled
@@ -170,6 +179,10 @@ final class PaymentSheetAnalyticsHelper {
             }
         }()
         log(event: event)
+    }
+
+    func logRenderLPMs(visibleLPMs: [String], hiddenLPMs: [String]) {
+        log(event: .mcRenderLPMs, params: ["visible_lpms": visibleLPMs, "hidden_lpms": hiddenLPMs])
     }
 
     func logSavedPMScreenOptionSelected(option: SavedPaymentOptionsViewController.Selection) {
@@ -405,6 +418,10 @@ final class PaymentSheetAnalyticsHelper {
         additionalParams["link_context"] = linkContext
         additionalParams["link_ui"] = linkUI
 
+        if event.shouldLogFcSdkAvailability {
+            additionalParams["fc_sdk_availability"] = FinancialConnectionsSDKAvailability.analyticsValue
+        }
+
         if let error {
             additionalParams.mergeAssertingOnOverwrites(error.serializeForV1Analytics())
         }
@@ -481,7 +498,7 @@ extension PaymentElementConfiguration {
         payload["billing_details_collection_configuration"] = billingDetailsCollectionConfiguration.analyticPayload
         payload["preferred_networks"] = preferredNetworks?.map({ STPCardBrandUtilities.apiValue(from: $0) }).joined(separator: ", ")
         payload["card_brand_acceptance"] = cardBrandAcceptance != .all
-        if let cpms = customPaymentMethodConfiguration?.customPaymentMethodTypes {
+        if let cpms = customPaymentMethodConfiguration?.customPaymentMethods {
             payload["custom_payment_methods"] = cpms.map { $0.id }
         }
 
@@ -499,5 +516,18 @@ extension EmbeddedPaymentElement.UpdateResult {
         case .failed:
             return "failed"
         }
+    }
+}
+
+extension STPAnalyticEvent {
+    var shouldLogFcSdkAvailability: Bool {
+        let allowlist: Set<STPAnalyticEvent> = [
+            .paymentSheetLoadSucceeded,
+            .paymentSheetCarouselPaymentMethodTapped,
+            .bankAccountCollectorStarted,
+            .bankAccountCollectorFinished,
+            .paymentSheetConfirmButtonTapped,
+        ]
+        return allowlist.contains(self)
     }
 }

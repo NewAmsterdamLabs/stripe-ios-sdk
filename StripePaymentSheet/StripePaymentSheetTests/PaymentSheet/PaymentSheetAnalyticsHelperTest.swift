@@ -8,7 +8,7 @@
 @testable@_spi(STP) import StripeCore
 @_spi(STP)@testable import StripeCoreTestUtils
 @_spi(STP)@testable import StripePayments
-@testable@_spi(STP)@_spi(EmbeddedPaymentElementPrivateBeta)@_spi(CustomPaymentMethodsBeta) import StripePaymentSheet
+@testable @_spi(STP) @_spi(CustomPaymentMethodsBeta) import StripePaymentSheet
 @_spi(STP)@testable import StripePaymentsTestUtils
 import XCTest
 
@@ -204,6 +204,7 @@ final class PaymentSheetAnalyticsHelperTest: XCTestCase {
             XCTAssertEqual(loadSucceededPayload["integration_shape"] as? String, shapeString)
             XCTAssertEqual(loadSucceededPayload["set_as_default_enabled"] as? Bool, true)
             XCTAssertEqual(loadSucceededPayload["has_default_payment_method"] as? Bool, true)
+            XCTAssertEqual(loadSucceededPayload["fc_sdk_availability"] as? String, "LITE")
         }
     }
 
@@ -219,6 +220,14 @@ final class PaymentSheetAnalyticsHelperTest: XCTestCase {
         XCTAssertEqual(analyticsClient._testLogHistory.last!["event"] as? String, "mc_custom_sheet_savedpm_show")
         flowControllerSUT.logShow(showingSavedPMList: false)
         XCTAssertEqual(analyticsClient._testLogHistory.last!["event"] as? String, "mc_custom_sheet_newpm_show")
+    }
+
+    func testLogRenderLPMs() {
+        let paymentSheetHelper = PaymentSheetAnalyticsHelper(integrationShape: .complete, configuration: PaymentSheet.Configuration(), analyticsClient: analyticsClient)
+        paymentSheetHelper.logRenderLPMs(visibleLPMs: ["card", "paypal", "alma", "p24"], hiddenLPMs: ["eps"])
+        XCTAssertEqual(analyticsClient._testLogHistory.last!["event"] as? String, "mc_lpms_render")
+        XCTAssertEqual(analyticsClient._testLogHistory.last!["visible_lpms"] as? [String], ["card", "paypal", "alma", "p24"])
+        XCTAssertEqual(analyticsClient._testLogHistory.last!["hidden_lpms"] as? [String], ["eps"])
     }
 
     func testLogSavedPMScreenOptionSelected() {
@@ -325,8 +334,8 @@ final class PaymentSheetAnalyticsHelperTest: XCTestCase {
 
         ]
 
-        let cpms: [PaymentSheet.CustomPaymentMethodConfiguration.CustomPaymentMethodType] = [.init(id: "cpmt_123"), .init(id: "cpmt_789")]
-        let cpmConfig = PaymentSheet.CustomPaymentMethodConfiguration(customPaymentMethodTypes: cpms) { _, _ in
+        let cpms: [PaymentSheet.CustomPaymentMethodConfiguration.CustomPaymentMethod] = [.init(id: "cpmt_123"), .init(id: "cpmt_789")]
+        let cpmConfig = PaymentSheet.CustomPaymentMethodConfiguration(customPaymentMethods: cpms) { _, _ in
             return .canceled
         }
 
@@ -398,6 +407,7 @@ final class PaymentSheetAnalyticsHelperTest: XCTestCase {
         XCTAssertLessThan(analyticsClient._testLogHistory.last!["duration"] as! Double, 1.0)
         XCTAssertEqual(analyticsClient._testLogHistory.last!["selected_lpm"] as? String, "link")
         XCTAssertEqual(analyticsClient._testLogHistory.last!["link_context"] as? String, "wallet")
+        XCTAssertEqual(analyticsClient._testLogHistory.last!["fc_sdk_availability"] as? String, "LITE")
     }
 
     func testLogPaymentLinkContextWithLinkedBank() {

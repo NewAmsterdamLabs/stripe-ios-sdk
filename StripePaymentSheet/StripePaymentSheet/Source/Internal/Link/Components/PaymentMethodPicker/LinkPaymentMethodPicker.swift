@@ -24,6 +24,7 @@ protocol LinkPaymentMethodPickerDelegate: AnyObject {
 }
 
 protocol LinkPaymentMethodPickerDataSource: AnyObject {
+    var accountEmail: String { get }
 
     /// Returns the total number of payment methods.
     /// - Returns: Payment method count
@@ -42,7 +43,11 @@ protocol LinkPaymentMethodPickerDataSource: AnyObject {
 @objc(STP_Internal_LinkPaymentMethodPicker)
 final class LinkPaymentMethodPicker: UIView {
     weak var delegate: LinkPaymentMethodPickerDelegate?
-    weak var dataSource: LinkPaymentMethodPickerDataSource?
+    weak var dataSource: LinkPaymentMethodPickerDataSource? {
+        didSet {
+            emailView.accountEmail = dataSource?.accountEmail
+        }
+    }
 
     var selectedIndex: Int = 0 {
         didSet {
@@ -67,10 +72,42 @@ final class LinkPaymentMethodPicker: UIView {
         return dataSource?.paymentPicker(self, paymentMethodAt: selectedIndex)
     }
 
+    var billingDetailsCollectionConfiguration: PaymentSheet.BillingDetailsCollectionConfiguration? {
+        didSet {
+            reloadData()
+        }
+    }
+
+    var billingDetails: PaymentSheet.BillingDetails? {
+        didSet {
+            reloadData()
+        }
+    }
+
+    /// Calculates the maximum width required for the header labels.
+    static let widthForHeaderLabels: CGFloat = {
+        let font = LinkUI.font(forTextStyle: .bodyEmphasized)
+        func sizeOf(string: String) -> CGSize {
+            (string as NSString).size(withAttributes: [.font: font])
+        }
+
+        // LinkPaymentMethodPicker.EmailView.emailLabel
+        let emailLabel = String.Localized.email
+        let emailLabelSize = sizeOf(string: emailLabel)
+
+        // LinkPaymentMethodPicker.Header.payWithLabel
+        let paymentLabel = Header.Strings.payment
+        let paymentLabelSize = sizeOf(string: paymentLabel)
+
+        return max(emailLabelSize.width, paymentLabelSize.width)
+    }()
+
     private var needsDataReload: Bool = true
 
     private lazy var stackView: UIStackView = {
         let stackView = UIStackView(arrangedSubviews: [
+            emailView,
+            separatorView,
             headerView,
             listView,
         ])
@@ -81,6 +118,8 @@ final class LinkPaymentMethodPicker: UIView {
         return stackView
     }()
 
+    private let emailView = EmailView()
+    private let separatorView = LinkSeparatorView()
     private let headerView = Header()
 
     private lazy var listView: UIStackView = {
@@ -157,10 +196,11 @@ final class LinkPaymentMethodPicker: UIView {
             headerView.layoutIfNeeded()
         }
 
+        guard let listViewIndex = stackView.arrangedSubviews.firstIndex(of: listView) else { return }
         if headerView.isExpanded {
-            stackView.showArrangedSubview(at: 1, animated: animated)
+            stackView.showArrangedSubview(at: listViewIndex, animated: animated)
         } else {
-            stackView.hideArrangedSubview(at: 1, animated: animated)
+            stackView.hideArrangedSubview(at: listViewIndex, animated: animated)
         }
     }
 
@@ -269,6 +309,121 @@ extension LinkPaymentMethodPicker {
         headerView.selectedPaymentMethod = selectedPaymentMethod
     }
 
+}
+
+extension ConsumerPaymentDetails {
+
+    /// Returns whether the `ConsumerPaymentDetails` contains all the billing details fields requested by the provided `billingDetailsConfig`.
+    /// We use the `consumerSession` to populate any missing fields from the Link account.
+    func supports(
+        _ billingDetailsConfig: PaymentSheet.BillingDetailsCollectionConfiguration,
+        in consumerSession: ConsumerSession?
+    ) -> Bool {
+        if billingDetailsConfig.name == .always && billingAddress?.name == nil {
+            // No name available, so that needs to be collected
+            return false
+        }
+
+        if billingDetailsConfig.address == .full && (billingAddress == nil || billingAddress?.isIncomplete == true) {
+            // No or incomplete address available, so that needs to be collected
+            return false
+        }
+
+        if billingDetailsConfig.phone == .always && consumerSession?.unredactedPhoneNumber == nil {
+            // No phone number available in the account, so that needs to be collected
+            return false
+        }
+
+        // We don't need to check email, because we're guaranteed to have the account email
+
+        return true
+    }
+
+    /// Creates a new `ConsumerPaymentDetails` with any missing fields populated by the provided `billingDetails`. The required fields
+    /// are determined by the provided `billingDetailsConfig`.
+    func update(
+        with billingDetails: PaymentSheet.BillingDetails,
+        basedOn billingDetailsConfig: PaymentSheet.BillingDetailsCollectionConfiguration
+    ) -> ConsumerPaymentDetails {
+        var billingEmailAddress = self.billingEmailAddress
+        var billingAddress = self.billingAddress
+
+        if billingDetailsConfig.address == .full && (billingAddress == nil || billingAddress?.isIncomplete == true) {
+            // No address available, so we add any default provided by the merchant if it's compatible
+            if billingAddress?.canBeOverridden(with: billingDetails.address) == true {
+                billingAddress = BillingAddress(from: billingDetails)
+            }
+        }
+
+        if billingDetailsConfig.name == .always && billingAddress?.name == nil {
+            // No name available, so we add any default provided by the merchant
+            billingAddress = billingAddress?.withName(billingDetails.name) ?? BillingAddress(name: billingDetails.name)
+        }
+
+        if billingDetailsConfig.email == .always && billingEmailAddress == nil {
+            // No email available, so we add any default provided by the merchant
+            billingEmailAddress = billingDetails.email
+        }
+
+        return .init(
+            stripeID: stripeID,
+            details: details,
+            billingAddress: billingAddress,
+            billingEmailAddress: billingEmailAddress,
+            nickname: nickname,
+            isDefault: isDefault
+        )
+    }
+}
+
+private extension BillingAddress {
+    var isIncomplete: Bool {
+        return line1 == nil || city == nil || postalCode == nil || countryCode == nil
+    }
+
+    init(from billingDetails: PaymentSheet.BillingDetails) {
+        self.init(
+            line1: billingDetails.address.line1,
+            line2: billingDetails.address.line2,
+            city: billingDetails.address.city,
+            state: billingDetails.address.state,
+            postalCode: billingDetails.address.postalCode,
+            countryCode: billingDetails.address.country
+        )
+    }
+
+    func canBeOverridden(with address: PaymentSheet.Address) -> Bool {
+        return postalCode == address.postalCode && countryCode == address.country
+    }
+
+    func update(with billingDetails: PaymentSheet.BillingDetails) -> BillingAddress {
+        return .init(
+            line1: line1 ?? billingDetails.address.line1,
+            line2: line2 ?? billingDetails.address.line2,
+            city: city ?? billingDetails.address.city,
+            state: state ?? billingDetails.address.state,
+            postalCode: postalCode ?? billingDetails.address.postalCode,
+            countryCode: countryCode ?? billingDetails.address.country
+        )
+    }
+
+    func withName(_ name: String?) -> BillingAddress {
+        return .init(
+            name: name,
+            line1: line1,
+            line2: line2,
+            city: city,
+            state: state,
+            postalCode: postalCode,
+            countryCode: countryCode
+        )
+    }
+}
+
+private extension PaymentSheet.Address {
+    var isIncomplete: Bool {
+        return line1 == nil || city == nil || postalCode == nil || country == nil
+    }
 }
 
 extension LinkPaymentMethodPicker {

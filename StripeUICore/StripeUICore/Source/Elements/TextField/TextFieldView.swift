@@ -48,8 +48,27 @@ class TextFieldView: UIView {
 
     // MARK: - Views
 
-    private(set) lazy var textField: UITextField = {
-        let textField = UITextField()
+    // A text field that remembers if it wanted to become the first responder, but failed to do so.
+    // We'll track this for the very specific situation where we're trying to swap out a text field for a replacement
+    // immediately after the user tapped this one.
+    class STPTextFieldThatRemembersWantingToBecomeFirstResponder: UITextField {
+        private(set) var wantedToBecomeFirstResponder = false
+
+        override func becomeFirstResponder() -> Bool {
+            if canBecomeFirstResponder {
+                wantedToBecomeFirstResponder = true
+            }
+            let didBecomeFirstResponder = super.becomeFirstResponder()
+            if didBecomeFirstResponder {
+                // It succeeded, so now it can forget!
+                wantedToBecomeFirstResponder = false
+            }
+            return didBecomeFirstResponder
+        }
+    }
+
+    private(set) lazy var textField: STPTextFieldThatRemembersWantingToBecomeFirstResponder = {
+        let textField = STPTextFieldThatRemembersWantingToBecomeFirstResponder()
         textField.delegate = self
         textField.addTarget(self, action: #selector(textDidChange), for: .editingChanged)
         textField.autocorrectionType = .no
@@ -193,7 +212,14 @@ class TextFieldView: UIView {
         // the same relative position in case attributedText adds more characters
         let cursorOffsetFromEnd = textField.selectedTextRange.map { textField.offset(from: textField.endOfDocument, to: $0.end) }
 
-        textField.attributedText = viewModel.attributedText
+        // Don't mess with attributed text if the IME is currently in progress (Japanese/Chinese/Hindi characters)
+        // Note: Setting textField.attributedText cancels the IME
+        if textField.markedTextRange != nil {
+            textField.text = viewModel.attributedText.string
+        } else {
+            textField.attributedText = viewModel.attributedText
+        }
+
         if let cursorOffsetFromEnd = cursorOffsetFromEnd,
            let cursor = textField.position(from: textField.endOfDocument, offset: cursorOffsetFromEnd) {
             // Re-set the cursor back to where it was

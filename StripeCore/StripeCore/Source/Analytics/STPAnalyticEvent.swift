@@ -35,6 +35,7 @@ import Foundation
     case _3DS2ChallengeFlowCompleted = "stripeios.3ds2_challenge_flow_completed"
     case _3DS2ChallengeFlowErrored = "stripeios.3ds2_challenge_flow_errored"
     case _3DS2RedirectUserCanceled = "stripeios.3ds2_redirect_canceled"
+    case applePayContextCompletePaymentFinished = "stripeios.applepaycontext.complete_payment.finished"
     case paymentHandlerConfirmStarted = "stripeios.paymenthandler.confirm.started"
     case paymentHandlerConfirmFinished = "stripeios.paymenthandler.confirm.finished"
     case paymentHandlerHandleNextActionStarted = "stripeios.paymenthandler.handle_next_action.started"
@@ -91,6 +92,9 @@ import Foundation
     case mcShowCustomSavedPM = "mc_custom_sheet_savedpm_show"
     case mcShowCompleteNewPM = "mc_complete_sheet_newpm_show"
     case mcShowCompleteSavedPM = "mc_complete_sheet_savedpm_show"
+
+    // MARK: - PaymentSheet Render
+    case mcRenderLPMs = "mc_lpms_render"
 
     // MARK: - PaymentSheet Payment
     case mcPaymentCustomNewPMSuccess = "mc_custom_payment_newpm_success"
@@ -287,4 +291,7 @@ import Foundation
     case assertionSucceeded = "stripeios.attest.assertion.succeeded"
     case resetKeyForAssertionError = "stripeios.attest.reset_key_for_assertion_error"
     case resetKeyForAttestationError = "stripeios.attest.reset_key_for_attestation_error"
+
+    // MARK: - Custom Payment Methods
+    case paymentSheetInvalidCPM = "mc_invalid_cpm"
 }

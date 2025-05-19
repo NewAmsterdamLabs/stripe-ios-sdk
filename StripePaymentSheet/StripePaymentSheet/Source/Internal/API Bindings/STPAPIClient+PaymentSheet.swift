@@ -21,7 +21,7 @@ extension STPAPIClient {
         var parameters: [String: Any] = [
             "locale": Locale.current.toLanguageTag(),
             "external_payment_methods": epmConfiguration?.externalPaymentMethods.compactMap { $0.lowercased() } ?? [],
-            "custom_payment_methods": cpmConfiguration?.customPaymentMethodTypes.compactMap { $0.id } ?? [],
+            "custom_payment_methods": cpmConfiguration?.customPaymentMethods.compactMap { $0.id } ?? [],
         ]
         if let appId = Bundle.main.bundleIdentifier {
             parameters["mobile_app_id"] = appId
@@ -44,7 +44,7 @@ extension STPAPIClient {
                     deferredIntent["payment_method_configuration"] = ["id": paymentMethodConfigurationId]
                 }
                 switch intentConfig.mode {
-                case .payment(let amount, let currency, let setupFutureUsage, let captureMethod):
+                case .payment(let amount, let currency, let setupFutureUsage, let captureMethod, _):
                     deferredIntent["mode"] = "payment"
                     deferredIntent["amount"] = amount
                     deferredIntent["currency"] = currency

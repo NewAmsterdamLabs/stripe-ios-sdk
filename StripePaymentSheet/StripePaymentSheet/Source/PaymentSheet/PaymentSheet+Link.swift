@@ -80,9 +80,8 @@ extension PaymentSheet {
 
         if UIDevice.current.userInterfaceIdiom == .pad {
             payWithLinkVC.modalPresentationStyle = .formSheet
-        } else {
-            payWithLinkVC.modalPresentationStyle = .overFullScreen
         }
+        payWithLinkVC.isModalInPresentation = true
 
         presentingController.present(payWithLinkVC, animated: true, completion: completion)
     }
@@ -102,7 +101,11 @@ extension PaymentSheet {
             return
         }
 
-        let verificationController = LinkVerificationController(mode: .inlineLogin, linkAccount: linkAccount)
+        let verificationController = LinkVerificationController(
+            mode: .inlineLogin,
+            linkAccount: linkAccount,
+            configuration: configuration
+        )
         verificationController.present(from: bottomSheetViewController) { [weak self] result in
             self?.bottomSheetViewController.dismiss(animated: true, completion: nil)
             switch result {

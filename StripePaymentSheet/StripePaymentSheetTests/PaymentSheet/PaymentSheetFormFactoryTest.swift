@@ -10,7 +10,7 @@ import XCTest
 
 @testable@_spi(STP) import StripeCore
 @testable@_spi(STP) import StripePayments
-@testable@_spi(STP) import StripePaymentSheet
+@testable@_spi(STP) @_spi(PaymentMethodOptionsSetupFutureUsagePreview) import StripePaymentSheet
 @testable@_spi(STP) import StripePaymentsTestUtils
 @testable@_spi(STP) import StripePaymentsUI
 @testable@_spi(STP) import StripeUICore
@@ -42,7 +42,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(),
             elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.SEPADebit)
         )
         let name = factory.makeName()
@@ -64,7 +64,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(),
             elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.iDEAL) // We use iDEAL because it has a LUXE form spec
         )
         let name = factory.makeName(apiPath: "custom_location[name]")
@@ -83,7 +83,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         // Using the params as previous customer input...
         let name_with_previous_customer_input = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.iDEAL),
             previousCustomerInput: updatedParams
         ).makeName(apiPath: "custom_location[name]")
@@ -97,7 +97,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         configuration.defaultBillingDetails.name = "someName"
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card)
         )
         let name = factory.makeName()
@@ -114,7 +114,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         // Using the params as previous customer input...
         let name_with_previous_customer_input = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card),
             previousCustomerInput: updatedParams
         ).makeName()
@@ -128,7 +128,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         configuration.defaultBillingDetails.name = "someName"
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.grabPay)
         )
         let nameSpec = FormSpec.NameFieldSpec(
@@ -160,7 +160,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         configuration.defaultBillingDetails.name = "someName"
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.grabPay)
         )
         let nameSpec = FormSpec.NameFieldSpec(apiPath: nil, translationId: nil)
@@ -187,7 +187,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         configuration.defaultBillingDetails.email = "email@stripe.com"
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.grabPay)
         )
         let email = factory.makeEmail(apiPath: "custom_location[email]")
@@ -206,7 +206,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         // Using the params as previous customer input...
         let email_with_previous_customer_input = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.grabPay),
             previousCustomerInput: updatedParams
         ).makeName(apiPath: "custom_location[email]")
@@ -220,7 +220,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         configuration.defaultBillingDetails.email = "email@stripe.com"
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.grabPay)
         )
         let email = factory.makeEmail()
@@ -237,7 +237,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         // Using the params as previous customer input...
         let email_with_previous_customer_input = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.grabPay),
             previousCustomerInput: updatedParams
         ).makeEmail()
@@ -251,7 +251,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         configuration.defaultBillingDetails.email = "email@stripe.com"
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.grabPay)
         )
         let emailSpec = FormSpec.BaseFieldSpec(apiPath: ["v1": "custom_location[email]"])
@@ -279,7 +279,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         configuration.defaultBillingDetails.phone = "+15555555555"
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.grabPay)
         )
         let phoneElement = factory.makePhone()
@@ -295,7 +295,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         // Using the params as previous customer input...
         let phone_with_previous_customer_input = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.grabPay),
             previousCustomerInput: updatedParams
         ).makePhone()
@@ -309,7 +309,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         configuration.defaultBillingDetails.email = "email@stripe.com"
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.grabPay)
         )
 
@@ -335,7 +335,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let configuration = PaymentSheet.Configuration()
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.SEPADebit)
         )
         let selectorSpec = FormSpec.SelectorSpec(
@@ -367,7 +367,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         // Given a dropdown...
         let dropdown = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.SEPADebit)
         ).makeDropdown(for: selectorSpec)
         // ...with a selection *different* from the default of 0
@@ -376,7 +376,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let previousCustomerInput = dropdown.updateParams(params: IntentConfirmParams(type: .stripe(.SEPADebit)))
         let dropdown_with_previous_customer_input = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.SEPADebit),
             previousCustomerInput: previousCustomerInput
         ).makeDropdown(for: selectorSpec)
@@ -390,7 +390,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let configuration = PaymentSheet.Configuration()
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.klarna)
         )
         let spec = FormSpec(
@@ -418,7 +418,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let configuration = PaymentSheet.Configuration()
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.klarna)
         )
         let spec = FormSpec(
@@ -447,7 +447,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let configuration = PaymentSheet.Configuration()
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.AUBECSDebit)
         )
         let bsb = factory.makeBSB(apiPath: nil)
@@ -465,7 +465,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         // Using the params as previous customer input...
         let bsb_with_previous_input = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.AUBECSDebit),
             previousCustomerInput: updatedParams
         ).makeBSB()
@@ -479,7 +479,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let configuration = PaymentSheet.Configuration()
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.AUBECSDebit)
         )
         let bsb = factory.makeBSB(apiPath: "custom_path[bsb_number]")
@@ -499,7 +499,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         // Using the params as previous customer input...
         let bsb_with_previous_input = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.AUBECSDebit),
             previousCustomerInput: updatedParams
         ).makeBSB(apiPath: "custom_path[bsb_number]")
@@ -517,7 +517,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let configuration = PaymentSheet.Configuration()
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.AUBECSDebit)
         )
         let spec = FormSpec(
@@ -546,7 +546,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         // Using the params as previous customer input...
         let bsb_with_previous_input = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.AUBECSDebit),
             previousCustomerInput: updatedParams
         ).makeBSB()
@@ -560,7 +560,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let configuration = PaymentSheet.Configuration()
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.AUBECSDebit)
         )
         let spec = FormSpec(
@@ -593,7 +593,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let configuration = PaymentSheet.Configuration()
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.AUBECSDebit)
         )
         let spec = FormSpec(
@@ -624,7 +624,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         // Using the params as previous customer input...
         let form_with_previous_input = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.AUBECSDebit),
             previousCustomerInput: updatedParams
         ).makeFormElementFromSpec(spec: spec)
@@ -638,7 +638,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let configuration = PaymentSheet.Configuration()
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.AUBECSDebit)
         )
         let spec = FormSpec(
@@ -672,7 +672,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         // Using the params as previous customer input...
         let form_with_previous_input = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.AUBECSDebit),
             previousCustomerInput: updatedParams
         ).makeFormElementFromSpec(spec: spec)
@@ -691,7 +691,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let configuration = PaymentSheet.Configuration()
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.AUBECSDebit)
         )
         let accountNum = factory.makeAUBECSAccountNumber(apiPath: nil)
@@ -714,7 +714,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let configuration = PaymentSheet.Configuration()
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.AUBECSDebit)
         )
         let accountNum = factory.makeAUBECSAccountNumber(apiPath: "custom_path[account_number]")
@@ -738,7 +738,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let configuration = PaymentSheet.Configuration()
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.sofort)
         )
         let spec = FormSpec(
@@ -762,7 +762,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let configuration = PaymentSheet.Configuration()
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.sofort)
         )
         let spec = FormSpec(
@@ -794,7 +794,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let configuration = PaymentSheet.Configuration()
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.sofort)
         )
         let country = factory.makeCountry(countryCodes: ["AT", "BE"], apiPath: nil)
@@ -811,7 +811,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         // Using the params as previous customer input...
         let country_with_previous_input = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.sofort),
             previousCustomerInput: updatedParams
         ).makeCountry(countryCodes: ["AT", "BE"], apiPath: nil)
@@ -827,7 +827,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
             let factory = PaymentSheetFormFactory(
                 intent: ._testValue(),
                 elementsSession: ._testCardValue(),
-                configuration: .paymentSheet(configuration),
+                configuration: .paymentElement(configuration),
                 paymentMethod: .stripe(.sofort),
                 previousCustomerInput: previousCustomerInput
             )
@@ -866,7 +866,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
             let factory = PaymentSheetFormFactory(
                 intent: ._testValue(),
                 elementsSession: ._testCardValue(),
-                configuration: .paymentSheet(configuration),
+                configuration: .paymentElement(configuration),
                 paymentMethod: .stripe(.SEPADebit),
                 previousCustomerInput: previousCustomerInput
             )
@@ -905,7 +905,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
             let factory = PaymentSheetFormFactory(
                 intent: ._testValue(),
                 elementsSession: ._testCardValue(),
-                configuration: .paymentSheet(configuration),
+                configuration: .paymentElement(configuration),
                 paymentMethod: .stripe(.SEPADebit),
                 previousCustomerInput: previousCustomerInput
             )
@@ -951,7 +951,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let configuration = PaymentSheet.Configuration()
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.SEPADebit)
         )
         let iban = factory.makeIban(apiPath: nil)
@@ -969,7 +969,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let configuration = PaymentSheet.Configuration()
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.SEPADebit)
         )
         let iban = factory.makeIban(apiPath: "SEPADebit[iban]")
@@ -991,7 +991,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let configuration = PaymentSheet.Configuration()
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.grabPay)
         )
         let spec = FormSpec(
@@ -1033,7 +1033,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let configuration = PaymentSheet.Configuration()
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.AUBECSDebit),
             addressSpecProvider: addressSpecProvider
         )
@@ -1074,7 +1074,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let configuration = PaymentSheet.Configuration()
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.grabPay),
             addressSpecProvider: addressSpecProvider
         )
@@ -1103,7 +1103,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let configuration = PaymentSheet.Configuration()
         let factory = PaymentSheetFormFactory(
             intent: ._testValue(), elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.grabPay),
             addressSpecProvider: addressSpecProvider
         )
@@ -1152,7 +1152,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
             let factory = PaymentSheetFormFactory(
                 intent: intent,
                 elementsSession: ._testCardValue(),
-                configuration: .paymentSheet(configuration),
+                configuration: .paymentElement(configuration),
                 paymentMethod: .stripe(type),
                 addressSpecProvider: specProvider
             )
@@ -1205,7 +1205,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
             let factory = PaymentSheetFormFactory(
                 intent: intent,
                 elementsSession: ._testCardValue(),
-                configuration: .paymentSheet(configuration),
+                configuration: .paymentElement(configuration),
                 paymentMethod: .stripe(type),
                 addressSpecProvider: specProvider
             )
@@ -1238,7 +1238,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let factory = PaymentSheetFormFactory(
             intent: ._testPaymentIntent(paymentMethodTypes: [.card, .EPS]),
             elementsSession: ._testValue(paymentMethodTypes: ["card", "eps"]),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card)
         )
 
@@ -1251,7 +1251,37 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let factory = PaymentSheetFormFactory(
             intent: ._testPaymentIntent(paymentMethodTypes: [.card], setupFutureUsage: .offSession),
             elementsSession: ._testValue(paymentMethodTypes: ["card"]),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
+            paymentMethod: .stripe(.card)
+        )
+
+        XCTAssert(factory.isSettingUp)
+        XCTAssertFalse(factory.shouldDisplaySaveCheckbox)
+    }
+
+    func testHidesCheckbox_PI_PMO_SFU_offSession() {
+        var configuration = PaymentSheet.Configuration()
+        configuration.customer = .init(id: "id", ephemeralKeySecret: "sec")
+        configuration.shouldReadPaymentMethodOptionsSetupFutureUsage = true
+        let factory = PaymentSheetFormFactory(
+            intent: ._testPaymentIntent(paymentMethodTypes: [.card], paymentMethodOptionsSetupFutureUsage: [.card: "off_session"]),
+            elementsSession: ._testValue(paymentMethodTypes: ["card"]),
+            configuration: .paymentElement(configuration),
+            paymentMethod: .stripe(.card)
+        )
+
+        XCTAssert(factory.isSettingUp)
+        XCTAssertFalse(factory.shouldDisplaySaveCheckbox)
+    }
+
+    func testHidesCheckbox_Deferred_PI_PMO_SFU_offSession() {
+        var configuration = PaymentSheet.Configuration()
+        configuration.customer = .init(id: "id", ephemeralKeySecret: "sec")
+        configuration.shouldReadPaymentMethodOptionsSetupFutureUsage = true
+        let factory = PaymentSheetFormFactory(
+            intent: ._testDeferredIntent(paymentMethodTypes: [.card], paymentMethodOptionsSetupFutureUsage: [.card: .offSession]),
+            elementsSession: ._testValue(paymentMethodTypes: ["card"]),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card)
         )
 
@@ -1265,7 +1295,37 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let factory = PaymentSheetFormFactory(
             intent: ._testPaymentIntent(paymentMethodTypes: [.card], setupFutureUsage: .onSession),
             elementsSession: ._testValue(paymentMethodTypes: ["card"]),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
+            paymentMethod: .stripe(.card)
+        )
+
+        XCTAssert(factory.isSettingUp)
+        XCTAssertFalse(factory.shouldDisplaySaveCheckbox)
+    }
+
+    func testHidesCheckbox_PI_PMO_SFU_onSession() {
+        var configuration = PaymentSheet.Configuration()
+        configuration.customer = .init(id: "id", ephemeralKeySecret: "sec")
+        configuration.shouldReadPaymentMethodOptionsSetupFutureUsage = true
+        let factory = PaymentSheetFormFactory(
+            intent: ._testPaymentIntent(paymentMethodTypes: [.card], paymentMethodOptionsSetupFutureUsage: [.card: "on_session"]),
+            elementsSession: ._testValue(paymentMethodTypes: ["card"]),
+            configuration: .paymentElement(configuration),
+            paymentMethod: .stripe(.card)
+        )
+
+        XCTAssert(factory.isSettingUp)
+        XCTAssertFalse(factory.shouldDisplaySaveCheckbox)
+    }
+
+    func testHidesCheckbox_Deferred_PI_PMO_SFU_onSession() {
+        var configuration = PaymentSheet.Configuration()
+        configuration.customer = .init(id: "id", ephemeralKeySecret: "sec")
+        configuration.shouldReadPaymentMethodOptionsSetupFutureUsage = true
+        let factory = PaymentSheetFormFactory(
+            intent: ._testDeferredIntent(paymentMethodTypes: [.card], paymentMethodOptionsSetupFutureUsage: [.card: .onSession]),
+            elementsSession: ._testValue(paymentMethodTypes: ["card"]),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card)
         )
 
@@ -1279,7 +1339,35 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let factory = PaymentSheetFormFactory(
             intent: ._testPaymentIntent(paymentMethodTypes: [.card]),
             elementsSession: ._testValue(paymentMethodTypes: ["card"]),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
+            paymentMethod: .stripe(.card)
+        )
+        XCTAssertFalse(factory.isSettingUp)
+        XCTAssert(factory.shouldDisplaySaveCheckbox)
+    }
+
+    func testShowsCheckbox_PI_topLevel_offSession_PMO_SFU_notSettingUp_card() {
+        var configuration = PaymentSheet.Configuration()
+        configuration.customer = .init(id: "id", ephemeralKeySecret: "sec")
+        configuration.shouldReadPaymentMethodOptionsSetupFutureUsage = true
+        let factory = PaymentSheetFormFactory(
+            intent: ._testPaymentIntent(paymentMethodTypes: [.card], setupFutureUsage: .offSession, paymentMethodOptionsSetupFutureUsage: [.card: "none"]),
+            elementsSession: ._testValue(paymentMethodTypes: ["card"]),
+            configuration: .paymentElement(configuration),
+            paymentMethod: .stripe(.card)
+        )
+        XCTAssertFalse(factory.isSettingUp)
+        XCTAssert(factory.shouldDisplaySaveCheckbox)
+    }
+
+    func testShowsCheckbox_Deferred_PI_topLevel_offSession_PMO_SFU_notSettingUp_card() {
+        var configuration = PaymentSheet.Configuration()
+        configuration.customer = .init(id: "id", ephemeralKeySecret: "sec")
+        configuration.shouldReadPaymentMethodOptionsSetupFutureUsage = true
+        let factory = PaymentSheetFormFactory(
+            intent: ._testDeferredIntent(paymentMethodTypes: [.card], setupFutureUsage: .offSession, paymentMethodOptionsSetupFutureUsage: [.card: .none]),
+            elementsSession: ._testValue(paymentMethodTypes: ["card"]),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card)
         )
         XCTAssertFalse(factory.isSettingUp)
@@ -1291,7 +1379,35 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let factory = PaymentSheetFormFactory(
             intent: ._testPaymentIntent(paymentMethodTypes: [.card]),
             elementsSession: ._testValue(paymentMethodTypes: ["card"]),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
+            paymentMethod: .stripe(.card)
+        )
+
+        XCTAssertFalse(factory.isSettingUp)
+        XCTAssertFalse(factory.shouldDisplaySaveCheckbox)
+    }
+
+    func testHidesCheckbox_PI_topLevel_offSession_PMO_SFU_notSettingUp_card() {
+        var configuration = PaymentSheet.Configuration()
+        configuration.shouldReadPaymentMethodOptionsSetupFutureUsage = true
+        let factory = PaymentSheetFormFactory(
+            intent: ._testPaymentIntent(paymentMethodTypes: [.card], setupFutureUsage: .offSession, paymentMethodOptionsSetupFutureUsage: [.card: "none"]),
+            elementsSession: ._testValue(paymentMethodTypes: ["card"]),
+            configuration: .paymentElement(configuration),
+            paymentMethod: .stripe(.card)
+        )
+
+        XCTAssertFalse(factory.isSettingUp)
+        XCTAssertFalse(factory.shouldDisplaySaveCheckbox)
+    }
+
+    func testHidesCheckbox_Deferred_PI_topLevel_offSession_PMO_SFU_notSettingUp_card() {
+        var configuration = PaymentSheet.Configuration()
+        configuration.shouldReadPaymentMethodOptionsSetupFutureUsage = true
+        let factory = PaymentSheetFormFactory(
+            intent: ._testDeferredIntent(paymentMethodTypes: [.card], setupFutureUsage: .offSession, paymentMethodOptionsSetupFutureUsage: [.card: .none]),
+            elementsSession: ._testValue(paymentMethodTypes: ["card"]),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card)
         )
 
@@ -1305,7 +1421,22 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let factory = PaymentSheetFormFactory(
             intent: ._testPaymentIntent(paymentMethodTypes: [.card, .USBankAccount]),
             elementsSession: ._testValue(paymentMethodTypes: ["card", "us_bank_account"]),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
+            paymentMethod: .stripe(.USBankAccount)
+        )
+
+        XCTAssertFalse(factory.isSettingUp)
+        XCTAssert(factory.shouldDisplaySaveCheckbox)
+    }
+
+    func testShowsCheckbox_PI_topLevel_offSession_PMO_SFU_notSettingUp_usBankAccount() {
+        var configuration = PaymentSheet.Configuration()
+        configuration.customer = .init(id: "id", ephemeralKeySecret: "sec")
+        configuration.shouldReadPaymentMethodOptionsSetupFutureUsage = true
+        let factory = PaymentSheetFormFactory(
+            intent: ._testPaymentIntent(paymentMethodTypes: [.card, .USBankAccount], setupFutureUsage: .offSession, paymentMethodOptionsSetupFutureUsage: [.USBankAccount: "none"]),
+            elementsSession: ._testValue(paymentMethodTypes: ["card", "us_bank_account"]),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.USBankAccount)
         )
 
@@ -1318,7 +1449,21 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let factory = PaymentSheetFormFactory(
             intent: ._testPaymentIntent(paymentMethodTypes: [.card, .USBankAccount]),
             elementsSession: ._testValue(paymentMethodTypes: ["card", "us_bank_account"]),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
+            paymentMethod: .stripe(.USBankAccount)
+        )
+
+        XCTAssertFalse(factory.isSettingUp)
+        XCTAssertFalse(factory.shouldDisplaySaveCheckbox)
+    }
+
+    func testHidesCheckbox_PI_topLevel_offSession_PMO_SFU_notSettingUp_usBankAccount() {
+        var configuration = PaymentSheet.Configuration()
+        configuration.shouldReadPaymentMethodOptionsSetupFutureUsage = true
+        let factory = PaymentSheetFormFactory(
+            intent: ._testPaymentIntent(paymentMethodTypes: [.card, .USBankAccount], setupFutureUsage: .offSession, paymentMethodOptionsSetupFutureUsage: [.USBankAccount: "none"]),
+            elementsSession: ._testValue(paymentMethodTypes: ["card", "us_bank_account"]),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.USBankAccount)
         )
 
@@ -1332,7 +1477,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let factory = PaymentSheetFormFactory(
             intent: ._testSetupIntent(paymentMethodTypes: [.card]),
             elementsSession: ._testValue(paymentMethodTypes: ["card"]),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card)
         )
 
@@ -1356,7 +1501,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
                     "enabled": false,
                 ],
             ]),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card)
         )
 
@@ -1382,7 +1527,34 @@ class PaymentSheetFormFactoryTest: XCTestCase {
                                                 "enabled": false,
                                             ],
                                          ]),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
+            paymentMethod: .stripe(.card)
+        )
+
+        XCTAssert(factory.isSettingUp)
+        XCTAssertTrue(factory.shouldDisplaySaveCheckbox)
+    }
+
+    func testShowsCheckbox_PI_PMO_SFU_save_enabled() {
+        var configuration = PaymentSheet.Configuration()
+        configuration.customer = .init(id: "id", ephemeralKeySecret: "sec")
+        configuration.shouldReadPaymentMethodOptionsSetupFutureUsage = true
+        let factory = PaymentSheetFormFactory(
+            intent: ._testPaymentIntent(paymentMethodTypes: [.card],
+                                        paymentMethodOptionsSetupFutureUsage: [.card: "off_session"]),
+            elementsSession: ._testValue(paymentMethodTypes: ["card"],
+                                         customerSessionData: [
+                                            "mobile_payment_element": [
+                                                "enabled": true,
+                                                "features": ["payment_method_save": "enabled",
+                                                             "payment_method_remove": "enabled",
+                                                            ],
+                                            ],
+                                            "customer_sheet": [
+                                                "enabled": false,
+                                            ],
+                                         ]),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card)
         )
 
@@ -1408,7 +1580,34 @@ class PaymentSheetFormFactoryTest: XCTestCase {
                                                 "enabled": false,
                                             ],
                                         ]),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
+            paymentMethod: .stripe(.card)
+        )
+
+        XCTAssert(factory.isSettingUp)
+        XCTAssertFalse(factory.shouldDisplaySaveCheckbox)
+    }
+
+    func testShowsCheckbox_PI_PMO_SFU_save_disabled() {
+        var configuration = PaymentSheet.Configuration()
+        configuration.customer = .init(id: "id", ephemeralKeySecret: "sec")
+        configuration.shouldReadPaymentMethodOptionsSetupFutureUsage = true
+        let factory = PaymentSheetFormFactory(
+            intent: ._testPaymentIntent(paymentMethodTypes: [.card],
+                                        paymentMethodOptionsSetupFutureUsage: [.card: "off_session"]),
+            elementsSession: ._testValue(paymentMethodTypes: ["card"],
+                                         customerSessionData: [
+                                            "mobile_payment_element": [
+                                                "enabled": true,
+                                                "features": ["payment_method_save": "disabled",
+                                                             "payment_method_remove": "enabled",
+                                                            ],
+                                            ],
+                                            "customer_sheet": [
+                                                "enabled": false,
+                                            ],
+                                        ]),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card)
         )
 
@@ -1433,7 +1632,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
                                                 "enabled": false,
                                             ],
                                          ]),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card)
         )
 
@@ -1458,7 +1657,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
                                                 "enabled": false,
                                             ],
                                          ]),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card)
         )
 
@@ -1492,7 +1691,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let factory = PaymentSheetFormFactory(
             intent: ._testPaymentIntent(paymentMethodTypes: [.card]),
             elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card),
             addressSpecProvider: specProvider
         )
@@ -1538,7 +1737,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let factory = PaymentSheetFormFactory(
             intent: ._testPaymentIntent(paymentMethodTypes: [.card]),
             elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card),
             addressSpecProvider: specProvider
         )
@@ -1606,7 +1805,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let factory = PaymentSheetFormFactory(
             intent: ._testPaymentIntent(paymentMethodTypes: [.iDEAL, .card]),
             elementsSession: ._testValue(paymentMethodTypes: ["ideal", "card"]),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.cardPresent), // A payment method that doesn't have LUXE specs and in-code form definition
             accountService: LinkAccountService._testValue(),
             analyticsHelper: ._testValue(analyticsClient: analyticsClient)
@@ -1633,11 +1832,14 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         configuration.customer = .init(id: "id", ephemeralKeySecret: "ek")
         let analyticsClient = STPAnalyticsClient()
 
-        func makeForm(intent: Intent) -> PaymentMethodElement {
+        func makeForm(intent: Intent, shouldReadPaymentMethodOptionsSetupFutureUsage: Bool = false) -> PaymentMethodElement {
+            if shouldReadPaymentMethodOptionsSetupFutureUsage {
+                configuration.shouldReadPaymentMethodOptionsSetupFutureUsage = true
+            }
             return PaymentSheetFormFactory(
                 intent: intent,
                 elementsSession: ._testValue(intent: intent),
-                configuration: .paymentSheet(configuration),
+                configuration: .paymentElement(configuration),
                 paymentMethod: .stripe(.card),
                 accountService: LinkAccountService._testValue(),
                 analyticsHelper: ._testValue(analyticsClient: analyticsClient)
@@ -1649,8 +1851,72 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let cardForm_pi_sfu = makeForm(intent: ._testPaymentIntent(paymentMethodTypes: [.card], setupFutureUsage: .offSession))
         XCTAssertTrue(cardForm_pi_sfu.getMandateElement() != nil)
 
+        let cardForm_pi_pmo_sfu = makeForm(intent: ._testPaymentIntent(paymentMethodTypes: [.card], paymentMethodOptionsSetupFutureUsage: [.card: "off_session"]), shouldReadPaymentMethodOptionsSetupFutureUsage: true)
+        XCTAssertTrue(cardForm_pi_pmo_sfu.getMandateElement() != nil)
+
+        let cardForm_pi_top_level_sfu_pmo_sfu_none = makeForm(intent: ._testPaymentIntent(paymentMethodTypes: [.card], setupFutureUsage: .offSession, paymentMethodOptionsSetupFutureUsage: [.card: "none"]), shouldReadPaymentMethodOptionsSetupFutureUsage: true)
+        XCTAssertTrue(cardForm_pi_top_level_sfu_pmo_sfu_none.getMandateElement() == nil)
+
+        let cardForm_deferred_pi_pmo_sfu = makeForm(intent: ._testDeferredIntent(paymentMethodTypes: [.card], paymentMethodOptionsSetupFutureUsage: [.card: .offSession]), shouldReadPaymentMethodOptionsSetupFutureUsage: true)
+        XCTAssertTrue(cardForm_deferred_pi_pmo_sfu.getMandateElement() != nil)
+
+        let cardForm_deferred_pi_top_level_sfu_pmo_sfu_none = makeForm(intent: ._testDeferredIntent(paymentMethodTypes: [.card], setupFutureUsage: .offSession, paymentMethodOptionsSetupFutureUsage: [.card: .none]), shouldReadPaymentMethodOptionsSetupFutureUsage: true)
+        XCTAssertTrue(cardForm_deferred_pi_top_level_sfu_pmo_sfu_none.getMandateElement() == nil)
+
         let cardForm_si = makeForm(intent: ._testSetupIntent(paymentMethodTypes: [.card]))
         XCTAssertTrue(cardForm_si.getMandateElement() != nil)
+    }
+
+    func testiDEALFormContainsMandateText() {
+        let expectation = expectation(description: "Load specs")
+        AddressSpecProvider.shared.loadAddressSpecs {
+            FormSpecProvider.shared.load { _ in
+                expectation.fulfill()
+            }
+        }
+        waitForExpectations(timeout: 1)
+
+        var configuration = PaymentSheet.Configuration._testValue_MostPermissive()
+        configuration.customer = .init(id: "id", ephemeralKeySecret: "ek")
+        let analyticsClient = STPAnalyticsClient()
+
+        func makeForm(intent: Intent, shouldReadPaymentMethodOptionsSetupFutureUsage: Bool = false) -> PaymentMethodElement {
+            if shouldReadPaymentMethodOptionsSetupFutureUsage {
+                configuration.shouldReadPaymentMethodOptionsSetupFutureUsage = true
+            }
+            return PaymentSheetFormFactory(
+                intent: intent,
+                elementsSession: ._testValue(intent: intent),
+                configuration: .paymentElement(configuration),
+                paymentMethod: .stripe(.iDEAL),
+                accountService: LinkAccountService._testValue(),
+                analyticsHelper: ._testValue(analyticsClient: analyticsClient)
+            ).make()
+        }
+        let iDEALForm_pi = makeForm(intent: ._testPaymentIntent(paymentMethodTypes: [.iDEAL]))
+        XCTAssertTrue(iDEALForm_pi.getMandateElement() == nil)
+
+        let iDEALForm_pi_sfu = makeForm(intent: ._testPaymentIntent(paymentMethodTypes: [.iDEAL], setupFutureUsage: .offSession))
+        XCTAssertTrue(iDEALForm_pi_sfu.getMandateElement() != nil)
+
+        let iDEALForm_pi_pmo_sfu = makeForm(intent: ._testPaymentIntent(paymentMethodTypes: [.iDEAL], paymentMethodOptionsSetupFutureUsage: [.iDEAL: "off_session"]), shouldReadPaymentMethodOptionsSetupFutureUsage: true)
+        XCTAssertTrue(iDEALForm_pi_pmo_sfu.getMandateElement() != nil)
+        // iDEAL displays SEPA mandate if setting up
+        XCTAssertEqual(iDEALForm_pi_pmo_sfu.getMandateElement()?.mandateTextView.textView.text, String(format: String.Localized.sepa_mandate_text, configuration.merchantDisplayName))
+
+        let iDEALForm_pi_top_level_sfu_pmo_sfu_none = makeForm(intent: ._testPaymentIntent(paymentMethodTypes: [.iDEAL], setupFutureUsage: .offSession, paymentMethodOptionsSetupFutureUsage: [.iDEAL: "none"]), shouldReadPaymentMethodOptionsSetupFutureUsage: true)
+        XCTAssertTrue(iDEALForm_pi_top_level_sfu_pmo_sfu_none.getMandateElement() == nil)
+
+        let iDEALForm_deferred_pi_pmo_sfu = makeForm(intent: ._testDeferredIntent(paymentMethodTypes: [.iDEAL], paymentMethodOptionsSetupFutureUsage: [.iDEAL: .offSession]), shouldReadPaymentMethodOptionsSetupFutureUsage: true)
+        XCTAssertTrue(iDEALForm_deferred_pi_pmo_sfu.getMandateElement() != nil)
+        // iDEAL displays SEPA mandate if setting up
+        XCTAssertEqual(iDEALForm_deferred_pi_pmo_sfu.getMandateElement()?.mandateTextView.textView.text, String(format: String.Localized.sepa_mandate_text, configuration.merchantDisplayName))
+
+        let iDEALForm_deferred_pi_top_level_sfu_pmo_sfu_none = makeForm(intent: ._testDeferredIntent(paymentMethodTypes: [.iDEAL], setupFutureUsage: .offSession, paymentMethodOptionsSetupFutureUsage: [.iDEAL: .none]), shouldReadPaymentMethodOptionsSetupFutureUsage: true)
+        XCTAssertTrue(iDEALForm_deferred_pi_top_level_sfu_pmo_sfu_none.getMandateElement() == nil)
+
+        let iDEALForm_si = makeForm(intent: ._testSetupIntent(paymentMethodTypes: [.iDEAL]))
+        XCTAssertTrue(iDEALForm_si.getMandateElement() != nil)
     }
 
     // MARK: Instant Debits
@@ -1665,7 +1931,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let factory = PaymentSheetFormFactory(
             intent: ._testPaymentIntent(paymentMethodTypes: [.card]),
             elementsSession: ._testValue(paymentMethodTypes: ["card"]),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card)
         )
         guard let instantDebitsSection = factory.makeInstantDebits(countries: ["US"]) as? InstantDebitsPaymentMethodElement else {
@@ -1689,7 +1955,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let factory = PaymentSheetFormFactory(
             intent: ._testPaymentIntent(paymentMethodTypes: [.card]),
             elementsSession: ._testValue(paymentMethodTypes: ["card"]),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card)
         )
         guard let instantDebitsSection = factory.makeInstantDebits(countries: ["US"]) as? InstantDebitsPaymentMethodElement else {
@@ -1713,7 +1979,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let factory = PaymentSheetFormFactory(
             intent: ._testPaymentIntent(paymentMethodTypes: [.card]),
             elementsSession: ._testValue(paymentMethodTypes: ["card"]),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card)
         )
         guard let instantDebitsSection = factory.makeInstantDebits(countries: ["US"]) as? InstantDebitsPaymentMethodElement else {
@@ -1740,7 +2006,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let factory = PaymentSheetFormFactory(
             intent: ._testPaymentIntent(paymentMethodTypes: [.card]),
             elementsSession: ._testValue(paymentMethodTypes: ["card"]),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card)
         )
         guard let instantDebitsSection = factory.makeInstantDebits(countries: ["US"]) as? InstantDebitsPaymentMethodElement else {
@@ -1774,7 +2040,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let factory = PaymentSheetFormFactory(
             intent: ._testPaymentIntent(paymentMethodTypes: [.card]),
             elementsSession: ._testValue(paymentMethodTypes: ["card"]),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card)
         )
         guard let instantDebitsSection = factory.makeInstantDebits(countries: ["US"]) as? InstantDebitsPaymentMethodElement else {
@@ -1807,7 +2073,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let factory = PaymentSheetFormFactory(
             intent: ._testPaymentIntent(paymentMethodTypes: [.card]),
             elementsSession: ._testValue(paymentMethodTypes: ["card"]),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card)
         )
         guard let instantDebitsSection = factory.makeInstantDebits(countries: ["US"]) as? InstantDebitsPaymentMethodElement else {
@@ -1849,7 +2115,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let factory = PaymentSheetFormFactory(
             intent: ._testPaymentIntent(paymentMethodTypes: [.card]),
             elementsSession: ._testValue(paymentMethodTypes: ["card"]),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card)
         )
         guard let instantDebitsSection = factory.makeInstantDebits(countries: ["US"]) as? InstantDebitsPaymentMethodElement else {
@@ -1888,7 +2154,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let factory = PaymentSheetFormFactory(
             intent: ._testPaymentIntent(paymentMethodTypes: [.card]),
             elementsSession: ._testValue(paymentMethodTypes: ["card"]),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card)
         )
         guard let instantDebitsSection = factory.makeInstantDebits(countries: ["US"]) as? InstantDebitsPaymentMethodElement else {
@@ -1926,7 +2192,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let factory = PaymentSheetFormFactory(
             intent: ._testPaymentIntent(paymentMethodTypes: [.card]),
             elementsSession: ._testValue(paymentMethodTypes: ["card"]),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card)
         )
         guard let instantDebitsSection = factory.makeInstantDebits(countries: ["US"]) as? InstantDebitsPaymentMethodElement else {
@@ -1970,7 +2236,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let noDefaultsFacotry = PaymentSheetFormFactory(
             intent: ._testPaymentIntent(paymentMethodTypes: [.card]),
             elementsSession: ._testValue(paymentMethodTypes: ["card"]),
-            configuration: .paymentSheet(noDefaultsConfiguration),
+            configuration: .paymentElement(noDefaultsConfiguration),
             paymentMethod: .stripe(.card)
         )
         guard let noDefaultsInstantDebitsSection = noDefaultsFacotry.makeInstantDebits(countries: ["US"]) as? InstantDebitsPaymentMethodElement else {
@@ -1990,7 +2256,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let defaultEmailFacotry = PaymentSheetFormFactory(
             intent: ._testPaymentIntent(paymentMethodTypes: [.card]),
             elementsSession: ._testValue(paymentMethodTypes: ["card"]),
-            configuration: .paymentSheet(defaultEmailConfiguration),
+            configuration: .paymentElement(defaultEmailConfiguration),
             paymentMethod: .stripe(.card)
         )
         guard let defaultEmailInstantDebitsSection = defaultEmailFacotry.makeInstantDebits(countries: ["US"]) as? InstantDebitsPaymentMethodElement else {
@@ -2067,7 +2333,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let factory = PaymentSheetFormFactory(
             intent: ._testPaymentIntent(paymentMethodTypes: [.card]),
             elementsSession: ._testCardValue(),
-            configuration: .paymentSheet(configuration),
+            configuration: .paymentElement(configuration),
             paymentMethod: .stripe(.card),
             previousCustomerInput: previousCustomerInput
         )
@@ -2110,7 +2376,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
             return PaymentSheetFormFactory(
                 intent: isSettingUp ? ._testSetupIntent() : ._testValue(),
                 elementsSession: ._testCardValue(),
-                configuration: .paymentSheet(configuration),
+                configuration: .paymentElement(configuration),
                 paymentMethod: .stripe(.card),
                 previousCustomerInput: previousCustomerInput
             ).make()
@@ -2180,7 +2446,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let afterpayFactory = PaymentSheetFormFactory(
             intent: ._testPaymentIntent(paymentMethodTypes: [.afterpayClearpay]),
             elementsSession: ._testValue(paymentMethodTypes: ["afterpay_clearpay"]),
-            configuration: .paymentSheet(PaymentSheet.Configuration._testValue_MostPermissive()),
+            configuration: .paymentElement(PaymentSheet.Configuration._testValue_MostPermissive()),
             paymentMethod: .stripe(.afterpayClearpay),
             previousCustomerInput: previousAfterpayCustomerInput
         )
@@ -2199,7 +2465,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
         let afterpayFormWithPreviousCardInput = PaymentSheetFormFactory(
             intent: ._testPaymentIntent(paymentMethodTypes: [.afterpayClearpay]),
             elementsSession: ._testValue(paymentMethodTypes: ["afterpay_clearpay"]),
-            configuration: .paymentSheet(PaymentSheet.Configuration._testValue_MostPermissive()),
+            configuration: .paymentElement(PaymentSheet.Configuration._testValue_MostPermissive()),
             paymentMethod: .stripe(.afterpayClearpay),
             previousCustomerInput: previousCardCustomerInput
         ).make()
@@ -2221,7 +2487,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
             let factory = PaymentSheetFormFactory(
                 intent: ._testPaymentIntent(paymentMethodTypes: [.klarna], currency: "eur"),
                 elementsSession: ._testValue(paymentMethodTypes: ["klarna"]),
-                configuration: .paymentSheet(PaymentSheet.Configuration._testValue_MostPermissive()),
+                configuration: .paymentElement(PaymentSheet.Configuration._testValue_MostPermissive()),
                 paymentMethod: .stripe(.klarna),
                 previousCustomerInput: previousCustomerInput
             )
@@ -2256,7 +2522,7 @@ class PaymentSheetFormFactoryTest: XCTestCase {
             return PaymentSheetFormFactory(
                 intent: ._testPaymentIntent(paymentMethodTypes: [.payPal], setupFutureUsage: isSettingUp ? .offSession : .none),
                 elementsSession: ._testValue(paymentMethodTypes: ["paypal"]),
-                configuration: .paymentSheet(PaymentSheet.Configuration._testValue_MostPermissive()),
+                configuration: .paymentElement(PaymentSheet.Configuration._testValue_MostPermissive()),
                 paymentMethod: .stripe(.payPal),
                 previousCustomerInput: previousCustomerInput
             ).make()

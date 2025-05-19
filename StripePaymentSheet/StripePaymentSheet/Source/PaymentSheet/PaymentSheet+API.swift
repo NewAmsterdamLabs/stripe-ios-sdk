@@ -178,10 +178,18 @@ extension PaymentSheet {
 
         // MARK: - New Payment Method
         case let .new(confirmParams):
+            let paymentMethodType: STPPaymentMethodType = {
+                switch paymentOption.paymentMethodType {
+                case .stripe(let paymentMethodType):
+                    return paymentMethodType
+                default:
+                    return .unknown
+                }
+            }()
             // Set allow_redisplay on params
             confirmParams.setAllowRedisplay(
                 mobilePaymentElementFeatures: elementsSession.customerSessionMobilePaymentElementFeatures,
-                isSettingUp: intent.isSettingUp
+                isSettingUp: configuration.shouldReadPaymentMethodOptionsSetupFutureUsage ? intent.isSetupFutureUsageSet(for: paymentMethodType) : intent.isSettingUp
             )
             switch intent {
             // MARK: ↪ PaymentIntent
@@ -311,7 +319,9 @@ extension PaymentSheet {
                     paymentIntentParams.paymentMethodParams = paymentMethodParams
                     paymentIntentParams.returnURL = configuration.returnURL
                     let paymentOptions = paymentIntentParams.paymentMethodOptions ?? STPConfirmPaymentMethodOptions()
-                    paymentOptions.setSetupFutureUsageIfNecessary(shouldSave, paymentMethodType: paymentMethodParams.type, customer: configuration.customer)
+                    let paymentMethodType = paymentMethodParams.type
+                    let currentSetupFutureUsage = configuration.shouldReadPaymentMethodOptionsSetupFutureUsage ? paymentIntent.paymentMethodOptions?.setupFutureUsage(for: paymentMethodType) : nil
+                    paymentOptions.setSetupFutureUsageIfNecessary(shouldSave, currentSetupFutureUsage: currentSetupFutureUsage, paymentMethodType: paymentMethodType, customer: configuration.customer)
                     paymentIntentParams.paymentMethodOptions = paymentOptions
                     paymentIntentParams.shipping = makeShippingParams(for: paymentIntent, configuration: configuration)
                     paymentHandler.confirmPayment(
@@ -374,7 +384,9 @@ extension PaymentSheet {
                     paymentIntentParams.returnURL = configuration.returnURL
                     paymentIntentParams.shipping = makeShippingParams(for: paymentIntent, configuration: configuration)
                     let paymentOptions = paymentIntentParams.paymentMethodOptions ?? STPConfirmPaymentMethodOptions()
-                    paymentOptions.setSetupFutureUsageIfNecessary(shouldSave, paymentMethodType: paymentMethod.type, customer: configuration.customer)
+                    let paymentMethodType = paymentMethod.type
+                    let currentSetupFutureUsage = configuration.shouldReadPaymentMethodOptionsSetupFutureUsage ? paymentIntent.paymentMethodOptions?.setupFutureUsage(for: paymentMethodType) : nil
+                    paymentOptions.setSetupFutureUsageIfNecessary(shouldSave, currentSetupFutureUsage: currentSetupFutureUsage, paymentMethodType: paymentMethodType, customer: configuration.customer)
                     paymentIntentParams.paymentMethodOptions = paymentOptions
                     paymentIntentParams.mandateData = mandateData
                     paymentHandler.confirmPayment(
@@ -424,10 +436,11 @@ extension PaymentSheet {
                 (
                     PaymentSheetLinkAccount,
                     ConsumerPaymentDetails,
-                    String?,
+                    String?, // cvc
+                    String?, // phone number
                     Bool
-                ) -> Void = { linkAccount, paymentDetails, cvc, shouldSave in
-                    guard let paymentMethodParams = linkAccount.makePaymentMethodParams(from: paymentDetails, cvc: cvc) else {
+                ) -> Void = { linkAccount, paymentDetails, cvc, billingPhoneNumber, shouldSave in
+                    guard let paymentMethodParams = linkAccount.makePaymentMethodParams(from: paymentDetails, cvc: cvc, billingPhoneNumber: billingPhoneNumber) else {
                         let error = PaymentSheetError.payingWithoutValidLinkSession
                         completion(.failed(error: error), nil)
                         return
@@ -455,13 +468,18 @@ extension PaymentSheet {
                     linkAccount.createPaymentDetails(with: paymentMethodParams) { result in
                         switch result {
                         case .success(let paymentDetails):
+                            // We need to explicitly pass the billing phone number to the share and payment method endpoints,
+                            // since it's not part of the consumer payment details.
+                            let billingPhoneNumber = paymentMethodParams.billingDetails?.phone
+
                             if elementsSession.linkPassthroughModeEnabled {
                                 // If passthrough mode, share payment details
                                 linkAccount.sharePaymentDetails(
                                     id: paymentDetails.stripeID,
                                     cvc: paymentMethodParams.card?.cvc,
                                     allowRedisplay: paymentMethodParams.allowRedisplay,
-                                    expectedPaymentMethodType: paymentDetails.expectedPaymentMethodTypeForPassthroughMode(elementsSession)
+                                    expectedPaymentMethodType: paymentDetails.expectedPaymentMethodTypeForPassthroughMode(elementsSession),
+                                    billingPhoneNumber: billingPhoneNumber
                                 ) { result in
                                     switch result {
                                     case .success(let paymentDetailsShareResponse):
@@ -474,7 +492,7 @@ extension PaymentSheet {
                                 }
                             } else {
                                 // If not passthrough mode, confirm details directly
-                                confirmWithPaymentDetails(linkAccount, paymentDetails, paymentMethodParams.card?.cvc, shouldSave)
+                                confirmWithPaymentDetails(linkAccount, paymentDetails, paymentMethodParams.card?.cvc, billingPhoneNumber, shouldSave)
                             }
                         case .failure(let error):
                             STPAnalyticsClient.sharedClient.logLinkCreatePaymentDetailsFailure(error: error)
@@ -501,10 +519,11 @@ extension PaymentSheet {
                     switch result {
                     case .success:
                         STPAnalyticsClient.sharedClient.logLinkSignupComplete()
+                        let linkPaymentMethodType: STPPaymentMethodType = elementsSession.linkPassthroughModeEnabled ? intentConfirmParams.paymentMethodParams.type : .link
                         // Set allow_redisplay on params
                         intentConfirmParams.setAllowRedisplay(
                             mobilePaymentElementFeatures: elementsSession.customerSessionMobilePaymentElementFeatures,
-                            isSettingUp: intent.isSettingUp
+                            isSettingUp: configuration.shouldReadPaymentMethodOptionsSetupFutureUsage ? intent.isSetupFutureUsageSet(for: linkPaymentMethodType) :  intent.isSettingUp
                         )
                         createPaymentDetailsAndConfirm(linkAccount, intentConfirmParams.paymentMethodParams, intentConfirmParams.saveForFutureUseCheckboxState == .selected)
                     case .failure(let error as NSError):
@@ -515,7 +534,7 @@ extension PaymentSheet {
                 }
             case .withPaymentMethod(let paymentMethod):
                 confirmWithPaymentMethod(paymentMethod, nil, false)
-            case .withPaymentDetails(let linkAccount, let paymentDetails):
+            case .withPaymentDetails(let linkAccount, let paymentDetails, let confirmationExtras):
                 let shouldSave = false // always false, as we don't show a save-to-merchant checkbox in Link VC
 
                 if elementsSession.linkPassthroughModeEnabled {
@@ -524,7 +543,8 @@ extension PaymentSheet {
                         id: paymentDetails.stripeID,
                         cvc: paymentDetails.cvc,
                         allowRedisplay: nil,
-                        expectedPaymentMethodType: paymentDetails.expectedPaymentMethodTypeForPassthroughMode(elementsSession)
+                        expectedPaymentMethodType: paymentDetails.expectedPaymentMethodTypeForPassthroughMode(elementsSession),
+                        billingPhoneNumber: confirmationExtras?.billingPhoneNumber
                     ) { result in
                         switch result {
                         case .success(let paymentDetailsShareResponse):
@@ -535,7 +555,7 @@ extension PaymentSheet {
                         }
                     }
                 } else {
-                    confirmWithPaymentDetails(linkAccount, paymentDetails, paymentDetails.cvc, shouldSave)
+                    confirmWithPaymentDetails(linkAccount, paymentDetails, paymentDetails.cvc, confirmationExtras?.billingPhoneNumber, shouldSave)
                 }
             }
         case let .external(externalPaymentOption, billingDetails):
@@ -555,10 +575,10 @@ extension PaymentSheet {
         case paymentIntent(STPPaymentIntent)
         case setupIntent(STPSetupIntent)
 
-        var isSetupFutureUsageSet: Bool {
+        func isSetupFutureUsageSet(paymentMethodType: STPPaymentMethodType) -> Bool {
             switch self {
             case .paymentIntent(let paymentIntent):
-                return paymentIntent.isSetupFutureUsageSet
+                return paymentIntent.isSetupFutureUsageSet(for: paymentMethodType)
             case .setupIntent:
                 return true
             }
@@ -582,8 +602,8 @@ extension PaymentSheet {
             // Did we successfully save this payment method?
             actionStatus == .succeeded,
             let customer = configuration.customer?.id,
-            intent.isSetupFutureUsageSet,
             let paymentMethod = intent.paymentMethod,
+            intent.isSetupFutureUsageSet(paymentMethodType: paymentMethod.type),
             // Can it appear in the list of saved PMs?
             PaymentSheet.supportedSavedPaymentMethods.contains(paymentMethod.type),
             // Should it write to local storage?
@@ -653,14 +673,16 @@ extension PaymentSheet {
                 params.setAsDefaultPM = NSNumber(value: shouldSetAsDefaultPM)
             }
             let requiresMandateData: [STPPaymentMethodType] = [.payPal, .cashApp, .revolutPay, .amazonPay, .klarna]
-            if requiresMandateData.contains(paymentMethodType) && paymentIntent.setupFutureUsage == .offSession
+            let isSetupFutureUsageOffSession = configuration.shouldReadPaymentMethodOptionsSetupFutureUsage ? paymentIntent.setupFutureUsage(for: paymentMethodType) == "off_session" : paymentIntent.setupFutureUsage == .offSession
+            if requiresMandateData.contains(paymentMethodType) && isSetupFutureUsageOffSession
             {
                 params.mandateData = .makeWithInferredValues()
             }
         }
 
         let paymentOptions = params.paymentMethodOptions ?? STPConfirmPaymentMethodOptions()
-        paymentOptions.setSetupFutureUsageIfNecessary(shouldSave, paymentMethodType: paymentMethodType, customer: configuration.customer)
+        let currentSetupFutureUsage = configuration.shouldReadPaymentMethodOptionsSetupFutureUsage ? paymentIntent.paymentMethodOptions?.setupFutureUsage(for: paymentMethodType) : nil
+        paymentOptions.setSetupFutureUsageIfNecessary(shouldSave, currentSetupFutureUsage: currentSetupFutureUsage, paymentMethodType: paymentMethodType, customer: configuration.customer)
         if let mandateData = mandateData {
             params.mandateData = mandateData
         }

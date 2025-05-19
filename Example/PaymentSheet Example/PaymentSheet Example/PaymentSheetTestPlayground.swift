@@ -41,6 +41,7 @@ struct PaymentSheetTestPlayground: View {
                 SettingView(setting: linkEnabledModeBinding)
             }
             SettingView(setting: $playgroundController.settings.linkPassthroughMode)
+            SettingView(setting: $playgroundController.settings.linkDisplay)
         }
         SettingView(setting: $playgroundController.settings.userOverrideCountry)
         SettingView(setting: $playgroundController.settings.externalPaymentMethods)
@@ -55,6 +56,7 @@ struct PaymentSheetTestPlayground: View {
         SettingView(setting: $playgroundController.settings.autoreload)
         SettingView(setting: $playgroundController.settings.shakeAmbiguousViews)
         SettingView(setting: $playgroundController.settings.instantDebitsIncentives)
+        SettingView(setting: $playgroundController.settings.fcLiteEnabled)
     }
 
     var body: some View {
@@ -99,7 +101,9 @@ struct PaymentSheetTestPlayground: View {
                         SettingView(setting: $playgroundController.settings.customerKeyType)
                         SettingView(setting: customerModeBinding)
                         HStack {
-                            SettingPickerView(setting: $playgroundController.settings.amount)
+                            SettingPickerView(setting: $playgroundController.settings.amount, customDisplayName: { amount in
+                                return amount.customDisplayName(currency: playgroundController.settings.currency)
+                            })
                             SettingPickerView(setting: $playgroundController.settings.currency)
                         }
                         SettingPickerView(setting: merchantCountryBinding)
@@ -107,6 +111,21 @@ struct PaymentSheetTestPlayground: View {
                         if playgroundController.settings.apmsEnabled == .off {
                             TextField("Supported Payment Methods (comma separated)", text: supportedPaymentMethodsBinding)
                                 .autocapitalization(.none)
+                        }
+                    }
+                    Group {
+                        VStack {
+                            HStack {
+                                Text("Payment Method Options")
+                                    .font(.subheadline)
+                                Spacer()
+                                Button {
+                                    playgroundController.paymentMethodOptionsSetupFutureUsageSettingsTapped()
+                                } label: {
+                                    Text("SetupFutureUsage")
+                                        .font(.callout.smallCaps())
+                                }.buttonStyle(.bordered)
+                            }
                         }
                     }
                     Group {
@@ -575,14 +594,20 @@ struct SettingView<S: PickerEnum>: View {
 struct SettingPickerView<S: PickerEnum>: View {
     var setting: Binding<S>
     var disabledSettings: [S] = []
+    var customDisplayLabel: String?
+    var customDisplayName: ((S) -> String)?
 
     var body: some View {
         HStack {
-            Text(S.enumName).font(.subheadline)
+            Text(customDisplayLabel ?? S.enumName).font(.subheadline)
             Spacer()
             Picker(S.enumName, selection: setting) {
                 ForEach(S.allCases.filter({ !disabledSettings.contains($0) }), id: \.self) { t in
-                    Text(t.displayName)
+                    if let customDisplayName {
+                        Text(customDisplayName(t))
+                    } else {
+                        Text(t.displayName)
+                    }
                 }
             }.layoutPriority(0.8)
         }

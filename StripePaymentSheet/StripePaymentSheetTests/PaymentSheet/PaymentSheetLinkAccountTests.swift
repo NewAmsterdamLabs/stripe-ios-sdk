@@ -23,7 +23,7 @@ final class PaymentSheetLinkAccountTests: APIStubbedTestCase {
         let sut = makeSUT()
 
         let paymentDetails = makePaymentDetailsStub()
-        let result = sut.makePaymentMethodParams(from: paymentDetails, cvc: nil)
+        let result = sut.makePaymentMethodParams(from: paymentDetails, cvc: nil, billingPhoneNumber: nil)
 
         XCTAssertEqual(result?.type, .link)
         XCTAssertEqual(result?.link?.paymentDetailsID, "1")
@@ -40,7 +40,7 @@ final class PaymentSheetLinkAccountTests: APIStubbedTestCase {
         let sut = makeSUT()
 
         let paymentDetails = makePaymentDetailsStub()
-        let result = sut.makePaymentMethodParams(from: paymentDetails, cvc: "1234")
+        let result = sut.makePaymentMethodParams(from: paymentDetails, cvc: "1234", billingPhoneNumber: nil)
 
         XCTAssertEqual(
             result?.link?.additionalAPIParameters["card"] as? [String: String],
@@ -59,8 +59,8 @@ final class PaymentSheetLinkAccountTests: APIStubbedTestCase {
             return urlRequest.url?.absoluteString.contains("consumers/payment_details/list") ?? false
         } response: { urlRequest in
             // Check to make sure we've passed the correct secret key
-            let body = String(data: urlRequest.httpBodyOrBodyStream!, encoding: .utf8)
-            if !body!.contains("unexpired_key") {
+            let body = String(decoding: urlRequest.httpBodyOrBodyStream!, as: UTF8.self)
+            if !body.contains("unexpired_key") {
                 // If it isn't the unexpired key, force a refresh by sending the correct error:
                 let errorResponse = [
                     "error":
@@ -106,6 +106,8 @@ class PaymentSheetLinkAccountDelegateStub: PaymentSheetLinkAccountDelegate {
             clientSecret: "unexpired_key",
             emailAddress: "user@example.com",
             redactedFormattedPhoneNumber: "(***) *** **55",
+            unredactedPhoneNumber: "(555) 555-5555",
+            phoneNumberCountry: "US",
             verificationSessions: [],
             supportedPaymentDetailsTypes: [.card, .bankAccount]
         )
@@ -119,9 +121,18 @@ extension PaymentSheetLinkAccountTests {
     func makePaymentDetailsStub() -> ConsumerPaymentDetails {
         return ConsumerPaymentDetails(
             stripeID: "1",
-            details: .card(card: .init(expiryYear: 30, expiryMonth: 10, brand: "visa", last4: "1234", checks: nil)),
+            details: .card(card: .init(
+                expiryYear: 30,
+                expiryMonth: 10,
+                brand: "visa",
+                networks: ["visa"],
+                last4: "1234",
+                funding: .credit,
+                checks: nil
+            )),
             billingAddress: nil,
             billingEmailAddress: nil,
+            nickname: nil,
             isDefault: false
         )
     }
