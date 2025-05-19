@@ -138,6 +138,8 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
         )
         return button
     }()
+    
+    private var containingStackView = UIStackView()
 
     // MARK: - Init
 
@@ -228,16 +230,8 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
-
-        NSLayoutConstraint.activate([
-            stackView.topAnchor.constraint(equalTo: view.topAnchor),
-            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            stackView.bottomAnchor.constraint(
-                equalTo: view.bottomAnchor,
-                constant: -PaymentSheetUI.defaultSheetMargins.bottom
-            ),
-        ])
+        
+        self.containingStackView = stackView
 
         updateUI(animated: false)
     }
@@ -245,6 +239,20 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         analyticsHelper.logShow(showingSavedPMList: mode == .selectingSaved)
+    }
+    
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        
+        NSLayoutConstraint.activate([
+            containingStackView.topAnchor.constraint(equalTo: view.topAnchor),
+            containingStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            containingStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            containingStackView.bottomAnchor.constraint(
+                equalTo: view.bottomAnchor,
+                constant: -(PaymentSheetUI.defaultSheetMargins.bottom + footerView.frame.height)
+            ),
+        ])
     }
 
     func set(error: Error?) {

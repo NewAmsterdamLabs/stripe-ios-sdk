@@ -43,6 +43,9 @@ class BottomSheetViewController: UIViewController, BottomSheetPresentable {
     lazy var scrollView: UIScrollView = {
         let scrollView = UIScrollView()
         scrollView.automaticallyAdjustsScrollIndicatorInsets = false
+        #if !os(visionOS)
+        scrollView.keyboardDismissMode = .onDrag
+        #endif
         scrollView.delegate = self
         return scrollView
     }()
@@ -333,7 +336,7 @@ class BottomSheetViewController: UIViewController, BottomSheetPresentable {
 
         view.backgroundColor = .systemBackground
         registerForKeyboardNotifications()
-        [footerViewContainerView, scrollView, navigationBarContainerView].forEach({  // Note: Order important here, navigation bar should be on top
+        [scrollView, footerViewContainerView, navigationBarContainerView].forEach({  // Note: Order important here, navigation bar should be on top
             view.addSubview($0)
             $0.translatesAutoresizingMaskIntoConstraints = false
         })
@@ -357,7 +360,7 @@ class BottomSheetViewController: UIViewController, BottomSheetPresentable {
             scrollView.topAnchor.constraint(equalTo: navigationBarContainerView.bottomAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: footerViewContainerView.topAnchor)
+            bottomAnchor,
         ])
 
         contentContainerView.translatesAutoresizingMaskIntoConstraints = false
