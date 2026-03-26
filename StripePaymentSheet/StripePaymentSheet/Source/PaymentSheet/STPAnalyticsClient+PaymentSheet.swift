@@ -189,16 +189,3 @@ extension PaymentSheet.Appearance.NavigationBarStyle {
         }
     }
 }
-
-extension PaymentSheet.Appearance.EmbeddedPaymentElement.Row.Style {
-    var analyticsValue: String {
-        switch self {
-        case .flatWithRadio:
-            return "flat_with_radio"
-        case .floatingButton:
-            return "floating_button"
-        case .flatWithCheckmark:
-            return "flat_with_checkmark"
-        }
-    }
-}

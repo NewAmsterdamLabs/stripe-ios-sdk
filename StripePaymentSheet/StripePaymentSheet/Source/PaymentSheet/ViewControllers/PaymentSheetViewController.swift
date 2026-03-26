@@ -249,7 +249,7 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
             containingStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             containingStackView.bottomAnchor.constraint(
                 equalTo: view.bottomAnchor,
-                constant: -(PaymentSheetUI.defaultSheetMargins.bottom + footerView.frame.height)
+                constant: -(40.0 + footerView.frame.height)
             ),
         ])
     }

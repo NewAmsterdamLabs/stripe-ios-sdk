@@ -25,9 +25,6 @@ struct LinkAccountSessionManifest: Decodable {
     var isInstantDebits: Bool {
         product == "instant_debits"
     }
-    var bankAccountIsInstantlyVerified: Bool {
-        !manualEntryUsesMicrodeposits
-    }
 
     var hasAccountholderToken: Bool {
         accountholderToken != nil
