@@ -137,86 +137,6 @@ public class PaymentSheet {
         from presentingViewController: UIViewController,
         completion: @escaping (PaymentSheetResult) -> Void
     ) {
-<<<<<<< HEAD
-        // Overwrite completion closure to retain self until called
-        let completion: (PaymentSheetResult) -> Void = { status in
-            // Dismiss if necessary
-            if let presentingViewController = self.bottomSheetViewController.presentingViewController {
-                // Calling `dismiss()` on the presenting view controller causes
-                // the bottom sheet and any presented view controller by
-                // bottom sheet (i.e. Link) to be dismissed all at the same time.
-                presentingViewController.dismiss(animated: true) {
-                    completion(status)
-                }
-            } else {
-                completion(status)
-            }
-            self.completion = nil
-        }
-        self.completion = completion
-
-        // Guard against basic user error
-        guard presentingViewController.presentedViewController == nil else {
-            assertionFailure(PaymentSheetError.alreadyPresented.debugDescription)
-            let error = PaymentSheetError.alreadyPresented
-            completion(.failed(error: error))
-            return
-        }
-
-        // Configure the Payment Sheet VC after loading the PI/SI, Customer, etc.
-        PaymentSheetLoader.load(
-            mode: mode,
-            configuration: configuration,
-            analyticsHelper: analyticsHelper,
-            integrationShape: .complete
-        ) { result in
-            switch result {
-            case .success(let loadResult):
-                let presentPaymentSheet: () -> Void = {
-                    // Set the PaymentSheetViewController as the content of our bottom sheet
-                    let paymentSheetVC: PaymentSheetViewControllerProtocol = {
-                        switch self.configuration.paymentMethodLayout {
-                        case .horizontal:
-                            return PaymentSheetViewController(
-                                configuration: self.configuration,
-                                loadResult: loadResult,
-                                analyticsHelper: self.analyticsHelper,
-                                isConfirmed: self.configuration.delegate == nil,
-                                delegate: self
-                            )
-                        case .vertical, .automatic:
-                            let verticalVC = PaymentSheetVerticalViewController(
-                                configuration: self.configuration,
-                                loadResult: loadResult,
-                                isFlowController: false,
-                                analyticsHelper: self.analyticsHelper
-                            )
-                            verticalVC.paymentSheetDelegate = self
-                            return verticalVC
-                        }
-                    }()
-                    self.bottomSheetViewController.setViewControllers([paymentSheetVC])
-                }
-                if let linkAccount = LinkAccountContext.shared.account, loadResult.elementsSession.shouldShowLink2FABeforePaymentSheet(for: linkAccount) {
-                    let verificationController = LinkVerificationController(
-                        mode: .inlineLogin,
-                        linkAccount: linkAccount,
-                        configuration: self.configuration
-                    )
-                    verificationController.present(from: self.bottomSheetViewController) { result in
-                        switch result {
-                        case .completed:
-                            self.presentPayWithNativeLinkController(from: self.bottomSheetViewController, intent: loadResult.intent, elementsSession: loadResult.elementsSession, shouldOfferApplePay: self.configuration.isApplePayEnabled, shouldFinishOnClose: false) {
-                                // To prevent a flash of PaymentSheet content, don't present it until after the LinkController presentation animation has completed
-                                presentPaymentSheet()
-                            }
-                        case .canceled:
-                            presentPaymentSheet()
-                        case .failed:
-                            // Error is logged within LinkVerificationViewController
-                            presentPaymentSheet()
-                        }
-=======
         Task { @MainActor in
             // Overwrite completion closure to retain self until called
             let completion: (PaymentSheetResult) -> Void = { status in
@@ -227,7 +147,6 @@ public class PaymentSheet {
                     // bottom sheet (i.e. Link) to be dismissed all at the same time.
                     presentingViewController.dismiss(animated: true) {
                         completion(status)
->>>>>>> 25.9.0
                     }
                 } else {
                     completion(status)
@@ -276,6 +195,7 @@ public class PaymentSheet {
                                     configuration: configuration,
                                     loadResult: loadResult,
                                     analyticsHelper: self.analyticsHelper,
+                                    isConfirmed: self.configuration.delegate == nil,
                                     delegate: self
                                 )
                             case .vertical:
@@ -391,12 +311,8 @@ public class PaymentSheet {
     lazy var loadingViewController = LoadingViewController(
         delegate: self,
         appearance: configuration.appearance,
-<<<<<<< HEAD
         isTestMode: configuration.apiClient.isTestmode,
         loadingViewHeight: configuration.actionSheetInitialHeight
-=======
-        isTestMode: configuration.apiClient.isTestmode
->>>>>>> 25.9.0
     )
 
     /// The STPPaymentHandler instance

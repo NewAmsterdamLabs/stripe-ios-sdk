@@ -95,12 +95,9 @@ extension PaymentSheet {
         /// Configuration related to Link
         public var link: LinkConfiguration = LinkConfiguration()
 
-<<<<<<< HEAD
-=======
         /// Configuration related to ShopPay
         @_spi(STP) public var shopPay: ShopPayConfiguration?
 
->>>>>>> 25.9.0
         /// The color of the Buy or Add button. Defaults to `.systemBlue` when `nil`.
         public var primaryButtonColor: UIColor? {
             get {
@@ -228,16 +225,6 @@ extension PaymentSheet {
         /// Note: Card brand filtering is not currently supported by Link.
         public var cardBrandAcceptance: PaymentSheet.CardBrandAcceptance = .all
 
-<<<<<<< HEAD
-        /// If true, the payment method options setup future usage overrides the top-level setup future usage if set
-        @_spi(PaymentMethodOptionsSetupFutureUsagePreview) public var shouldReadPaymentMethodOptionsSetupFutureUsage: Bool = false
-
-        // MARK: - VBC added properties
-        public var walletSubview: UIView?
-        /// The height of the action sheet in its loading state
-        public var actionSheetInitialHeight: CGFloat = 244.0
-        public weak var delegate: PaymentSheetDelegate?
-=======
         /// By default, PaymentSheet will accept cards of all funding types (credit, debit, prepaid, unknown).
         /// You can specify which card funding types to allow.
         /// When a customer enters a card that isn't allowed, a warning will be displayed, but they can still complete the payment.
@@ -263,6 +250,15 @@ extension PaymentSheet {
 
         /// When using WalletButtonsView, configures payment method visibility across available surfaces.
         @_spi(STP) public var walletButtonsVisibility: WalletButtonsVisibility = WalletButtonsVisibility()
+
+        /// If true, the payment method options setup future usage overrides the top-level setup future usage if set
+        @_spi(PaymentMethodOptionsSetupFutureUsagePreview) public var shouldReadPaymentMethodOptionsSetupFutureUsage: Bool = false
+
+        // MARK: - VBC added properties
+        public var walletSubview: UIView?
+        /// The height of the action sheet in its loading state
+        public var actionSheetInitialHeight: CGFloat = 244.0
+        public weak var delegate: PaymentSheetDelegate?
 
         /// Resolves `.automatic` to `.horizontal` or `.vertical` based on experiment.
         /// For non-automatic layouts, returns self.
@@ -334,7 +330,6 @@ extension PaymentSheet {
         }
 
         @_spi(STP) public init() {}
->>>>>>> 25.9.0
     }
 
     /// Defines the layout orientations available for displaying payment methods in PaymentSheet.
@@ -545,15 +540,12 @@ extension PaymentSheet {
         /// The Link display mode.
         public var display: Display = .automatic
 
-<<<<<<< HEAD
-=======
         /// The Link funding sources that should be disabled. Defaults to an empty set.
         @_spi(STP) public var disallowFundingSourceCreation: Set<String> = []
 
         /// Whether missing billing details should be collected for existing Link payment methods.
         @_spi(CollectMissingLinkBillingDetailsPreview) public var collectMissingBillingDetailsForExistingPaymentMethods: Bool = true
 
->>>>>>> 25.9.0
         /// Display configuration for Link
         public enum Display: String {
             /// Link will be displayed when available.
@@ -575,8 +567,6 @@ extension PaymentSheet {
         ) {
             self.display = display
         }
-<<<<<<< HEAD
-=======
 
         @_spi(CollectMissingLinkBillingDetailsPreview) public init(
             display: Display = .automatic,
@@ -766,7 +756,6 @@ extension PaymentSheet {
             self.allowedShippingCountries = allowedShippingCountries
             self.handlers = handlers
         }
->>>>>>> 25.9.0
     }
 
     /// An address.

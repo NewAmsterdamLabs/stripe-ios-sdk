@@ -114,7 +114,7 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
     private lazy var bottomNoticeTextField: UITextView = {
         return ElementsUI.makeNoticeTextField(theme: configuration.appearance.asElementsTheme)
     }()
-    
+
     // VBC added property
     internal lazy var footerView: UIView = {
         return SheetFooterView(button: buyButton)
@@ -137,7 +137,7 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
         )
         return button
     }()
-    
+
     private var containingStackView = UIStackView()
 
     // MARK: - Init
@@ -229,21 +229,8 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
-<<<<<<< HEAD
-        
-        self.containingStackView = stackView
-=======
 
-        NSLayoutConstraint.activate([
-            stackView.topAnchor.constraint(equalTo: view.topAnchor),
-            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            stackView.bottomAnchor.constraint(
-                equalTo: view.bottomAnchor,
-                constant: -configuration.appearance.formInsets.bottom
-            ),
-        ])
->>>>>>> 25.9.0
+        self.containingStackView = stackView
 
         updateUI(animated: false)
     }
@@ -252,10 +239,10 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
         super.viewWillAppear(animated)
         analyticsHelper.logShow(showingSavedPMList: mode == .selectingSaved)
     }
-    
+
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
-        
+
         NSLayoutConstraint.activate([
             containingStackView.topAnchor.constraint(equalTo: view.topAnchor),
             containingStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -468,18 +455,17 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
     func presentError(_ error: Error) {
         isConfirming = false
     }
-    
+
     func pay(with paymentOption: PaymentOption) {
         view.endEditing(true)
         isPaymentInFlight = true
         // Clear any errors
         error = nil
-        
+
         if !isConfirming {
             updateUI()
         }
 
-<<<<<<< HEAD
         if isConfirmed {
             // Confirm the payment with the payment option
             let startTime = NSDate.timeIntervalSinceReferenceDate
@@ -493,15 +479,16 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
                         result: result,
                         deferredIntentConfirmationType: deferredIntentConfirmationType
                     )
-                    self.isPaymentInFlight = false
                     switch result {
                     case .canceled:
+                        self.isPaymentInFlight = false
                         // Do nothing, keep customer on payment sheet
                         self.updateUI()
                     case .failed(let error):
-#if !canImport(CompositorServices)
+                        self.isPaymentInFlight = false
+                        #if !os(visionOS)
                         UINotificationFeedbackGenerator().notificationOccurred(.error)
-#endif
+                        #endif
                         // Update state
                         self.error = error
                         self.updateUI()
@@ -511,53 +498,14 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
                         let delay: TimeInterval = self.presentedViewController?.isBeingDismissed == true ? 1 : 0
                         // Hack: PaymentHandler calls the completion block while SafariVC is still being dismissed - "wait" until it's finished before updating UI
                         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-#if !canImport(CompositorServices)
+#if !os(visionOS)
                             UINotificationFeedbackGenerator().notificationOccurred(.success)
 #endif
-                            self.buyButton.update(state: .succeeded, animated: true) {
+                            self.buyButton.update(status: .succeeded, animated: true) {
                                 // Wait a bit before closing the sheet
+                                self.isPaymentInFlight = false
                                 self.delegate?.paymentSheetViewControllerDidFinish(self, result: .completed)
                             }
-=======
-        // Confirm the payment with the payment option
-        let startTime = NSDate.timeIntervalSinceReferenceDate
-        self.delegate?.paymentSheetViewControllerShouldConfirm(self, with: paymentOption) { result, deferredIntentConfirmationType in
-            let elapsedTime = NSDate.timeIntervalSinceReferenceDate - startTime
-            DispatchQueue.main.asyncAfter(
-                deadline: .now() + max(PaymentSheetUI.minimumFlightTime - elapsedTime, 0)
-            ) {
-                self.analyticsHelper.logPayment(
-                    paymentOption: paymentOption,
-                    result: result,
-                    deferredIntentConfirmationType: deferredIntentConfirmationType
-                )
-                switch result {
-                case .canceled:
-                    self.isPaymentInFlight = false
-                    // Do nothing, keep customer on payment sheet
-                    self.updateUI()
-                case .failed(let error):
-                    self.isPaymentInFlight = false
-                    #if !os(visionOS)
-                    UINotificationFeedbackGenerator().notificationOccurred(.error)
-                    #endif
-                    // Update state
-                    self.error = error
-                    self.updateUI()
-                    UIAccessibility.post(notification: .layoutChanged, argument: self.errorLabel)
-                case .completed:
-                    // We're done!
-                    let delay: TimeInterval = self.presentedViewController?.isBeingDismissed == true ? 1 : 0
-                    // Hack: PaymentHandler calls the completion block while SafariVC is still being dismissed - "wait" until it's finished before updating UI
-                    DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-#if !os(visionOS)
-                        UINotificationFeedbackGenerator().notificationOccurred(.success)
-#endif
-                        self.buyButton.update(status: .succeeded, animated: true) {
-                            // Wait a bit before closing the sheet
-                            self.isPaymentInFlight = false
-                            self.delegate?.paymentSheetViewControllerDidFinish(self, result: .completed)
->>>>>>> 25.9.0
                         }
                     }
                 }
