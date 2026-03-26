@@ -137,10 +137,6 @@ public class STPImageLibrary: NSObject {
         return self.safeImageNamed("stp_icon_bank_link", templateIfAvailable: true)
     }
 
-    @_spi(STP) public class func linkBankIcon() -> UIImage {
-        return self.safeImageNamed("stp_icon_bank_link", templateIfAvailable: true)
-    }
-
     class func brandImage(
         for brand: STPCardBrand,
         template shouldUseTemplate: Bool,
