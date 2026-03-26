@@ -143,10 +143,6 @@ protocol FinancialConnectionsAPI {
         consentAcquired: Bool?
     ) -> Future<ShareNetworkedAccountsResponse>
 
-    func markLinkStepUpAuthenticationVerified(
-        clientSecret: String
-    ) -> Future<FinancialConnectionsSessionManifest>
-
     func consumerSessionLookup(
         emailAddress: String,
         clientSecret: String,
@@ -195,7 +191,8 @@ protocol FinancialConnectionsAPI {
         consumerSessionClientSecret: String,
         bankAccountId: String,
         billingAddress: BillingAddress?,
-        billingEmail: String?
+        billingEmail: String?,
+        clientAttributionMetadata: STPClientAttributionMetadata?
     ) -> Future<FinancialConnectionsPaymentDetails>
 
     func sharePaymentDetails(
@@ -203,13 +200,17 @@ protocol FinancialConnectionsAPI {
         paymentDetailsId: String,
         expectedPaymentMethodType: String,
         billingEmail: String?,
-        billingPhone: String?
+        billingPhone: String?,
+        allowRedisplay: String?,
+        clientAttributionMetadata: STPClientAttributionMetadata?
     ) -> Future<FinancialConnectionsSharePaymentDetails>
 
     func paymentMethods(
         consumerSessionClientSecret: String,
         paymentDetailsId: String,
-        billingDetails: ElementsSessionContext.BillingDetails?
+        billingDetails: ElementsSessionContext.BillingDetails?,
+        allowRedisplay: String?,
+        clientAttributionMetadata: STPClientAttributionMetadata?
     ) -> Future<LinkBankPaymentMethod>
 
     func updateAvailableIncentives(

@@ -36,6 +36,18 @@
 
 "MM/YY" = "MM/JJ";
 
+"Only credit and prepaid cards are accepted" = "Alleen creditcards en prepaidkaarten worden geaccepteerd";
+
+"Only credit cards are accepted" = "Alleen creditcards worden geaccepteerd";
+
+"Only debit and credit cards are accepted" = "Alleen debit- en creditcards worden geaccepteerd";
+
+"Only debit and prepaid cards are accepted" = "Alleen debitcards en prepaidkaarten worden geaccepteerd";
+
+"Only debit cards are accepted" = "Alleen debitcards worden geaccepteerd";
+
+"Only prepaid cards are accepted" = "Alleen prepaidkaarten worden geaccepteerd";
+
 "Postal Code" = "Postcode";
 
 "Shipping Address" = "Verzendadres";
@@ -47,8 +59,6 @@
 "The selected brand is not allowed" = "Het geselecteerde merk is niet toegestaan";
 
 "To scan your card, allow camera access in Settings." = "Sta toegang tot je camera toe in Instellingen om je kaart te scannen.";
-
-"Your ZIP is invalid." = "Je ZIP is ongeldig.";
 
 "Your card has expired." = "Je betaalkaart is verlopen.";
 
@@ -67,8 +77,6 @@
 "Your card's security code is incomplete." = "De beveiligingscode van je kaart is onvolledig.";
 
 "Your card's security code is invalid." = "De beveiligingscode van je kaart is ongeldig.";
-
-"Your postal code is invalid." = "Je postcode is ongeldig.";
 
 "card number" = "kaartnummer";
 

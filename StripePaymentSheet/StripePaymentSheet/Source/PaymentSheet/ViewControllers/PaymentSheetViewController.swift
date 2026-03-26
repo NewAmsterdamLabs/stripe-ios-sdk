@@ -125,12 +125,11 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
                 return .customWithLock(title: customCtaLabel)
             }
 
-            return .makeDefaultTypeForPaymentSheet(intent: intent)
+            return .makeDefaultType(intent: intent)
         }()
 
         let button = ConfirmButton(
             callToAction: callToAction,
-            applePayButtonType: configuration.applePay?.buttonType ?? .plain,
             appearance: configuration.appearance,
             didTap: { [weak self] in
                 self?.didTapBuyButton()
@@ -213,7 +212,7 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
         let stackView = UIStackView(arrangedSubviews: [
             headerLabel, walletHeader, paymentContainerView, errorLabel, bottomNoticeTextField,
         ])
-        stackView.directionalLayoutMargins = PaymentSheetUI.defaultMargins
+        stackView.directionalLayoutMargins = configuration.appearance.topFormInsets
         stackView.isLayoutMarginsRelativeArrangement = true
         stackView.spacing = PaymentSheetUI.defaultPadding
         stackView.axis = .vertical
@@ -222,16 +221,29 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
 
         // Hack: Payment container needs to extend to the edges, so we'll 'cancel out' the layout margins with negative padding
         paymentContainerView.directionalLayoutMargins = .insets(
-            leading: -PaymentSheetUI.defaultSheetMargins.leading,
-            trailing: -PaymentSheetUI.defaultSheetMargins.trailing
+            leading: -configuration.appearance.formInsets.leading,
+            trailing: -configuration.appearance.formInsets.trailing
         )
 
         [stackView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
+<<<<<<< HEAD
         
         self.containingStackView = stackView
+=======
+
+        NSLayoutConstraint.activate([
+            stackView.topAnchor.constraint(equalTo: view.topAnchor),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            stackView.bottomAnchor.constraint(
+                equalTo: view.bottomAnchor,
+                constant: -configuration.appearance.formInsets.bottom
+            ),
+        ])
+>>>>>>> 25.9.0
 
         updateUI(animated: false)
     }
@@ -341,25 +353,18 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
         }
 
         // Buy button
-        let buyButtonStyle: ConfirmButton.Style
         var buyButtonStatus: ConfirmButton.Status
         var showBuyButton: Bool = true
 
-        var callToAction = self.intent.callToAction
+        var callToAction = ConfirmButton.CallToActionType.makeDefaultType(intent: self.intent)
         if let customCtaLabel = configuration.primaryButtonLabel {
             callToAction = .customWithLock(title: customCtaLabel)
         }
         switch mode {
         case .selectingSaved:
-            if case .applePay = savedPaymentOptionsViewController.selectedPaymentOption {
-                buyButtonStyle = .applePay
-            } else {
-                buyButtonStyle = .stripe
-            }
             buyButtonStatus = buyButtonEnabledForSavedPayments()
             showBuyButton = savedPaymentOptionsViewController.selectedPaymentOption != nil
         case .addingNew:
-            buyButtonStyle = .stripe
             if let overridePrimaryButtonState = addPaymentMethodViewController.overridePrimaryButtonState {
                 callToAction = overridePrimaryButtonState.ctaType
                 buyButtonStatus = overridePrimaryButtonState.enabled ? .enabled : .disabled
@@ -374,9 +379,11 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
         if isPaymentInFlight {
             buyButtonStatus = .processing
         }
+        if case .selectingSaved = mode, case .applePay = savedPaymentOptionsViewController.selectedPaymentOption {
+            stpAssertionFailure("Apple Pay should be handled directly by the Apple Pay button in the wallet header")
+        }
         self.buyButton.update(
-            state: buyButtonStatus,
-            style: buyButtonStyle,
+            status: buyButtonStatus,
             callToAction: callToAction,
             animated: animated,
             completion: nil
@@ -472,6 +479,7 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
             updateUI()
         }
 
+<<<<<<< HEAD
         if isConfirmed {
             // Confirm the payment with the payment option
             let startTime = NSDate.timeIntervalSinceReferenceDate
@@ -510,6 +518,46 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
                                 // Wait a bit before closing the sheet
                                 self.delegate?.paymentSheetViewControllerDidFinish(self, result: .completed)
                             }
+=======
+        // Confirm the payment with the payment option
+        let startTime = NSDate.timeIntervalSinceReferenceDate
+        self.delegate?.paymentSheetViewControllerShouldConfirm(self, with: paymentOption) { result, deferredIntentConfirmationType in
+            let elapsedTime = NSDate.timeIntervalSinceReferenceDate - startTime
+            DispatchQueue.main.asyncAfter(
+                deadline: .now() + max(PaymentSheetUI.minimumFlightTime - elapsedTime, 0)
+            ) {
+                self.analyticsHelper.logPayment(
+                    paymentOption: paymentOption,
+                    result: result,
+                    deferredIntentConfirmationType: deferredIntentConfirmationType
+                )
+                switch result {
+                case .canceled:
+                    self.isPaymentInFlight = false
+                    // Do nothing, keep customer on payment sheet
+                    self.updateUI()
+                case .failed(let error):
+                    self.isPaymentInFlight = false
+                    #if !os(visionOS)
+                    UINotificationFeedbackGenerator().notificationOccurred(.error)
+                    #endif
+                    // Update state
+                    self.error = error
+                    self.updateUI()
+                    UIAccessibility.post(notification: .layoutChanged, argument: self.errorLabel)
+                case .completed:
+                    // We're done!
+                    let delay: TimeInterval = self.presentedViewController?.isBeingDismissed == true ? 1 : 0
+                    // Hack: PaymentHandler calls the completion block while SafariVC is still being dismissed - "wait" until it's finished before updating UI
+                    DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+#if !os(visionOS)
+                        UINotificationFeedbackGenerator().notificationOccurred(.success)
+#endif
+                        self.buyButton.update(status: .succeeded, animated: true) {
+                            // Wait a bit before closing the sheet
+                            self.isPaymentInFlight = false
+                            self.delegate?.paymentSheetViewControllerDidFinish(self, result: .completed)
+>>>>>>> 25.9.0
                         }
                     }
                 }
@@ -630,9 +678,9 @@ extension PaymentSheetViewController: SavedPaymentOptionsViewControllerDelegate 
     // MARK: Helpers
     func configureEditSavedPaymentMethodsButton() {
         if savedPaymentOptionsViewController.isRemovingPaymentMethods {
-            buyButton.update(state: .disabled)
+            buyButton.update(status: .disabled)
         } else {
-            buyButton.update(state: buyButtonEnabledForSavedPayments())
+            buyButton.update(status: buyButtonEnabledForSavedPayments())
         }
         navigationBar.additionalButton.configureCommonEditButton(isEditingPaymentMethods: savedPaymentOptionsViewController.isRemovingPaymentMethods, appearance: configuration.appearance)
         navigationBar.additionalButton.addTarget(

@@ -1,4 +1,5 @@
 GET
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0006_get_v1_payment_intents_pi_3RCTuXFY0qyl6XeW02PkhZ1Y.tail
 https:\/\/api\.stripe\.com\/v1\/payment_intents\/pi_3RCTuXFY0qyl6XeW02PkhZ1Y\?client_secret=pi_3RCTuXFY0qyl6XeW02PkhZ1Y_secret_s7Iurlys1cOvkvmeee2E5sJQI$
 200
 application/json
@@ -10,19 +11,38 @@ reporting-endpoints: coop="https://q.stripe.com/coop-report"
 x-wc: ABGHI
 Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
 cross-origin-opener-policy-report-only: same-origin; report-to="coop"
+========
+https:\/\/api\.stripe\.com\/v1\/payment_intents\/pi_3Rq5NPFY0qyl6XeW03BLDiDL\?client_secret=pi_3Rq5NPFY0qyl6XeW03BLDiDL_secret_CwzbkNh6VRG00ewjcldIb9MN5$
+200
+application/json
+Content-Type: application/json
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0006_get_v1_payment_intents_pi_3Rq5NPFY0qyl6XeW03BLDiDL.tail
 Access-Control-Allow-Origin: *
-x-stripe-routing-context-priority-tier: api-testmode
 x-stripe-priority-routing-enabled: true
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0006_get_v1_payment_intents_pi_3RCTuXFY0qyl6XeW02PkhZ1Y.tail
 report-to: {"group":"coop","max_age":8640,"endpoints":[{"url":"https://q.stripe.com/coop-report"}],"include_subdomains":true}
 request-id: req_Y3m7faPtOtwamC
 Content-Length: 1258
 Vary: Origin
 Date: Thu, 10 Apr 2025 22:49:34 GMT
 stripe-version: 2020-08-27
+========
+content-security-policy: base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none'; img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src 'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=sodyW6Gf-mbNrolZAWrPsQlntWqDjYZQi8zQmXfhceqJKJVMJyQTvbMry9cP14h-9LQednt0FHfWdpBU
+x-wc: ABGHIJ
+access-control-allow-methods: GET, HEAD, PUT, PATCH, POST, DELETE
+Server: nginx
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0006_get_v1_payment_intents_pi_3Rq5NPFY0qyl6XeW03BLDiDL.tail
 access-control-expose-headers: Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required, X-Stripe-Privileged-Session-Required
 access-control-max-age: 300
+Cache-Control: no-cache, no-store
+Date: Tue, 29 Jul 2025 04:43:04 GMT
+stripe-version: 2020-08-27
 access-control-allow-credentials: true
-Content-Type: application/json
+Content-Length: 1282
+x-stripe-routing-context-priority-tier: api-testmode
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+Vary: Origin
+request-id: req_eC5DGgtbymmBeJ
 
 {
   "payment_method_configuration_details" : null,
@@ -58,13 +78,23 @@ Content-Type: application/json
   "cancellation_reason" : null,
   "next_action" : null,
   "status" : "succeeded",
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0006_get_v1_payment_intents_pi_3RCTuXFY0qyl6XeW02PkhZ1Y.tail
   "payment_method" : "pm_1RCTuYFY0qyl6XeWVi6GnR8X",
   "client_secret" : "pi_3RCTuXFY0qyl6XeW02PkhZ1Y_secret_s7Iurlys1cOvkvmeee2E5sJQI",
+========
+  "payment_method" : "pm_1Rq5NQFY0qyl6XeWSZ6gK4XO",
+  "client_secret" : "pi_3Rq5NPFY0qyl6XeW03BLDiDL_secret_CwzbkNh6VRG00ewjcldIb9MN5",
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0006_get_v1_payment_intents_pi_3Rq5NPFY0qyl6XeW03BLDiDL.tail
   "total_details" : {
     "amount_discount" : 0,
+    "amount_tip" : null,
     "amount_tax" : 0
   },
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0006_get_v1_payment_intents_pi_3RCTuXFY0qyl6XeW02PkhZ1Y.tail
   "id" : "pi_3RCTuXFY0qyl6XeW02PkhZ1Y",
+========
+  "id" : "pi_3Rq5NPFY0qyl6XeW03BLDiDL",
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0006_get_v1_payment_intents_pi_3Rq5NPFY0qyl6XeW03BLDiDL.tail
   "confirmation_method" : "automatic",
   "amount_details" : {
     "tip" : {
@@ -77,6 +107,10 @@ Content-Type: application/json
     "card"
   ],
   "setup_future_usage" : null,
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0006_get_v1_payment_intents_pi_3RCTuXFY0qyl6XeW02PkhZ1Y.tail
   "created" : 1744325369,
+========
+  "created" : 1753764179,
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0006_get_v1_payment_intents_pi_3Rq5NPFY0qyl6XeW03BLDiDL.tail
   "description" : null
 }

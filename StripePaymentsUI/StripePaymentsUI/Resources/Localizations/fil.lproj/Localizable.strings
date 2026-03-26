@@ -36,6 +36,18 @@
 
 "MM/YY" = "BB / TT";
 
+"Only credit and prepaid cards are accepted" = "Mga credit at prepaid card lamang ang tinatanggap";
+
+"Only credit cards are accepted" = "Mga credit card lamang ang tinatanggap";
+
+"Only debit and credit cards are accepted" = "Mga debit at credit card lamang ang tinatanggap";
+
+"Only debit and prepaid cards are accepted" = "Mga debit at prepaid card lamang ang tinatanggap";
+
+"Only debit cards are accepted" = "Mga debit card lamang ang tinatanggap";
+
+"Only prepaid cards are accepted" = "Mga prepaid card lamang ang tinatanggap";
+
 "Postal Code" = "Postal Code";
 
 "Shipping Address" = "Adres ng Nagpadala";
@@ -47,8 +59,6 @@
 "The selected brand is not allowed" = "Ang napiling brand ay hindi pinapayagan";
 
 "To scan your card, allow camera access in Settings." = "Upang ma-scan ang iyong kard, pahintulutan ang access ng kamera sa Settings.";
-
-"Your ZIP is invalid." = "Ang iyong ZIP ay di balido.";
 
 "Your card has expired." = "Napaso na ang iyong kard.";
 
@@ -67,8 +77,6 @@
 "Your card's security code is incomplete." = "Ang security code ng iyong kard ay di kumpleto.";
 
 "Your card's security code is invalid." = "Ang security code ng iyong kard ay di balido.";
-
-"Your postal code is invalid." = "Ang iyong postal code ay di balido.";
 
 "card number" = "numero ng kard";
 

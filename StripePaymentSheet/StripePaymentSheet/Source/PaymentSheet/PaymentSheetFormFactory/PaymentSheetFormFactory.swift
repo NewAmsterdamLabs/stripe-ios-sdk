@@ -28,6 +28,7 @@ class PaymentSheetFormFactory {
     let addressSpecProvider: AddressSpecProvider
     let showLinkInlineCardSignup: Bool
     let linkAccount: PaymentSheetLinkAccount?
+    let linkAppearance: LinkAppearance?
     let accountService: LinkAccountServiceProtocol?
     let previousCustomerInput: IntentConfirmParams?
 
@@ -38,20 +39,27 @@ class PaymentSheetFormFactory {
     let cardBrandChoiceEligible: Bool
     let savePaymentMethodConsentBehavior: SavePaymentMethodConsentBehavior
     let allowsSetAsDefaultPM: Bool
+    let allowsLinkDefaultOptIn: Bool
+    let forceSaveFutureUseBehavior: Bool
+    let signupOptInFeatureEnabled: Bool
+    let signupOptInInitialValue: Bool
     let isFirstSavedPaymentMethod: Bool
     let analyticsHelper: PaymentSheetAnalyticsHelper?
     let paymentMethodIncentive: PaymentMethodIncentive?
+    let sellerName: String?
+    let previousLinkInlineSignupAction: LinkInlineSignupViewModel.Action?
+    let cardFundingFilter: CardFundingFilter
 
     var shouldDisplaySaveCheckbox: Bool {
         // Don't show the save checkbox in Link
         guard !configuration.linkPaymentMethodsOnly else { return false }
         switch savePaymentMethodConsentBehavior {
         case .legacy:
-            return !isSettingUp && configuration.hasCustomer && paymentMethod.supportsSaveForFutureUseCheckbox()
+            return !signupOptInFeatureEnabled && !isSettingUp && configuration.hasCustomer && paymentMethod.supportsSaveForFutureUseCheckbox()
         case .paymentSheetWithCustomerSessionPaymentMethodSaveDisabled:
             return false
         case .paymentSheetWithCustomerSessionPaymentMethodSaveEnabled:
-            return configuration.hasCustomer && paymentMethod.supportsSaveForFutureUseCheckbox()
+            return !signupOptInFeatureEnabled && configuration.hasCustomer && paymentMethod.supportsSaveForFutureUseCheckbox()
         case .customerSheetWithCustomerSession:
             return false
         }
@@ -79,38 +87,28 @@ class PaymentSheetFormFactory {
         addressSpecProvider: AddressSpecProvider = .shared,
         linkAccount: PaymentSheetLinkAccount? = nil,
         accountService: LinkAccountServiceProtocol,
-        analyticsHelper: PaymentSheetAnalyticsHelper?
+        analyticsHelper: PaymentSheetAnalyticsHelper?,
+        linkAppearance: LinkAppearance? = nil,
+        previousLinkInlineSignupAction: LinkInlineSignupViewModel.Action? = nil
     ) {
 
         /// Whether or not the card form should show the link inline signup checkbox
         let showLinkInlineCardSignup: Bool = {
-            guard case .paymentElement(let configuration) = configuration else {
+            guard case .paymentElement(let configuration, _) = configuration else {
                 return false
             }
 
-            let isLinkEnabled = PaymentSheet.isLinkEnabled(elementsSession: elementsSession, configuration: configuration)
-            guard isLinkEnabled && !elementsSession.disableLinkSignup && elementsSession.supportsLinkCard else {
-                return false
-            }
-
-            // If attestation is enabled for this app but the specific device doesn't support attestation, don't show inline signup: It's unlikely to provide a good experience. We'll only allow the web popup flow.
-            let useAttestationEndpoints = elementsSession.linkSettings?.useAttestationEndpoints ?? false
-            if useAttestationEndpoints && !deviceCanUseNativeLink(elementsSession: elementsSession, configuration: configuration) {
+            guard PaymentSheet.isLinkSignupEnabled(elementsSession: elementsSession, configuration: configuration) else {
                 return false
             }
 
             let isAccountNotRegisteredOrMissing = linkAccount.flatMap({ !$0.isRegistered }) ?? true
-            return isAccountNotRegisteredOrMissing && !UserDefaults.standard.customerHasUsedLink
-        }()
-        let shouldReadPaymentMethodOptionsSetupFutureUsage: Bool = {
-            switch configuration {
-            case .paymentElement(let config):
-                return config.shouldReadPaymentMethodOptionsSetupFutureUsage
-            default:
-                return false
-            }
+            return isAccountNotRegisteredOrMissing
         }()
         let paymentMethodType: STPPaymentMethodType = {
+            if linkAccount != nil, configuration.linkPaymentMethodsOnly, !elementsSession.linkPassthroughModeEnabled {
+                return .link
+            }
             switch paymentMethod {
             case .stripe(let paymentMethodType):
                 return paymentMethodType
@@ -127,14 +125,23 @@ class PaymentSheetFormFactory {
                   accountService: accountService,
                   cardBrandChoiceEligible: elementsSession.isCardBrandChoiceEligible,
                   isPaymentIntent: intent.isPaymentIntent,
-                  isSettingUp: shouldReadPaymentMethodOptionsSetupFutureUsage ? intent.isSetupFutureUsageSet(for: paymentMethodType) : intent.isSettingUp,
-                  countryCode: elementsSession.countryCode(overrideCountry: configuration.overrideCountry),
+                  isSettingUp: intent.isSetupFutureUsageSet(for: paymentMethodType),
+                  countryCode: elementsSession.countryCode,
                   currency: intent.currency,
                   savePaymentMethodConsentBehavior: elementsSession.savePaymentMethodConsentBehavior,
                   allowsSetAsDefaultPM: elementsSession.paymentMethodSetAsDefaultForPaymentSheet,
+                  allowsLinkDefaultOptIn: elementsSession.allowsLinkDefaultOptIn,
+                  forceSaveFutureUseBehavior: elementsSession.forceSaveFutureUseBehaviorAndNewMandateText,
+                  signupOptInFeatureEnabled: elementsSession.linkSignupOptInFeatureEnabled,
+                  signupOptInInitialValue: elementsSession.linkSignupOptInInitialValue,
                   isFirstSavedPaymentMethod: elementsSession.customer?.paymentMethods.isEmpty ?? true,
                   analyticsHelper: analyticsHelper,
-                  paymentMethodIncentive: elementsSession.incentive)
+                  paymentMethodIncentive: elementsSession.incentive,
+                  linkAppearance: linkAppearance,
+                  sellerName: intent.sellerDetails?.businessName,
+                  previousLinkInlineSignupAction: previousLinkInlineSignupAction,
+                  cardFundingFilter: configuration.cardFundingFilter(for: elementsSession)
+        )
     }
 
     required init(
@@ -152,9 +159,17 @@ class PaymentSheetFormFactory {
         currency: String? = nil,
         savePaymentMethodConsentBehavior: SavePaymentMethodConsentBehavior,
         allowsSetAsDefaultPM: Bool = false,
+        allowsLinkDefaultOptIn: Bool = false,
+        forceSaveFutureUseBehavior: Bool = false,
+        signupOptInFeatureEnabled: Bool = false,
+        signupOptInInitialValue: Bool = false,
         isFirstSavedPaymentMethod: Bool = true,
         analyticsHelper: PaymentSheetAnalyticsHelper?,
-        paymentMethodIncentive: PaymentMethodIncentive?
+        paymentMethodIncentive: PaymentMethodIncentive?,
+        linkAppearance: LinkAppearance? = nil,
+        sellerName: String? = nil,
+        previousLinkInlineSignupAction: LinkInlineSignupViewModel.Action? = nil,
+        cardFundingFilter: CardFundingFilter = .default
     ) {
         self.configuration = configuration
         self.paymentMethod = paymentMethod
@@ -175,9 +190,17 @@ class PaymentSheetFormFactory {
         self.cardBrandChoiceEligible = cardBrandChoiceEligible
         self.savePaymentMethodConsentBehavior = savePaymentMethodConsentBehavior
         self.allowsSetAsDefaultPM = allowsSetAsDefaultPM
+        self.allowsLinkDefaultOptIn = allowsLinkDefaultOptIn
+        self.forceSaveFutureUseBehavior = forceSaveFutureUseBehavior
+        self.signupOptInFeatureEnabled = signupOptInFeatureEnabled
+        self.signupOptInInitialValue = signupOptInInitialValue
         self.isFirstSavedPaymentMethod = isFirstSavedPaymentMethod
         self.analyticsHelper = analyticsHelper
         self.paymentMethodIncentive = paymentMethodIncentive
+        self.linkAppearance = linkAppearance
+        self.sellerName = sellerName
+        self.previousLinkInlineSignupAction = previousLinkInlineSignupAction
+        self.cardFundingFilter = cardFundingFilter
     }
 
     func make() -> PaymentMethodElement {
@@ -193,7 +216,7 @@ class PaymentSheetFormFactory {
             // We have two ways to create the form for a payment method
             // 1. Custom, one-off forms
             if paymentMethod == .card {
-                return makeCard(cardBrandChoiceEligible: cardBrandChoiceEligible)
+                return makeCard(linkAppearance: linkAppearance)
             } else if paymentMethod == .USBankAccount {
                 return makeUSBankAccount(merchantName: configuration.merchantDisplayName)
             } else if paymentMethod == .UPI {
@@ -207,12 +230,15 @@ class PaymentSheetFormFactory {
             } else if paymentMethod == .revolutPay && isSettingUp {
                 // special case, display mandate for revolutPay when setting up or pi+sfu
                 additionalElements = [makeRevolutPayMandate()]
-            } else if paymentMethod == .klarna && isSettingUp {
-                // special case, display mandate for Klarna when setting up or pi+sfu
-                additionalElements = [makeKlarnaMandate()]
             } else if paymentMethod == .amazonPay && isSettingUp {
                 // special case, display mandate for Amazon Pay when setting up or pi+sfu
                 additionalElements = [makeAmazonPayMandate()]
+            } else if paymentMethod == .satispay && isSettingUp {
+                // special case, display mandate for Satispay when setting up or pi+sfu
+                additionalElements = [makeSatispayMandate()]
+            } else if paymentMethod == .twint && isSettingUp {
+                // special case, display mandate for Twint when setting up or pi+sfu
+                additionalElements = [makeTwintMandate()]
             } else if paymentMethod == .bancontact {
                 return makeBancontact()
             } else if paymentMethod == .bacsDebit {
@@ -227,19 +253,24 @@ class PaymentSheetFormFactory {
                 return makeBoleto()
             } else if paymentMethod == .swish {
                 return makeSwish()
+            } else if paymentMethod == .afterpayClearpay {
+                return makeAfterpayClearpay()
+            } else if paymentMethod == .affirm {
+                return makeAffirm()
+            } else if paymentMethod == .klarna {
+                return makeKlarna()
+            } else if paymentMethod == .iDEAL {
+                return makeiDEAL()
+            } else if paymentMethod == .wero {
+                return makeWero()
             }
 
             guard let spec = FormSpecProvider.shared.formSpec(for: paymentMethod.identifier) else {
-                stpAssertionFailure("Failed to get form spec for \(paymentMethod.identifier)!")
                 let errorAnalytic = ErrorAnalytic(event: .unexpectedPaymentSheetFormFactoryError, error: Error.missingFormSpec, additionalNonPIIParams: ["payment_method": paymentMethod.identifier])
                 analyticsHelper?.analyticsClient.log(analytic: errorAnalytic)
                 return FormElement(elements: [], theme: theme)
             }
-            if paymentMethod == .iDEAL {
-                return makeiDEAL(spec: spec)
-            } else if paymentMethod == .sofort {
-                return makeSofort(spec: spec)
-            } else if paymentMethod == .SEPADebit {
+            if paymentMethod == .SEPADebit {
                 return makeSepaDebit()
             }
 
@@ -427,12 +458,14 @@ extension PaymentSheetFormFactory {
     }
 
     func makeBillingAddressSection(
-        collectionMode: AddressSectionElement.CollectionMode = .all(),
+        collectionMode: AddressSectionElement.CollectionMode = .autoCompletable,
         countries: [String]? = nil,
-        countryAPIPath: String? = nil
+        countryAPIPath: String? = nil,
+        includeEmail: Bool = false,
+        includePhone: Bool = false
     ) -> PaymentMethodElementWrapper<AddressSectionElement> {
         let displayBillingSameAsShippingCheckbox: Bool
-        let defaultAddress: AddressSectionElement.AddressDetails
+        var defaultAddress: AddressSectionElement.AddressDetails
         if let shippingDetails = configuration.shippingDetails() {
             // If defaultBillingDetails and shippingDetails are both populated, prefer defaultBillingDetails
             displayBillingSameAsShippingCheckbox = defaultBillingDetails() == .init()
@@ -443,15 +476,43 @@ extension PaymentSheetFormFactory {
             displayBillingSameAsShippingCheckbox = false
             defaultAddress = defaultBillingDetails().address.addressSectionDefaults
         }
+
+        if includePhone {
+            defaultAddress.phone = defaultBillingDetails().phone
+        }
+
+        if includeEmail {
+            defaultAddress.email = defaultBillingDetails().email
+        }
+
+        // Determine the collection mode based on whether we have default values
+        let finalCollectionMode: AddressSectionElement.CollectionMode = {
+            // If we have default address values (either from billing defaults or shipping details) and the requested mode would show all fields, use allWithAutocomplete
+            let hasDefaultAddressValues = defaultBillingDetails().address != .init() || (configuration.shippingDetails() != nil && displayBillingSameAsShippingCheckbox)
+            if hasDefaultAddressValues {
+                switch collectionMode {
+                case .autoCompletable:
+                    return .allWithAutocomplete
+                default:
+                    return collectionMode
+                }
+            } else {
+                return collectionMode
+            }
+        }()
+
         let section = AddressSectionElement(
-            title: String.Localized.billing_address_lowercase,
+            // TODO: Switch between "billing address" and "billing details" strings once the localizations have landed
+            title: (includePhone || includeEmail) ? String.Localized.billing_address_lowercase : String.Localized.billing_address_lowercase,
             countries: countries,
             addressSpecProvider: addressSpecProvider,
             defaults: defaultAddress,
-            collectionMode: collectionMode,
+            collectionMode: finalCollectionMode,
             additionalFields: .init(
+                phone: includePhone ? .enabled(isOptional: false) : .disabled,
+                email: includeEmail ? .enabled(isOptional: false) : .disabled,
                 billingSameAsShippingCheckbox: displayBillingSameAsShippingCheckbox
-                    ? .enabled(isOptional: false) : .disabled
+                ? .enabled(isOptional: false) : .disabled
             ),
             theme: theme
         )
@@ -482,41 +543,49 @@ extension PaymentSheetFormFactory {
             if let countryAPIPath {
                 params.paymentMethodParams.additionalAPIParameters[countryAPIPath] = section.selectedCountryCode
             }
+            if let phone = section.phone {
+                params.paymentMethodParams.nonnil_billingDetails.phone = phone.phoneNumber?.string(as: .e164)
+            }
+            if let email = section.email {
+                params.paymentMethodParams.nonnil_billingDetails.email = email.text
+            }
+            if let name = section.name {
+                params.paymentMethodParams.nonnil_billingDetails.name = name.text
+            }
             return params
         }
     }
 
-    // MARK: - PaymentMethod form definitions
+    static func makeBankMandateText(
+        isSettingUp: Bool,
+        merchantName: String,
+        sellerName: String?
+    ) -> NSAttributedString {
+        let links = ["terms": URL(string: "https://link.com/terms/ach-authorization")!]
 
-    func makeSofort(spec: FormSpec) -> PaymentMethodElement {
-        let contactSection: Element? = makeContactInformationSection(
-            nameRequiredByPaymentMethod: isSettingUp,
-            emailRequiredByPaymentMethod: isSettingUp,
-            phoneRequiredByPaymentMethod: false
-        )
-        // Hack: Use the luxe spec to get the latest list of accepted countries rather than hardcoding it here
-        let countries: [String]? = spec.fields.reduce(nil) { countries, fieldSpec in
-            if case let .country(countrySpec) = fieldSpec {
-                return countrySpec.allowedCountryCodes
-            }
-            return countries
+        let string = if let sellerName, isSettingUp {
+            String(
+                format: String.Localized.bank_continue_mandate_and_reuse_text_with_seller,
+                merchantName,
+                sellerName,
+                merchantName
+            )
+        } else if let sellerName {
+            String(
+                format: String.Localized.bank_continue_mandate_text_with_seller,
+                sellerName
+            )
+        } else {
+            String.Localized.bank_continue_mandate_text
         }
 
-        let addressSection: Element? = {
-            if configuration.billingDetailsCollectionConfiguration.address == .full {
-                return makeBillingAddressSection(countries: countries, countryAPIPath: "sofort[country]")
-            } else {
-                return makeCountry(countryCodes: countries, apiPath: "sofort[country]")
-            }
-        }()
-        let mandate: Element? = isSettingUp ? makeSepaMandate() : nil // Note: We show a SEPA mandate b/c sofort saves bank details as a SEPA Direct Debit Payment Method
-        let checkboxElement: Element? = makeSepaBasedPMCheckbox()
-        let elements: [Element?] = [contactSection, addressSection, checkboxElement, mandate]
-        return FormElement(
-            autoSectioningElements: elements.compactMap { $0 },
-            theme: theme
+        return STPStringUtils.applyLinksToString(
+            template: string,
+            links: links
         )
     }
+
+    // MARK: - PaymentMethod form definitions
 
     func makeSepaDebit() -> PaymentMethodElement {
         let contactSection: Element? = makeContactInformationSection(
@@ -573,31 +642,6 @@ extension PaymentSheetFormFactory {
         )
     }
 
-    func makeiDEAL(spec: FormSpec) -> PaymentMethodElement {
-        let contactSection: Element? = makeContactInformationSection(
-            nameRequiredByPaymentMethod: true,
-            emailRequiredByPaymentMethod: isSettingUp,
-            phoneRequiredByPaymentMethod: false
-        )
-        // Hack: Use the luxe spec to make the dropdown for convenience; it has the latest list of banks
-        let bankDropdown: Element? = spec.fields.reduce(nil) { dropdown, spec in
-            // Find the dropdown spec
-            if case .selector(let spec) = spec {
-                return makeDropdown(for: spec)
-            }
-            return dropdown
-        }
-
-        let addressSection: Element? = makeBillingAddressSectionIfNecessary(requiredByPaymentMethod: false)
-        let mandate: Element? = isSettingUp ? makeSepaMandate() : nil // Note: We show a SEPA mandate b/c iDEAL saves bank details as a SEPA Direct Debit Payment Method
-        let checkboxElement = makeSepaBasedPMCheckbox()
-        let elements: [Element?] = [contactSection, bankDropdown, addressSection, checkboxElement, mandate]
-        return FormElement(
-            autoSectioningElements: elements.compactMap { $0 },
-            theme: theme
-        )
-    }
-
     func makeUSBankAccount(merchantName: String) -> PaymentMethodElement {
         let isSaving = BoolReference()
         let defaultCheckbox: Element? = {
@@ -614,16 +658,22 @@ extension PaymentSheetFormFactory {
             )
         ) { value in
             isSaving.value = value
-            defaultCheckbox?.view.isHidden = !value
+            if let defaultCheckbox {
+                UIView.transition(with: defaultCheckbox.view, duration: 0.2,
+                                  options: .transitionCrossDissolve,
+                                  animations: {
+                    defaultCheckbox.view.isHidden = !value
+                })
+            }
         }
 
         isSaving.value =
             shouldDisplaySaveCheckbox
-            ? configuration.savePaymentMethodOptInBehavior.isSelectedByDefault : isSettingUp
+            ? (configuration.savePaymentMethodOptInBehavior.isSelectedByDefault || isSettingUp) : isSettingUp
 
         let phoneElement = configuration.billingDetailsCollectionConfiguration.phone == .always ? makePhone() : nil
         let addressElement = configuration.billingDetailsCollectionConfiguration.address == .full
-            ? makeBillingAddressSection(collectionMode: .all(), countries: nil)
+        ? makeBillingAddressSection(collectionMode: .autoCompletable, countries: configuration.billingDetailsCollectionConfiguration.allowedCountriesArray)
             : nil
         connectBillingDetailsFields(
             countryElement: nil,
@@ -640,6 +690,7 @@ extension PaymentSheetFormFactory {
             saveCheckboxElement: shouldDisplaySaveCheckbox ? saveCheckbox : nil,
             defaultCheckboxElement: defaultCheckbox,
             savingAccount: isSaving,
+            isSettingUp: isSettingUp,
             merchantName: merchantName,
             initialLinkedBank: previousCustomerInput?.financialConnectionsLinkedBank,
             appearance: configuration.appearance
@@ -650,8 +701,11 @@ extension PaymentSheetFormFactory {
         let contactInfoSection = makeContactInformationSection(nameRequiredByPaymentMethod: true, emailRequiredByPaymentMethod: true, phoneRequiredByPaymentMethod: false)
         let billingDetails = makeBillingAddressSectionIfNecessary(requiredByPaymentMethod: false)
         let konbiniPhoneNumber = PaymentMethodElementWrapper(TextFieldElement.makeKonbini(theme: theme)) { textField, params in
-            params.confirmPaymentMethodOptions.konbiniOptions = .init()
-            params.confirmPaymentMethodOptions.konbiniOptions?.confirmationNumber = textField.text
+            let confirmationNumber = textField.text
+            if !confirmationNumber.isEmpty {
+                params.confirmPaymentMethodOptions.konbiniOptions = .init()
+                params.confirmPaymentMethodOptions.konbiniOptions?.confirmationNumber = confirmationNumber
+            }
             return params
         }
         let elements = [contactInfoSection, konbiniPhoneNumber, billingDetails].compactMap { $0 }
@@ -687,6 +741,17 @@ extension PaymentSheetFormFactory {
         )
         let billingDetails = makeBillingAddressSectionIfNecessary(requiredByPaymentMethod: false)
         return FormElement(elements: [contactInfoSection, billingDetails], theme: theme)
+    }
+
+    func makeWero() -> PaymentMethodElement {
+        let country = makeCountry(countryCodes: ["DE", "BE", "FR"])
+        let contactInfoSection = makeContactInformationSection(
+            nameRequiredByPaymentMethod: false,
+            emailRequiredByPaymentMethod: false,
+            phoneRequiredByPaymentMethod: false
+        )
+        let billingDetails = makeBillingAddressSectionIfNecessary(requiredByPaymentMethod: false)
+        return FormElement(autoSectioningElements: [country, contactInfoSection, billingDetails].compactMap { $0 }, theme: theme)
     }
 
     // Only show checkbox for PI+SFU & Setup Intent
@@ -744,11 +809,8 @@ extension PaymentSheetFormFactory {
         }
     }
 
-    func makeAfterpayClearpayHeader() -> SubtitleElement {
-        return SubtitleElement(view: AfterpayPriceBreakdownView(currency: currency, theme: theme), isHorizontalMode: configuration.isHorizontalMode)
-    }
-
-    func makeKlarnaCountry(apiPath: String? = nil) -> PaymentMethodElement? {
+    /// Creates a country dropdown for Klarna form specs with API path support
+    func makeKlarnaCountry(apiPath: String?) -> PaymentMethodElement? {
         let countryCodes = Locale.current.sortedByTheirLocalizedNames(addressSpecProvider.countries)
         let defaultValue = getPreviousCustomerInput(for: apiPath) ?? defaultBillingDetails(countryAPIPath: apiPath).address.country
         let country = PaymentMethodElementWrapper(
@@ -782,7 +844,7 @@ extension PaymentSheetFormFactory {
         return SubtitleElement(view: label, isHorizontalMode: configuration.isHorizontalMode)
     }
 
-    func makeInstantDebits(countries: [String]? = nil) -> PaymentMethodElement {
+    func makeInstantDebits() -> PaymentMethodElement {
         let titleElement: SubtitleElement? = if case .paymentElement = configuration {
             makeSectionTitleLabelWith(text: Self.PayByBankDescriptionText)
         } else {
@@ -792,8 +854,10 @@ extension PaymentSheetFormFactory {
         let billingConfiguration = configuration.billingDetailsCollectionConfiguration
         let nameElement = billingConfiguration.name == .always ? makeName() : nil
         let phoneElement = billingConfiguration.phone == .always ? makePhone() : nil
+
+        let countries = configuration.billingDetailsCollectionConfiguration.allowedCountriesArray
         let addressElement = billingConfiguration.address == .full
-        ? makeBillingAddressSection(collectionMode: .all(), countries: countries)
+            ? makeBillingAddressSection(collectionMode: .autoCompletable, countries: countries)
             : nil
 
         // An email is required, so only hide the email field iff:
@@ -804,7 +868,7 @@ extension PaymentSheetFormFactory {
 
         let incentive = paymentMethodIncentive?.takeIfAppliesTo(paymentMethod)
 
-        return InstantDebitsPaymentMethodElement(
+        let element = InstantDebitsPaymentMethodElement(
             configuration: configuration,
             subtitleElement: titleElement,
             nameElement: nameElement,
@@ -813,8 +877,16 @@ extension PaymentSheetFormFactory {
             addressElement: addressElement,
             incentive: incentive,
             isPaymentIntent: isPaymentIntent,
+            sellerName: sellerName,
+            isSettingUp: isSettingUp || forceSaveFutureUseBehavior,
             appearance: configuration.appearance
         )
+
+        if let linkedBank = previousCustomerInput?.instantDebitsLinkedBank {
+            element.setLinkedBank(linkedBank)
+        }
+
+        return element
     }
 
     private func makeUSBankAccountCopyLabel() -> SubtitleElement {
@@ -866,7 +938,10 @@ extension PaymentSheetFormFactory {
     func makeBillingAddressSectionIfNecessary(requiredByPaymentMethod: Bool) -> Element? {
         if configuration.billingDetailsCollectionConfiguration.address == .full
             || (configuration.billingDetailsCollectionConfiguration.address == .automatic && requiredByPaymentMethod) {
-           return makeBillingAddressSection()
+            let countries = configuration.billingDetailsCollectionConfiguration.allowedCountries.isEmpty
+                ? nil
+                : Array(configuration.billingDetailsCollectionConfiguration.allowedCountries)
+           return makeBillingAddressSection(countries: countries)
         } else {
             return nil
         }
@@ -1046,6 +1121,8 @@ extension PaymentSheet.Appearance {
         theme.borderWidth = borderWidth
         theme.cornerRadius = cornerRadius
         theme.shadow = shadow.asElementThemeShadow
+        theme.textFieldInsets = textFieldInsets
+        theme.sectionSpacing = sectionSpacing
 
         var fonts = ElementsAppearance.Font()
         fonts.subheadline = scaledFont(for: font.base.regular, style: .subheadline, maximumPointSize: 20)
@@ -1053,12 +1130,25 @@ extension PaymentSheet.Appearance {
         fonts.sectionHeader = scaledFont(for: font.base.medium, style: .footnote, maximumPointSize: 18)
         fonts.caption = scaledFont(for: font.base.regular, style: .caption1, maximumPointSize: 20)
         fonts.footnote = scaledFont(for: font.base.regular, style: .footnote, maximumPointSize: 20)
+        fonts.error = scaledFont(for: font.base.regular, style: .caption2, maximumPointSize: 20)
+        fonts.smallFootnote = scaledFont(for: font.base.medium, style: .caption2, maximumPointSize: 18)
         fonts.footnoteEmphasis = scaledFont(for: font.base.medium, style: .footnote, maximumPointSize: 20)
 
         theme.colors = colors
         theme.fonts = fonts
-
+        theme.iconStyle = iconStyle.asElementsThemeIconStyle
         return theme
+    }
+}
+
+extension PaymentSheet.Appearance.IconStyle {
+    var asElementsThemeIconStyle: ElementsAppearance.IconStyle {
+        switch self {
+        case .filled:
+            return .filled
+        case .outlined:
+            return .outlined
+        }
     }
 }
 
@@ -1087,5 +1177,11 @@ extension STPPaymentMethodAddress {
         line2 = address.line2
         postalCode = address.postalCode
         state = address.state
+    }
+}
+
+extension PaymentSheet.BillingDetailsCollectionConfiguration {
+    var allowedCountriesArray: [String]? {
+        allowedCountries.isEmpty ? nil : Array(allowedCountries)
     }
 }

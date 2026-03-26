@@ -1,4 +1,5 @@
 GET
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselectedandsetasdefault/0009_get_v1_setup_intents_seti_1RCTu0FY0qyl6XeWXwb6WjCO.tail
 https:\/\/api\.stripe\.com\/v1\/setup_intents\/seti_1RCTu0FY0qyl6XeWXwb6WjCO\?client_secret=seti_1RCTu0FY0qyl6XeWXwb6WjCO_secret_S6hIxmU9xi0YLhKwAAlFW5GYSCSiX09$
 200
 application/json
@@ -10,26 +11,53 @@ reporting-endpoints: coop="https://q.stripe.com/coop-report"
 x-wc: ABGHI
 Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
 cross-origin-opener-policy-report-only: same-origin; report-to="coop"
+========
+https:\/\/api\.stripe\.com\/v1\/setup_intents\/seti_1Rq5PIFY0qyl6XeWSyUYePJ6\?client_secret=seti_1Rq5PIFY0qyl6XeWSyUYePJ6_secret_Slce4D8e6L5Ct2GdfQRFrbvkw30eeaJ$
+200
+application/json
+Content-Type: application/json
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselectedandsetasdefault/0009_get_v1_setup_intents_seti_1Rq5PIFY0qyl6XeWSyUYePJ6.tail
 Access-Control-Allow-Origin: *
-x-stripe-routing-context-priority-tier: api-testmode
 x-stripe-priority-routing-enabled: true
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselectedandsetasdefault/0009_get_v1_setup_intents_seti_1RCTu0FY0qyl6XeWXwb6WjCO.tail
 report-to: {"group":"coop","max_age":8640,"endpoints":[{"url":"https://q.stripe.com/coop-report"}],"include_subdomains":true}
 request-id: req_MtJgUZIbAw7riP
 Content-Length: 544
 Vary: Origin
 Date: Thu, 10 Apr 2025 22:48:58 GMT
 stripe-version: 2020-08-27
+========
+content-security-policy: base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none'; img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src 'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=hM9G5kkdA1Oujmqs15X4n9SoqaaUKcGbRax-CCHJbAPBhPsCdL0_4ZXaKIB39FntHirVXe260rEdAxKw
+x-wc: ABGHIJ
+access-control-allow-methods: GET, HEAD, PUT, PATCH, POST, DELETE
+Server: nginx
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselectedandsetasdefault/0009_get_v1_setup_intents_seti_1Rq5PIFY0qyl6XeWSyUYePJ6.tail
 access-control-expose-headers: Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required, X-Stripe-Privileged-Session-Required
 access-control-max-age: 300
+Cache-Control: no-cache, no-store
+Date: Tue, 29 Jul 2025 04:44:57 GMT
+stripe-version: 2020-08-27
 access-control-allow-credentials: true
-Content-Type: application/json
+Content-Length: 544
+x-stripe-routing-context-priority-tier: api-testmode
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+Vary: Origin
+request-id: req_kgaE7HI2S71PiI
 
 {
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselectedandsetasdefault/0009_get_v1_setup_intents_seti_1RCTu0FY0qyl6XeWXwb6WjCO.tail
   "id" : "seti_1RCTu0FY0qyl6XeWXwb6WjCO",
   "description" : null,
   "next_action" : null,
   "livemode" : false,
   "payment_method" : "pm_1RCTu0FY0qyl6XeWxFKdomrl",
+========
+  "id" : "seti_1Rq5PIFY0qyl6XeWSyUYePJ6",
+  "description" : null,
+  "next_action" : null,
+  "livemode" : false,
+  "payment_method" : "pm_1Rq5PHFY0qyl6XeWusUvsrVC",
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselectedandsetasdefault/0009_get_v1_setup_intents_seti_1Rq5PIFY0qyl6XeWSyUYePJ6.tail
   "payment_method_configuration_details" : null,
   "usage" : "off_session",
   "payment_method_types" : [
@@ -37,8 +65,13 @@ Content-Type: application/json
   ],
   "object" : "setup_intent",
   "last_setup_error" : null,
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselectedandsetasdefault/0009_get_v1_setup_intents_seti_1RCTu0FY0qyl6XeWXwb6WjCO.tail
   "created" : 1744325336,
   "client_secret" : "seti_1RCTu0FY0qyl6XeWXwb6WjCO_secret_S6hIxmU9xi0YLhKwAAlFW5GYSCSiX09",
+========
+  "created" : 1753764296,
+  "client_secret" : "seti_1Rq5PIFY0qyl6XeWSyUYePJ6_secret_Slce4D8e6L5Ct2GdfQRFrbvkw30eeaJ",
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselectedandsetasdefault/0009_get_v1_setup_intents_seti_1Rq5PIFY0qyl6XeWSyUYePJ6.tail
   "automatic_payment_methods" : null,
   "cancellation_reason" : null,
   "status" : "succeeded"

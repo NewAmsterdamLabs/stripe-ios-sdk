@@ -28,7 +28,7 @@ final class FinancialConnectionsUITests: XCTestCase {
 
         app.fc_nativeConsentAgreeButton.tap()
 
-        let featuredLegacyTestInstitution = app.tables.cells.staticTexts["Test OAuth Institution"]
+        let featuredLegacyTestInstitution = app.tables.cells.staticTexts["Test (OAuth)"]
         XCTAssertTrue(featuredLegacyTestInstitution.waitForExistence(timeout: 60.0))
         featuredLegacyTestInstitution.tap()
 
@@ -56,7 +56,7 @@ final class FinancialConnectionsUITests: XCTestCase {
 
         app.fc_nativeConsentAgreeButton.tap()
 
-        let featuredLegacyTestInstitution = app.tables.cells.staticTexts["Test Institution"]
+        let featuredLegacyTestInstitution = app.tables.cells.staticTexts["Test (Non-OAuth)"]
         XCTAssertTrue(featuredLegacyTestInstitution.waitForExistence(timeout: 60.0))
         featuredLegacyTestInstitution.tap()
 
@@ -252,7 +252,7 @@ final class FinancialConnectionsUITests: XCTestCase {
             .buttons
             .containing(NSPredicate(format: "label CONTAINS 'Agree'"))
             .firstMatch
-        XCTAssertTrue(consentAgreeButton.waitForExistence(timeout: 120.0))  // glitch app can take time to load
+        XCTAssertTrue(consentAgreeButton.waitForExistence(timeout: 120.0))  // backend app can take time to load
         consentAgreeButton.tap()
 
         // find + tap an institution; we add extra institutions in case
@@ -402,7 +402,7 @@ final class FinancialConnectionsUITests: XCTestCase {
             .otherElements
             .containing(NSPredicate(format: "value CONTAINS 'auth.stripe.com'"))
             .firstMatch
-        XCTAssertTrue(authFlowWebViewUrl.waitForExistence(timeout: 120.0)) // glitch app can take time to load
+        XCTAssertTrue(authFlowWebViewUrl.waitForExistence(timeout: 120.0)) // backend app can take time to load
 
         app.fc_secureWebViewCancelButton.tap()
 
@@ -427,7 +427,7 @@ final class FinancialConnectionsUITests: XCTestCase {
 
         app.fc_nativeConsentAgreeButton.waitForExistenceAndTap()
 
-        app.fc_nativeFeaturedInstitution(name: "Test Institution").waitForExistenceAndTap()
+        app.fc_nativeFeaturedInstitution(name: "Test (Non-OAuth)").waitForExistenceAndTap()
 
         app.fc_nativeConnectAccountsButton.tap()
 
@@ -482,11 +482,11 @@ final class FinancialConnectionsUITests: XCTestCase {
 
         app.fc_nativeConsentAgreeButton.waitForExistenceAndTap()
 
-        app.fc_nativeFeaturedInstitution(name: "Test Institution").waitForExistenceAndTap()
+        app.fc_nativeFeaturedInstitution(name: "Test (Non-OAuth)").waitForExistenceAndTap()
 
         app.fc_nativeConnectAccountsButton.waitForExistenceAndTap()
 
-        let notNowButton = app.buttons["Not now"]
+        let notNowButton = app.fc_nativeNetworkingNotNowButton
         XCTAssert(notNowButton.waitForExistence(timeout: 60)) // wait for networking sign up to show
         app.fc_dismissKeyboard()
         notNowButton.waitForExistenceAndTap() // skip networking sign up
@@ -513,7 +513,7 @@ final class FinancialConnectionsUITests: XCTestCase {
 
         app.fc_nativeConsentAgreeButton.tap()
 
-        app.fc_nativeFeaturedInstitution(name: "Test Institution").waitForExistenceAndTap()
+        app.fc_nativeFeaturedInstitution(name: "Test (Non-OAuth)").waitForExistenceAndTap()
 
         app.fc_nativeConnectAccountsButton.tap()
 
@@ -543,7 +543,7 @@ final class FinancialConnectionsUITests: XCTestCase {
 
         app.fc_nativeConsentAgreeButton.tap()
 
-        app.fc_nativeFeaturedInstitution(name: "Test Institution").waitForExistenceAndTap()
+        app.fc_nativeFeaturedInstitution(name: "Test (Non-OAuth)").waitForExistenceAndTap()
 
         app.fc_nativeConnectAccountsButton.tap()
 
@@ -599,7 +599,7 @@ final class FinancialConnectionsUITests: XCTestCase {
 
         app.fc_nativeConsentAgreeButton.tap()
 
-        app.fc_nativeFeaturedInstitution(name: "Test Institution").waitForExistenceAndTap()
+        app.fc_nativeFeaturedInstitution(name: "Test (Non-OAuth)").waitForExistenceAndTap()
 
         app.fc_nativeConnectAccountsButton.tap()
 
@@ -634,12 +634,12 @@ final class FinancialConnectionsUITests: XCTestCase {
 
         app.fc_scrollDown()
 
-        app.fc_nativeFeaturedInstitution(name: "Down Bank (Unscheduled)").waitForExistenceAndTap()
+        app.fc_nativeFeaturedInstitution(name: "Down (Unscheduled)").waitForExistenceAndTap()
 
         // selecting another bank will activate "reset flow"
         app.buttons["select_another_bank_button"].waitForExistenceAndTap()
 
-        app.fc_nativeFeaturedInstitution(name: "Test Institution").waitForExistenceAndTap()
+        app.fc_nativeFeaturedInstitution(name: "Test (Non-OAuth)").waitForExistenceAndTap()
 
         app.fc_nativeConnectAccountsButton.waitForExistenceAndTap()
 

@@ -36,6 +36,18 @@
 
 "MM/YY" = "MM/RR";
 
+"Only credit and prepaid cards are accepted" = "Akceptujú sa len kreditné a predplatené karty";
+
+"Only credit cards are accepted" = "Akceptujú sa iba kreditné karty";
+
+"Only debit and credit cards are accepted" = "Akceptujú sa iba debetné a kreditné karty";
+
+"Only debit and prepaid cards are accepted" = "Akceptujú sa iba debetné a predplatené karty";
+
+"Only debit cards are accepted" = "Akceptujú sa iba debetné karty";
+
+"Only prepaid cards are accepted" = "Akceptujú sa iba predplatené karty";
+
 "Postal Code" = "PSČ";
 
 "Shipping Address" = "Dodacia adresa";
@@ -47,8 +59,6 @@
 "The selected brand is not allowed" = "Vybraná značka nie je povolená";
 
 "To scan your card, allow camera access in Settings." = "Na nasnímanie vašej karty umožnite prístup ku kamere pod položkou Nastavenia.";
-
-"Your ZIP is invalid." = "Vaše PSČ je neplatné.";
 
 "Your card has expired." = "Platnosť vašej karty vypršala.";
 
@@ -67,8 +77,6 @@
 "Your card's security code is incomplete." = "Bezpečnostný kód vašej karty je neúplný.";
 
 "Your card's security code is invalid." = "Bezpečnostný kód vašej karty je neplatný.";
-
-"Your postal code is invalid." = "Vaše PSČ je neplatné.";
 
 "card number" = "číslo karty";
 

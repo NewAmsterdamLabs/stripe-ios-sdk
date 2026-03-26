@@ -36,6 +36,18 @@
 
 "MM/YY" = "MM/YY";
 
+"Only credit and prepaid cards are accepted" = "Only credit and prepaid cards are accepted";
+
+"Only credit cards are accepted" = "Only credit cards are accepted";
+
+"Only debit and credit cards are accepted" = "Only debit and credit cards are accepted";
+
+"Only debit and prepaid cards are accepted" = "Only debit and prepaid cards are accepted";
+
+"Only debit cards are accepted" = "Only debit cards are accepted";
+
+"Only prepaid cards are accepted" = "Only prepaid cards are accepted";
+
 "Postal Code" = "Postcode";
 
 "Shipping Address" = "Shipping Address";
@@ -47,8 +59,6 @@
 "The selected brand is not allowed" = "The selected brand is not allowed";
 
 "To scan your card, allow camera access in Settings." = "To scan your card, allow camera access in Settings.";
-
-"Your ZIP is invalid." = "Your ZIP is invalid.";
 
 "Your card has expired." = "Your card has expired.";
 
@@ -67,8 +77,6 @@
 "Your card's security code is incomplete." = "Your card's security code is incomplete.";
 
 "Your card's security code is invalid." = "Your card's security code is invalid.";
-
-"Your postal code is invalid." = "Your postcode is invalid.";
 
 "card number" = "card number";
 

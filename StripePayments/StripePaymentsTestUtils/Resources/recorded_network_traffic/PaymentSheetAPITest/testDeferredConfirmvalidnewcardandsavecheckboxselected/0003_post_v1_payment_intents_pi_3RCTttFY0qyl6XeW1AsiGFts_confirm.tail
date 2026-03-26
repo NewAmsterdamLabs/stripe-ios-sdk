@@ -1,4 +1,5 @@
 POST
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselected/0003_post_v1_payment_intents_pi_3RCTttFY0qyl6XeW1AsiGFts_confirm.tail
 https:\/\/api\.stripe\.com\/v1\/payment_intents\/pi_3RCTttFY0qyl6XeW1AsiGFts\/confirm$
 200
 application/json
@@ -8,25 +9,49 @@ Server: nginx
 Cache-Control: no-cache, no-store
 reporting-endpoints: coop="https://q.stripe.com/coop-report"
 x-wc: ABGHI
+========
+https:\/\/api\.stripe\.com\/v1\/payment_intents\/pi_3Rq5OgFY0qyl6XeW0La2BPBM\/confirm$
+200
+application/json
+access-control-allow-methods: GET, HEAD, PUT, PATCH, POST, DELETE
+content-security-policy: base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none'; img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src 'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=W0IdZHm6cbxAMP-_w_aZkoyUV1PJoFPX-McXL5upRVsuJhsMsNWp23geYYXl-461ZqDhBYxiJt52wR72
+Server: nginx
+Cache-Control: no-cache, no-store
+x-wc: ABGHIJ
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselected/0003_post_v1_payment_intents_pi_3Rq5OgFY0qyl6XeW0La2BPBM_confirm.tail
 Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
-cross-origin-opener-policy-report-only: same-origin; report-to="coop"
 Access-Control-Allow-Origin: *
 stripe-should-retry: false
 x-stripe-priority-routing-enabled: true
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselected/0003_post_v1_payment_intents_pi_3RCTttFY0qyl6XeW1AsiGFts_confirm.tail
 report-to: {"group":"coop","max_age":8640,"endpoints":[{"url":"https://q.stripe.com/coop-report"}],"include_subdomains":true}
 request-id: req_tbtr24gkjQlixR
+========
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselected/0003_post_v1_payment_intents_pi_3Rq5OgFY0qyl6XeW0La2BPBM_confirm.tail
 x-stripe-routing-context-priority-tier: api-testmode
-Content-Length: 2293
+request-id: req_mD3Qj574bApGXb
+Content-Length: 2339
 Vary: Origin
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselected/0003_post_v1_payment_intents_pi_3RCTttFY0qyl6XeW1AsiGFts_confirm.tail
 Date: Thu, 10 Apr 2025 22:48:51 GMT
 original-request: req_tbtr24gkjQlixR
 stripe-version: 2020-08-27
 idempotency-key: 3d297ae7-ab1f-4206-ada3-07c01baaaec4
+========
+Date: Tue, 29 Jul 2025 04:44:20 GMT
+original-request: req_mD3Qj574bApGXb
+stripe-version: 2020-08-27
+idempotency-key: 7daaa2e7-0ef5-4cb2-81e6-081ce618a0dd
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselected/0003_post_v1_payment_intents_pi_3Rq5OgFY0qyl6XeW0La2BPBM_confirm.tail
 access-control-expose-headers: Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required, X-Stripe-Privileged-Session-Required
 access-control-max-age: 300
 access-control-allow-credentials: true
 Content-Type: application/json
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselected/0003_post_v1_payment_intents_pi_3RCTttFY0qyl6XeW1AsiGFts_confirm.tail
 X-Stripe-Mock-Request: client_secret=pi_3RCTttFY0qyl6XeW1AsiGFts_secret_v4IQOqvVXbO0kMOTAukuI6gDy&expand\[0]=payment_method&payment_method=pm_1RCTttFY0qyl6XeWdK1tWgGd&payment_method_options\[card]\[setup_future_usage]=off_session&shipping\[address]\[country]=US&shipping\[address]\[line1]=Line%201&shipping\[name]=Jane%20Doe&shipping\[phone]=5551234567&use_stripe_sdk=true
+========
+X-Stripe-Mock-Request: client_secret=pi_3Rq5OgFY0qyl6XeW0La2BPBM_secret_7CPxfonQYTRXwzZu5jzMNfV2e&expand\[0]=payment_method&payment_method=pm_1Rq5OgFY0qyl6XeWJKVFh9ls&payment_method_options\[card]\[setup_future_usage]=off_session&shipping\[address]\[country]=US&shipping\[address]\[line1]=Line%201&shipping\[name]=Jane%20Doe&shipping\[phone]=5551234567&use_stripe_sdk=true
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselected/0003_post_v1_payment_intents_pi_3Rq5OgFY0qyl6XeW0La2BPBM_confirm.tail
 
 {
   "payment_method_configuration_details" : null,
@@ -64,10 +89,15 @@ X-Stripe-Mock-Request: client_secret=pi_3RCTttFY0qyl6XeW1AsiGFts_secret_v4IQOqvV
   "status" : "succeeded",
   "payment_method" : {
     "object" : "payment_method",
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselected/0003_post_v1_payment_intents_pi_3RCTttFY0qyl6XeW1AsiGFts_confirm.tail
     "id" : "pm_1RCTttFY0qyl6XeWdK1tWgGd",
+========
+    "id" : "pm_1Rq5OgFY0qyl6XeWJKVFh9ls",
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselected/0003_post_v1_payment_intents_pi_3Rq5OgFY0qyl6XeW0La2BPBM_confirm.tail
     "billing_details" : {
       "email" : null,
       "phone" : null,
+      "tax_id" : null,
       "name" : null,
       "address" : {
         "state" : null,
@@ -105,17 +135,30 @@ X-Stripe-Mock-Request: client_secret=pi_3RCTttFY0qyl6XeW1AsiGFts_secret_v4IQOqvV
       "country" : "US"
     },
     "livemode" : false,
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselected/0003_post_v1_payment_intents_pi_3RCTttFY0qyl6XeW1AsiGFts_confirm.tail
     "created" : 1744325329,
+========
+    "created" : 1753764258,
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselected/0003_post_v1_payment_intents_pi_3Rq5OgFY0qyl6XeW0La2BPBM_confirm.tail
     "allow_redisplay" : "unspecified",
     "type" : "card",
     "customer" : null
   },
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselected/0003_post_v1_payment_intents_pi_3RCTttFY0qyl6XeW1AsiGFts_confirm.tail
   "client_secret" : "pi_3RCTttFY0qyl6XeW1AsiGFts_secret_v4IQOqvVXbO0kMOTAukuI6gDy",
+========
+  "client_secret" : "pi_3Rq5OgFY0qyl6XeW0La2BPBM_secret_7CPxfonQYTRXwzZu5jzMNfV2e",
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselected/0003_post_v1_payment_intents_pi_3Rq5OgFY0qyl6XeW0La2BPBM_confirm.tail
   "total_details" : {
     "amount_discount" : 0,
+    "amount_tip" : null,
     "amount_tax" : 0
   },
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselected/0003_post_v1_payment_intents_pi_3RCTttFY0qyl6XeW1AsiGFts_confirm.tail
   "id" : "pi_3RCTttFY0qyl6XeW1AsiGFts",
+========
+  "id" : "pi_3Rq5OgFY0qyl6XeW0La2BPBM",
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselected/0003_post_v1_payment_intents_pi_3Rq5OgFY0qyl6XeW0La2BPBM_confirm.tail
   "confirmation_method" : "automatic",
   "amount_details" : {
     "tip" : {
@@ -128,6 +171,10 @@ X-Stripe-Mock-Request: client_secret=pi_3RCTttFY0qyl6XeW1AsiGFts_secret_v4IQOqvV
     "card"
   ],
   "setup_future_usage" : null,
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselected/0003_post_v1_payment_intents_pi_3RCTttFY0qyl6XeW1AsiGFts_confirm.tail
   "created" : 1744325329,
+========
+  "created" : 1753764258,
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidnewcardandsavecheckboxselected/0003_post_v1_payment_intents_pi_3Rq5OgFY0qyl6XeW0La2BPBM_confirm.tail
   "description" : null
 }

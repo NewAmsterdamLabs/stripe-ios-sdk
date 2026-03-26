@@ -19,6 +19,7 @@ import Foundation
 
     case paymentMethodCreation = "stripeios.payment_method_creation"
     case paymentMethodUpdate = "stripeios.payment_method_update"
+    case confirmationTokenCreation = "stripeios.confirmation_token_creation"
     case paymentMethodIntentCreation = "stripeios.payment_intent_confirmation"
     case setupIntentConfirmationAttempt = "stripeios.setup_intent_confirmation"
 
@@ -35,7 +36,6 @@ import Foundation
     case _3DS2ChallengeFlowCompleted = "stripeios.3ds2_challenge_flow_completed"
     case _3DS2ChallengeFlowErrored = "stripeios.3ds2_challenge_flow_errored"
     case _3DS2RedirectUserCanceled = "stripeios.3ds2_redirect_canceled"
-    case applePayContextCompletePaymentFinished = "stripeios.applepaycontext.complete_payment.finished"
     case paymentHandlerConfirmStarted = "stripeios.paymenthandler.confirm.started"
     case paymentHandlerConfirmFinished = "stripeios.paymenthandler.confirm.finished"
     case paymentHandlerHandleNextActionStarted = "stripeios.paymenthandler.handle_next_action.started"
@@ -66,6 +66,7 @@ import Foundation
     case financialConnectionsSheetFlowDetermined = "stripeios.financialconnections.sheet.flow_determined"
     case financialConnectionsSheetInitialSynchronizeStarted = "stripeios.financialconnections.sheet.initial_synchronize.started"
     case financialConnectionsSheetInitialSynchronizeCompleted = "stripeios.financialconnections.sheet.initial_synchronize.completed"
+    case instantDebitsCompletionFailed = "stripeios.financialconnections.instant_debits_completion.failed"
 
     // MARK: - PaymentSheet Init
     case mcInitCustomCustomer = "mc_custom_init_customer"
@@ -94,7 +95,7 @@ import Foundation
     case mcShowCompleteSavedPM = "mc_complete_sheet_savedpm_show"
 
     // MARK: - PaymentSheet Render
-    case mcRenderLPMs = "mc_lpms_render"
+    case mcInitialDisplayedPaymentMethods = "mc_initial_displayed_payment_methods"
 
     // MARK: - PaymentSheet Payment
     case mcPaymentCustomNewPMSuccess = "mc_custom_payment_newpm_success"
@@ -131,6 +132,9 @@ import Foundation
     case mcOptionSelectCompleteLink = "mc_complete_paymentoption_link_select"
     case mcOptionSelectEmbeddedSavedPM = "mc_embedded_paymentoption_savedpm_select"
 
+    // MARK: - PaymentSheet Wallet Button Tap
+    case mcWalletButtonTapped = "mc_wallet_button_tapped"
+
     // MARK: - PaymentSheet Saved Payment Method Removed
     case mcOptionRemoveCustomSavedPM = "mc_custom_paymentoption_removed"
     case mcOptionRemoveCompleteSavedPM = "mc_complete_paymentoption_removed"
@@ -146,6 +150,7 @@ import Foundation
     case linkSharePaymentDetailsFailure = "link.payment.failure.share"
     case linkSignupFailureInvalidSessionState = "link.signup.failure.invalidSessionState"
     case linkSignupFailureAccountExists = "link.signup.failure.account_exists"
+    case linkInlineSignupShown = "link.inline_signup.shown"
 
     // MARK: - Link Popup
     case linkPopupShow = "link.popup.show"
@@ -161,11 +166,13 @@ import Foundation
     case link2FAComplete = "link.2fa.complete"
     case link2FACancel = "link.2fa.cancel"
     case link2FAFailure = "link.2fa.failure"
+    case link2FAResendCode = "link.2fa.resend_code"
     case linkNativeBailed = "link.native.bailed"
 
     // MARK: - Link Misc
     case linkAccountLookupComplete = "link.account_lookup.complete"
     case linkAccountLookupFailure = "link.account_lookup.failure"
+    case linkEmailSuggestionAccepted = "link.email_suggestion.accepted"
 
     // MARK: - LUXE
     case luxeSerializeFailure = "luxe_serialize_failure"
@@ -233,7 +240,7 @@ import Foundation
     case paymentSheetElementsSessionCPMLoadFailed = "mc_elements_session_cpms_load_failed"
 
     // MARK: - PaymentSheet card brand choice
-    case paymentSheetDisplayCardBrandDropdownIndicator = "mc_display_cbc_dropdown"
+    case paymentSheetDisplayCardBrandChoiceIndicator = "mc_display_cbc_selector"
     case paymentSheetCardBrandSelected = "mc_cbc_selected"
     case paymentSheetOpenEditScreen = "mc_open_edit_screen"
     case paymentSheetUpdateCard = "mc_update_card"
@@ -242,7 +249,7 @@ import Foundation
     case paymentSheetDisallowedCardBrand = "mc_disallowed_card_brand"
 
     // MARK: - CustomerSheet card brand choice
-    case customerSheetDisplayCardBrandDropdownIndicator = "cs_display_cbc_dropdown"
+    case customerSheetDisplayCardBrandChoiceIndicator = "cs_display_cbc_selector"
     case customerSheetCardBrandSelected = "cs_cbc_selected"
     case customerSheetOpenEditScreen = "cs_open_edit_screen"
     case customerSheetUpdateCard = "cs_update_card"
@@ -253,18 +260,26 @@ import Foundation
     case paymentSheetSetDefaultPaymentMethod = "mc_set_default_payment_method"
     case paymentSheetSetDefaultPaymentMethodFailed = "mc_set_default_payment_method_failed"
 
+    // MARK: - Payment Method Messaging Element (PMME)
+    case paymentMethodMessagingElementInit = "payment_method_messaging_element_init"
+    case paymentMethodMessagingElementLoadStarted = "payment_method_messaging_element_load_started"
+    case paymentMethodMessagingElementLoadSucceeded = "payment_method_messaging_element_load_succeeded"
+    case paymentMethodMessagingElementLoadFailed = "payment_method_messaging_element_load_failed"
+    case paymentMethodMessagingElementDisplayed = "payment_method_messaging_element_displayed"
+    case paymentMethodMessagingElementTapped = "payment_method_messaging_element_tapped"
+
     // MARK: - STPBankAccountCollector
     case bankAccountCollectorStarted = "stripeios.bankaccountcollector.started"
     case bankAccountCollectorFinished = "stripeios.bankaccountcollector.finished"
 
     // MARK: - Unexpected errors
-    // These errors should _never happen_ and indicate a problem with the SDK or the Stripe backend.
+    // ⚠️ Errors with the "unexpected_error" prefix should **never happen** and indicate a problem with the SDK or the Stripe backend and will trigger an assertion + cerberus alert.
     case unexpectedPaymentSheetFormFactoryError = "unexpected_error.paymentsheet.formfactory"
     case unexpectedStripeUICoreAddressSpecProvider = "unexpected_error.stripeuicore.addressspecprovider"
     case unexpectedStripeUICoreBSBNumberProvider = "unexpected_error.stripeuicore.bsbnumberprovider"
-    case unexpectedApplePayError = "unexpected_error.applepay"
     case unexpectedPaymentSheetError = "unexpected_error.paymentsheet"
     case unexpectedCustomerSheetError = "unexpected_error.customersheet"
+    case unexpectedPMMEError = "unexpected_error.paymentmethodmessagingelement"
     case unexpectedPaymentSheetConfirmationError = "unexpected_error.paymentsheet.confirmation"
     case unexpectedPaymentSheetViewControllerError = "unexpected_error.paymentsheet.paymentsheetviewcontroller"
     case unexpectedFlowControllerViewControllerError = "unexpected_error.paymentsheet.flowcontrollerviewcontroller"
@@ -283,6 +298,7 @@ import Foundation
 
     // MARK: - Telemetry Client
     case fraudDetectionApiFailure = "fraud_detection_data_repository.api_failure"
+    case savedPaymentMethodRadarSessionFailure = "stripeios.saved_payment_method_radar_session_failure"
 
     // MARK: - Attestation
     case attestationFailed = "stripeios.attest.attestation.failed"
@@ -291,7 +307,45 @@ import Foundation
     case assertionSucceeded = "stripeios.attest.assertion.succeeded"
     case resetKeyForAssertionError = "stripeios.attest.reset_key_for_assertion_error"
     case resetKeyForAttestationError = "stripeios.attest.reset_key_for_attestation_error"
+    case stateMismatchNotAttestedLocally = "stripeios.attest.state_mismatch.not_attested_locally"
+    case stateMismatchNotAttestedRemotely = "stripeios.attest.state_mismatch.not_attested_remotely"
 
     // MARK: - Custom Payment Methods
     case paymentSheetInvalidCPM = "mc_invalid_cpm"
+
+    // MARK: - Shop Pay Webview
+    case shopPayWebviewLoadAttempt = "mc_shoppay_webview_load_attempt"
+    case shopPayWebviewConfirmSuccess = "mc_shoppay_webview_confirm_success"
+    case shopPayWebviewCancelled = "mc_shoppay_webview_cancelled"
+
+    // MARK: - Captcha
+    case passiveCaptchaInit = "elements.captcha.passive.init"
+    case passiveCaptchaExecute = "elements.captcha.passive.execute"
+    case passiveCaptchaSuccess = "elements.captcha.passive.success"
+    case passiveCaptchaError = "elements.captcha.passive.error"
+    case passiveCaptchaAttach = "elements.captcha.passive.attach"
+
+    // MARK: - Attestation on Confirmation
+    case attestationConfirmationPrepare = "elements.attestation.confirmation.prepare"
+    case attestationConfirmationPrepareSucceeded = "elements.attestation.confirmation.prepare.succeeded"
+    case attestationConfirmationPrepareFailed = "elements.attestation.confirmation.prepare.failed"
+    case attestationConfirmationRequestToken = "elements.attestation.confirmation.request_token"
+    case attestationConfirmationRequestTokenSucceeded = "elements.attestation.confirmation.request_token.succeeded"
+    case attestationConfirmationRequestTokenFailed = "elements.attestation.confirmation.request_token.failed"
+    case attestationConfirmationError = "elements.attestation.confirmation.error"
+
+    // MARK: - Intent Confirmation Challenge
+    case intentConfirmationChallengeStart = "elements.intent_confirmation_challenge.start"
+    case intentConfirmationChallengeSuccess = "elements.intent_confirmation_challenge.success"
+    case intentConfirmationChallengeError = "elements.intent_confirmation_challenge.error"
+    case intentConfirmationChallengeWebViewLoaded = "elements.intent_confirmation_challenge.web_view_loaded"
+    case intentConfirmationChallengeCanceled = "elements.intent_confirmation_challenge.cancel"
+
+    // MARK: - STPApplePayContext
+    case applePayContextStarted = "stripeios.applepaycontext.confirm.started"
+    case applePayContextFinished = "stripeios.applepaycontext.confirm.finished"
+
+    // MARK: - Synthetic latency tests
+    case mpeSyntheticLatency = "mpe.synthetic_latency"
+
 }

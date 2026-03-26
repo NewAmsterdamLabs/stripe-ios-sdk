@@ -42,7 +42,7 @@ class NativeFlowController {
             action: #selector(didSelectNavigationBarCloseButton)
         )
         item.tintColor = FinancialConnectionsAppearance.Colors.icon
-        item.imageInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 5)
+        item.applyFinancialConnectionsCloseButtonEdgeInsets()
         return item
     }()
 
@@ -536,7 +536,8 @@ extension NativeFlowController {
             consumerSessionClientSecret: consumerSession.clientSecret,
             bankAccountId: bankAccountId,
             billingAddress: elementsSessionContext?.billingAddress,
-            billingEmail: email
+            billingEmail: email,
+            clientAttributionMetadata: elementsSessionContext?.clientAttributionMetadata
         )
         .chained { [weak self] response -> Future<LinkBankPaymentMethod> in
             guard let self else {
@@ -553,14 +554,18 @@ extension NativeFlowController {
                     paymentDetailsId: response.redactedPaymentDetails.id,
                     expectedPaymentMethodType: linkMode.expectedPaymentMethodType,
                     billingEmail: email,
-                    billingPhone: phone
+                    billingPhone: phone,
+                    allowRedisplay: elementsSessionContext?.allowRedisplay,
+                    clientAttributionMetadata: elementsSessionContext?.clientAttributionMetadata
                 )
                 .transformed { $0.paymentMethod }
             } else {
                 return self.dataManager.apiClient.paymentMethods(
                     consumerSessionClientSecret: consumerSession.clientSecret,
                     paymentDetailsId: response.redactedPaymentDetails.id,
-                    billingDetails: elementsSessionContext?.billingDetails
+                    billingDetails: elementsSessionContext?.billingDetails,
+                    allowRedisplay: elementsSessionContext?.allowRedisplay,
+                    clientAttributionMetadata: elementsSessionContext?.clientAttributionMetadata
                 )
             }
         }
@@ -589,6 +594,7 @@ extension NativeFlowController {
                     last4: bankAccountDetails?.last4,
                     linkMode: linkMode,
                     incentiveEligible: paymentMethodWithIncentiveEligibility.incentiveEligible,
+                    linkAccountId: bankAccountId,
                     linkAccountSessionId: self?.dataManager.manifest.id
                 )
                 completion(.success(linkedBank))
@@ -1316,31 +1322,6 @@ extension NativeFlowController: NetworkingSaveToLinkVerificationViewControllerDe
     }
 }
 
-// MARK: - NetworkingLinkStepUpVerificationViewControllerDelegate
-
-extension NativeFlowController: NetworkingLinkStepUpVerificationViewControllerDelegate {
-
-    func networkingLinkStepUpVerificationViewController(
-        _ viewController: NetworkingLinkStepUpVerificationViewController,
-        didCompleteVerificationWithInstitution institution: FinancialConnectionsInstitution?,
-        nextPane: FinancialConnectionsSessionManifest.NextPane,
-        customSuccessPaneCaption: String?,
-        customSuccessPaneSubCaption: String?
-    ) {
-        dataManager.institution = institution
-        dataManager.customSuccessPaneCaption = customSuccessPaneCaption
-        dataManager.customSuccessPaneSubCaption = customSuccessPaneSubCaption
-        pushPane(nextPane, animated: true)
-    }
-
-    func networkingLinkStepUpVerificationViewController(
-        _ viewController: NetworkingLinkStepUpVerificationViewController,
-        didReceiveTerminalError error: Error
-    ) {
-        showTerminalError(error)
-    }
-}
-
 // MARK: - LinkLoginViewControllerDelegate
 
 extension NativeFlowController: LinkLoginViewControllerDelegate {
@@ -1627,28 +1608,6 @@ private func CreatePaneViewController(
             )
             networkingSaveToLinkVerificationViewController.delegate = nativeFlowController
             viewController = networkingSaveToLinkVerificationViewController
-        } else {
-            assertionFailure("Code logic error. Missing parameters for \(pane).")
-            viewController = nil
-        }
-    case .networkingLinkStepUpVerification:
-        if
-            let consumerSession = dataManager.consumerSession,
-            let selectedAccountIds = dataManager.linkedAccounts?.map({ $0.id })
-        {
-            let networkingLinkStepUpVerificationDataSource = NetworkingLinkStepUpVerificationDataSourceImplementation(
-                consumerSession: consumerSession,
-                selectedAccountIds: selectedAccountIds,
-                manifest: dataManager.manifest,
-                apiClient: dataManager.apiClient,
-                clientSecret: dataManager.clientSecret,
-                analyticsClient: dataManager.analyticsClient
-            )
-            let networkingLinkStepUpVerificationViewController = NetworkingLinkStepUpVerificationViewController(
-                dataSource: networkingLinkStepUpVerificationDataSource
-            )
-            networkingLinkStepUpVerificationViewController.delegate = nativeFlowController
-            viewController = networkingLinkStepUpVerificationViewController
         } else {
             assertionFailure("Code logic error. Missing parameters for \(pane).")
             viewController = nil

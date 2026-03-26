@@ -36,6 +36,18 @@
 
 "MM/YY" = "HH/ÉÉ";
 
+"Only credit and prepaid cards are accepted" = "Csak hitelkártyák és előre fizetett kártyák elfogadottak";
+
+"Only credit cards are accepted" = "Csak hitelkártyák elfogadottak";
+
+"Only debit and credit cards are accepted" = "Csak betéti és hitelkártyák elfogadottak";
+
+"Only debit and prepaid cards are accepted" = "Csak betéti és előre fizetett kártyák elfogadottak";
+
+"Only debit cards are accepted" = "Csak betéti kártyák elfogadottak";
+
+"Only prepaid cards are accepted" = "Csak előre fizetett kártyák elfogadottak";
+
 "Postal Code" = "Postai irányítószám";
 
 "Shipping Address" = "Szállítási cím";
@@ -47,8 +59,6 @@
 "The selected brand is not allowed" = "A kiválasztott kártyamárka nem engedélyezett";
 
 "To scan your card, allow camera access in Settings." = "A kártya beolvasásához engedélyezze a kamerához való hozzáférést a Beállításokban.";
-
-"Your ZIP is invalid." = "A ZIP érvénytelen.";
 
 "Your card has expired." = "A kártyája lejárt.";
 
@@ -67,8 +77,6 @@
 "Your card's security code is incomplete." = "A kártya biztonsági kódja hiányos.";
 
 "Your card's security code is invalid." = "A kártya biztonsági kódja érvénytelen.";
-
-"Your postal code is invalid." = "Az irányítószám érvénytelen.";
 
 "card number" = "kártyaszám";
 

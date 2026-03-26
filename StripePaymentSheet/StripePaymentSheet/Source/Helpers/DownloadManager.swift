@@ -69,40 +69,53 @@ extension DownloadManager {
 
         if let updateHandler {
             Task {
-                await downloadImageAsync(url: url, placeholder: placeholder, updateHandler: updateHandler)
+                if let image = try? await downloadImageSkippingCacheRead(url: url) {
+                    updateHandler(image)
+                }
             }
         }
         // Immediately return the cached image or a placeholder. When the download operation completes `updateHandler` will be called with the downloaded image.
         return cachedImage ?? placeholder
     }
 
-    // Common download function
-    private func downloadImage(url: URL, placeholder: UIImage) async -> UIImage {
+    /// Downloads an image from a provided URL asynchronously.
+    /// - Parameter url: The URL from which to download the image.
+    /// - Returns: The downloaded image.
+    /// Throws if an error occurs while downloading the image.
+    public func downloadImage(url: URL) async throws -> UIImage {
+        if let cachedImage = imageCacheLock.withLock( { imageCache[url] }) {
+            return cachedImage
+        }
+
+        return try await downloadImageSkippingCacheRead(url: url)
+    }
+
+    // Common download functions
+
+    private func downloadImageSkippingCacheRead(url: URL) async throws -> UIImage {
+        var errorParams: [String: Any] = ["url": url.absoluteString]
         do {
-            let (data, _) = try await session.data(from: url)
+            let (data, response) = try await session.data(from: url)
+            // log extra info about response for analytics in case of error
+            if let httpResponse = response as? HTTPURLResponse {
+                errorParams["http_status"] = httpResponse.statusCode
+                errorParams["content_type"] = httpResponse.allHeaderFields["Content-Type"]
+                errorParams["content_length"] = httpResponse.allHeaderFields["Content-Length"]
+            }
             let image = try UIImage.from(imageData: data) // Throws a Error.failedToMakeImageFromData
             Task {
                 // Cache the image in memory
                 self.imageCacheLock.withLock {
                     self.imageCache[url] = image
                 }
-
             }
             return image
         } catch {
             let errorAnalytic = ErrorAnalytic(event: .stripePaymentSheetDownloadManagerError,
                                               error: error,
-                                              additionalNonPIIParams: ["url": url.absoluteString])
+                                              additionalNonPIIParams: errorParams)
             analyticsClient.log(analytic: errorAnalytic)
-            return placeholder
-        }
-    }
-
-    private func downloadImageAsync(url: URL, placeholder: UIImage, updateHandler: UpdateImageHandler) async {
-        let image = await downloadImage(url: url, placeholder: placeholder)
-        // Only invoke the `updateHandler` if the fetched image differs from the placeholder we already vended
-        if !image.isEqualToImage(image: placeholder) {
-            updateHandler(image)
+            throw error
         }
     }
 
@@ -133,12 +146,8 @@ extension DownloadManager {
 
 // MARK: UIImage helpers
 private extension UIImage {
-    func isEqualToImage(image: UIImage) -> Bool {
-        return self.pngData() == image.pngData()
-    }
-
     static func from(imageData: Data) throws -> UIImage {
-        #if canImport(CompositorServices)
+        #if os(visionOS)
         let scale = 1.0
         #else
         let scale = UIScreen.main.scale

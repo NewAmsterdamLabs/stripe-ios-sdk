@@ -36,6 +36,18 @@
 
 "MM/YY" = "MM/YY";
 
+"Only credit and prepaid cards are accepted" = "クレジットカードとプリペイドカードのみ利用できます";
+
+"Only credit cards are accepted" = "クレジットカードのみ利用できます";
+
+"Only debit and credit cards are accepted" = "デビットカードとクレジットカードのみ利用できます";
+
+"Only debit and prepaid cards are accepted" = "デビットカードとプリペイドカードのみ利用できます";
+
+"Only debit cards are accepted" = "デビットカードのみ利用できます";
+
+"Only prepaid cards are accepted" = "プリペイドカードのみ利用できます";
+
 "Postal Code" = "郵便番号";
 
 "Shipping Address" = "配送先住所";
@@ -47,8 +59,6 @@
 "The selected brand is not allowed" = "選択したブランドは許可されていません";
 
 "To scan your card, allow camera access in Settings." = "カードをスキャンするには、設定でカメラへのアクセスを許可してください。";
-
-"Your ZIP is invalid." = "郵便番号が無効です。";
 
 "Your card has expired." = "カードの有効期限が切れています。";
 
@@ -67,8 +77,6 @@
 "Your card's security code is incomplete." = "カードのセキュリティコードに不備があります。";
 
 "Your card's security code is invalid." = "カードのセキュリティコードが無効です。";
-
-"Your postal code is invalid." = "郵便番号が無効です";
 
 "card number" = "カード番号";
 

@@ -53,6 +53,11 @@ import UIKit
     func subLabel(text: String) -> String?
 
     /**
+     A warning string to display under the field in danger color
+     */
+    func warningLabel(text: String) -> String?
+
+    /**
      - Parameter text: The user's sanitized input (i.e., removing `disallowedCharacters` and clipping to `maxLength(for:)`)
      - Returns: A string as it should be displayed to the user. e.g., Apply kerning between every 4th and 5th number for PANs.
      */
@@ -121,12 +126,16 @@ public extension TextFieldElementConfiguration {
 
     func validate(text: String, isOptional: Bool) -> TextFieldElement.ValidationState {
         if text.stp_stringByRemovingCharacters(from: .whitespacesAndNewlines).isEmpty {
-            return isOptional ? .valid : .invalid(TextFieldElement.Error.empty)
+            return isOptional ? .valid : .invalid(TextFieldElement.Error.empty(localizedDescription: ""))
         }
         return .valid
     }
 
     func subLabel(text: String) -> String? {
+        return nil
+    }
+
+    func warningLabel(text: String) -> String? {
         return nil
     }
 

@@ -36,6 +36,18 @@
 
 "MM/YY" = "MM / AA";
 
+"Only credit and prepaid cards are accepted" = "Només s'accepten les targetes de crèdit i de prepagament";
+
+"Only credit cards are accepted" = "Només s'accepten les targetes de crèdit";
+
+"Only debit and credit cards are accepted" = "Només s'accepten les targetes de dèbit i de crèdit";
+
+"Only debit and prepaid cards are accepted" = "Només s'accepten les targetes de dèbit i de prepagament";
+
+"Only debit cards are accepted" = "Només s'accepten les targetes de dèbit";
+
+"Only prepaid cards are accepted" = "Només s'accepten les de prepagament";
+
 "Postal Code" = "Codi postal";
 
 "Shipping Address" = "Adreça d'enviament";
@@ -47,8 +59,6 @@
 "The selected brand is not allowed" = "La marca seleccionada no està permesa";
 
 "To scan your card, allow camera access in Settings." = "Per escanejar la teva targeta, permet l'accès a la càmera a Ajusts.";
-
-"Your ZIP is invalid." = "El teu ZIP no és vàlid.";
 
 "Your card has expired." = "La targeta ha caducat.";
 
@@ -67,8 +77,6 @@
 "Your card's security code is incomplete." = "El codi de seguretat de la teva targeta no està complet.";
 
 "Your card's security code is invalid." = "El codi de seguretat de la teva targeta no és vàlid";
-
-"Your postal code is invalid." = "El teu codi postal no és vàlid.";
 
 "card number" = "número de targeta";
 

@@ -36,6 +36,18 @@
 
 "MM/YY" = "MM/LL";
 
+"Only credit and prepaid cards are accepted" = "Sprejemajo se le kreditne in predplačniške kartice";
+
+"Only credit cards are accepted" = "Sprejemane so samo kreditne kartice";
+
+"Only debit and credit cards are accepted" = "Sprejemane so le debetne in kreditne kartice";
+
+"Only debit and prepaid cards are accepted" = "Sprejemajo se le debetne in predplačniške kartice";
+
+"Only debit cards are accepted" = "Sprejemane so le debetne kartice";
+
+"Only prepaid cards are accepted" = "Sprejemajo se le predplačniške kartice";
+
 "Postal Code" = "Poštna številka";
 
 "Shipping Address" = "Dostavni naslov";
@@ -47,8 +59,6 @@
 "The selected brand is not allowed" = "Izbrana blagovna znamka ni dovoljena";
 
 "To scan your card, allow camera access in Settings." = "Če želite optično prebrati kartico, dovolite dostop kameri v nastavitvah.";
-
-"Your ZIP is invalid." = "Vaša poštna številka ni veljavna.";
 
 "Your card has expired." = "Vaša kartica je potekla.";
 
@@ -67,8 +77,6 @@
 "Your card's security code is incomplete." = "Varnostna koda vaše kartice ni popolna.";
 
 "Your card's security code is invalid." = "Varnostna koda vaše kartice ni veljavna.";
-
-"Your postal code is invalid." = "Vaša poštna številka ni veljavna.";
 
 "card number" = "številka kartice";
 

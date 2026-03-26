@@ -11,6 +11,7 @@ import XCTest
 @testable@_spi(STP) import Stripe
 @testable@_spi(STP) import StripeApplePay
 @testable@_spi(STP) import StripeCore
+@testable@_spi(STP) import StripeIssuing
 @testable@_spi(STP) import StripePayments
 @testable@_spi(STP) import StripePaymentSheet
 @testable@_spi(STP) import StripePaymentsUI
@@ -23,6 +24,7 @@ class STPAPIClientTest: XCTestCase {
     func testSetDefaultPublishableKey() {
         let clientInitializedBefore = STPAPIClient()
         StripeAPI.defaultPublishableKey = "test"
+        defer { StripeAPI.defaultPublishableKey = nil }
         let clientInitializedAfter = STPAPIClient()
         let sharedClient = STPAPIClient.shared
         XCTAssertEqual(clientInitializedBefore.publishableKey, "test")
@@ -30,6 +32,7 @@ class STPAPIClientTest: XCTestCase {
 
         // Setting the STPAPIClient instance overrides Stripe.defaultPublishableKey...
         sharedClient.publishableKey = "test2"
+        defer { sharedClient.publishableKey = nil }
         XCTAssertEqual(sharedClient.publishableKey, "test2")
 
         // ...while Stripe.defaultPublishableKey remains the same
@@ -103,6 +106,17 @@ class STPAPIClientTest: XCTestCase {
 
         params = STPAPIClient.paramsAddingPaymentUserAgent(params, additionalValues: ["foo"])
         XCTAssertEqual(params["payment_user_agent"] as! String, "stripe-ios/\(StripeAPIConfiguration.STPSDKVersion); variant.paymentsheet; MockUAUsageClass; foo")
+    }
+
+    func testClientAttributionMetadata() {
+        AnalyticsHelper.shared.generateSessionID()
+        var params: [String: Any] = [:]
+        params = STPAPIClient.paramsAddingClientAttributionMetadata(params, clientAttributionMetadata: STPClientAttributionMetadata(elementsSessionConfigId: "elements_session_123"))
+        let clientAttributionMetadata = params["client_attribution_metadata"] as? [String: String]
+        XCTAssertEqual(clientAttributionMetadata?["client_session_id"], AnalyticsHelper.shared.sessionID)
+        XCTAssertEqual(clientAttributionMetadata?["merchant_integration_source"], "elements")
+        XCTAssertEqual(clientAttributionMetadata?["merchant_integration_subtype"], "mobile")
+        XCTAssertEqual(clientAttributionMetadata?["merchant_integration_version"], "stripe-ios/\(StripeAPIConfiguration.STPSDKVersion)")
     }
 
     func testSetAppInfo() {

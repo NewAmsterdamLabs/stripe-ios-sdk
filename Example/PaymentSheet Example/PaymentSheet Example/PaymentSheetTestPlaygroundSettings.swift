@@ -7,7 +7,7 @@
 
 import Foundation
 @_spi(STP) import StripePayments
-@_spi(PaymentMethodOptionsSetupFutureUsagePreview) import StripePaymentSheet
+@_spi(PaymentMethodOptionsSetupFutureUsagePreview) @_spi(CardFundingFilteringPrivatePreview) import StripePaymentSheet
 
 struct PaymentSheetTestPlaygroundSettings: Codable, Equatable {
     enum UIStyle: String, PickerEnum {
@@ -57,6 +57,8 @@ struct PaymentSheetTestPlaygroundSettings: Codable, Equatable {
         case deferred_mc
         /// Def MP: Deferred multiprocessor flow
         case deferred_mp
+        /// CheckoutSession: Uses Stripe CheckoutSession APIs
+        case checkoutSession
 
         var displayName: String {
             switch self {
@@ -70,8 +72,26 @@ struct PaymentSheetTestPlaygroundSettings: Codable, Equatable {
                 return "Deferred server side confirmation with manual confirmation"
             case .deferred_mp:
                 return "Deferred multiprocessor flow"
+            case .checkoutSession:
+                return "CheckoutSession"
             }
         }
+
+        var isIntentFirst: Bool {
+            switch self {
+            case .normal, .checkoutSession:
+                return true
+            case .deferred_csc, .deferred_ssc, .deferred_mc, .deferred_mp:
+                return false
+            }
+        }
+    }
+
+    enum ConfirmationMode: String, PickerEnum {
+        static var enumName: String { "Confirmation mode" }
+
+        case confirmationToken = "ConfirmationToken"
+        case paymentMethod = "PaymentMethod"
     }
 
     enum CustomerMode: String, PickerEnum {
@@ -132,7 +152,7 @@ struct PaymentSheetTestPlaygroundSettings: Codable, Equatable {
     }
 
     enum MerchantCountry: String, PickerEnum {
-        static var enumName: String { "MerchantCountry" }
+        static var enumName: String { "Merchant" }
 
         case US
         case GB
@@ -147,17 +167,12 @@ struct PaymentSheetTestPlaygroundSettings: Codable, Equatable {
         case TH
         case DE
         case IT
+        case stripeShop = "stripe_shop_test"
+        case custom
     }
 
     enum APMSEnabled: String, PickerEnum {
         static var enumName: String { "Automatic PMs" }
-
-        case on
-        case off
-    }
-
-    enum PaymentMethodOptionsSetupFutureUsageEnabled: String, PickerEnum {
-        static var enumName: String { "PMO SFU" }
 
         case on
         case off
@@ -281,6 +296,7 @@ struct PaymentSheetTestPlaygroundSettings: Codable, Equatable {
         case on
         case off
         case onWithDetails = "on w/details"
+        case onWithShipping = "on w/Shipping"
     }
 
     enum ApplePayButtonType: String, PickerEnum {
@@ -305,6 +321,14 @@ struct PaymentSheetTestPlaygroundSettings: Codable, Equatable {
         case on
         case off
     }
+
+    enum EnableAttestationOnConfirmation: String, PickerEnum {
+        static var enumName: String { "Enable attestation on confirmation" }
+
+        case on
+        case off
+    }
+
     enum PaymentMethodSave: String, PickerEnum {
         static var enumName: String { "PaymentMethodSave" }
 
@@ -399,7 +423,9 @@ struct PaymentSheetTestPlaygroundSettings: Codable, Equatable {
         static var enumName: String { "UserOverrideCountry (debug only)" }
 
         case off
+        case US
         case GB
+        case DE
     }
 
     enum BillingDetailsAttachDefaults: String, PickerEnum {
@@ -436,6 +462,40 @@ struct PaymentSheetTestPlaygroundSettings: Codable, Equatable {
         case automatic
         case never
         case full
+    }
+    enum BillingDetailsAllowedCountries: String, PickerEnum {
+        static var enumName: String { "Allowed Countries" }
+
+        case all
+        case usOnly = "us_only"
+        case northAmerica = "north_america"
+        case someEuropeanCountries = "some_european_countries"
+
+        var countries: Set<String> {
+            switch self {
+            case .all:
+                return []  // Empty set means all countries
+            case .usOnly:
+                return ["US"]
+            case .northAmerica:
+                return ["US", "CA", "MX"]
+            case .someEuropeanCountries:
+                return ["FR", "DE", "IT", "ES"]
+            }
+        }
+
+        var displayName: String {
+            switch self {
+            case .all:
+                return "All Countries"
+            case .usOnly:
+                return "US Only"
+            case .northAmerica:
+                return "North America (US, CA, MX)"
+            case .someEuropeanCountries:
+                return "Some Europe (FR, DE, IT, ES)"
+            }
+        }
     }
     enum Autoreload: String, PickerEnum {
         static var enumName: String { "Autoreload" }
@@ -586,11 +646,24 @@ struct PaymentSheetTestPlaygroundSettings: Codable, Equatable {
         case `continue`
     }
 
+    enum RowSelectionBehavior: String, PickerEnum {
+        static let enumName: String = "rowSelectionBehavior"
+        case `default`
+        case immediateAction
+    }
+
     enum CardBrandAcceptance: String, PickerEnum {
         static let enumName: String = "cardBrandAcceptance"
         case all
         case blockAmEx
         case allowVisa
+    }
+
+    enum CardFundingAcceptance: String, PickerEnum {
+        static let enumName: String = "fundingAcceptance"
+        case all
+        case creditOnly
+        case debitOnly
     }
 
     enum ConfigurationStyle: String, PickerEnum {
@@ -599,6 +672,18 @@ struct PaymentSheetTestPlaygroundSettings: Codable, Equatable {
         case alwaysLight
         case alwaysDark
     }
+    enum PaymentMethodTermsDisplay: String, PickerEnum {
+        static var enumName: String { "Card TermsDisplay" }
+        case unset
+        case automatic
+        case never
+    }
+
+    enum OpensCardScannerAutomatically: String, PickerEnum {
+        static let enumName: String = "opensCardScannerAutomatically"
+        case on
+        case off
+    }
 
     var uiStyle: UIStyle
     var layout: Layout
@@ -606,19 +691,23 @@ struct PaymentSheetTestPlaygroundSettings: Codable, Equatable {
     var style: ConfigurationStyle
     var customerKeyType: CustomerKeyType
     var integrationType: IntegrationType
+    var confirmationMode: ConfirmationMode
     var customerMode: CustomerMode
     var currency: Currency
     var amount: Amount
     var merchantCountryCode: MerchantCountry
+    // For testing purposes only; keys should typically not be defined on the client
+    var customSecretKey: String?
+    var customPublishableKey: String?
     var apmsEnabled: APMSEnabled
     var supportedPaymentMethods: String?
-    var paymentMethodOptionsSetupFutureUsageEnabled: PaymentMethodOptionsSetupFutureUsageEnabled
     var paymentMethodOptionsSetupFutureUsage: PaymentMethodOptionsSetupFutureUsage
 
     var shippingInfo: ShippingInfo
     var applePayEnabled: ApplePayEnabled
     var applePayButtonType: ApplePayButtonType
     var allowsDelayedPMs: AllowsDelayedPMs
+    var enableAttestationOnConfirmation: EnableAttestationOnConfirmation
     var paymentMethodSave: PaymentMethodSave
     var allowRedisplayOverride: AllowRedisplayOverride
     var paymentMethodRemove: PaymentMethodRemove
@@ -650,9 +739,14 @@ struct PaymentSheetTestPlaygroundSettings: Codable, Equatable {
     var collectEmail: BillingDetailsEmail
     var collectPhone: BillingDetailsPhone
     var collectAddress: BillingDetailsAddress
+    var allowedCountries: BillingDetailsAllowedCountries
     var formSheetAction: FormSheetAction
     var embeddedViewDisplaysMandateText: DisplaysMandateTextEnabled
+    var rowSelectionBehavior: RowSelectionBehavior
     var cardBrandAcceptance: CardBrandAcceptance
+    var cardFundingAcceptance: CardFundingAcceptance
+    var opensCardScannerAutomatically: OpensCardScannerAutomatically
+    var termsDisplay: PaymentMethodTermsDisplay
 
     static func defaultValues() -> PaymentSheetTestPlaygroundSettings {
         return PaymentSheetTestPlaygroundSettings(
@@ -662,17 +756,18 @@ struct PaymentSheetTestPlaygroundSettings: Codable, Equatable {
             style: .automatic,
             customerKeyType: .customerSession,
             integrationType: .normal,
+            confirmationMode: .confirmationToken,
             customerMode: .guest,
             currency: .usd,
             amount: ._5099,
             merchantCountryCode: .US,
             apmsEnabled: .on,
-            paymentMethodOptionsSetupFutureUsageEnabled: .off,
             paymentMethodOptionsSetupFutureUsage: PaymentMethodOptionsSetupFutureUsage.defaultValues(),
             shippingInfo: .off,
             applePayEnabled: .on,
             applePayButtonType: .buy,
             allowsDelayedPMs: .on,
+            enableAttestationOnConfirmation: .on,
             paymentMethodSave: .enabled,
             allowRedisplayOverride: .notSet,
             paymentMethodRemove: .enabled,
@@ -703,13 +798,20 @@ struct PaymentSheetTestPlaygroundSettings: Codable, Equatable {
             collectEmail: .automatic,
             collectPhone: .automatic,
             collectAddress: .automatic,
+            allowedCountries: .all,
             formSheetAction: .continue,
             embeddedViewDisplaysMandateText: .on,
-            cardBrandAcceptance: .all)
+            rowSelectionBehavior: .default,
+            cardBrandAcceptance: .all,
+            cardFundingAcceptance: .all,
+            opensCardScannerAutomatically: .off,
+            termsDisplay: .unset
+        )
     }
 
     static let nsUserDefaultsKey = "PaymentSheetTestPlaygroundSettings"
     static let nsUserDefaultsCustomerIDKey = "PaymentSheetTestPlaygroundCustomerId"
+    static let nsUserDefaultsAppearanceKey = "PaymentSheetTestPlaygroundAppearance"
 
     static let baseEndpoint = "https://stp-mobile-playground-backend-v7.stripedemos.com"
     static var endpointSelectorEndpoint: String {
@@ -724,7 +826,8 @@ struct PaymentSheetTestPlaygroundSettings: Codable, Equatable {
 
     var base64Data: String {
         let jsonData = try! JSONEncoder().encode(self)
-        return jsonData.base64EncodedString()
+        let compressedData = try! (jsonData as NSData).compressed(using: .lzfse) as Data
+        return compressedData.base64EncodedString()
     }
 
     var base64URL: URL {
@@ -732,12 +835,13 @@ struct PaymentSheetTestPlaygroundSettings: Codable, Equatable {
     }
 
     static func fromBase64<T: Decodable>(base64: String, className: T.Type) -> T? {
-        if let base64Data = base64.data(using: .utf8),
-           let data = Data(base64Encoded: base64Data),
-           let decodedObject = try? JSONDecoder().decode(className.self, from: data) {
-            return decodedObject
+        guard let base64Data = base64.data(using: .utf8),
+              let compressedData = Data(base64Encoded: base64Data) else {
+            return nil
         }
-        return nil
+        let data = try! (compressedData as NSData).decompressed(using: .lzfse) as Data
+        let decodedObject = try! JSONDecoder().decode(className.self, from: data)
+        return decodedObject
     }
 }
 

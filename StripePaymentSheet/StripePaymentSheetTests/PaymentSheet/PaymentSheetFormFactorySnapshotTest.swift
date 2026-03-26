@@ -14,6 +14,7 @@ import XCTest
 final class PaymentSheetFormFactorySnapshotTest: STPSnapshotTestCase {
     override func setUp() {
         super.setUp()
+//        recordMode = true
         let expectation = expectation(description: "Specs loaded")
         AddressSpecProvider.shared.loadAddressSpecs {
             FormSpecProvider.shared.load { _ in
@@ -408,6 +409,20 @@ final class PaymentSheetFormFactorySnapshotTest: STPSnapshotTestCase {
         view.autosizeHeight(width: 375)
         STPSnapshotVerifyView(view)
         XCTAssertTrue(formElement.validationState.isValid)
+    }
+
+    func testLpm_AUBecs_customFont() {
+        var configuration = PaymentSheet.Configuration()
+        configuration.appearance.font.base = UIFont(name: "Courier", size: 16)!
+        configuration.appearance.colors.textSecondary = .red
+        let factory = factory(
+            for: .AUBECSDebit,
+            configuration: configuration
+        )
+        let formElement = factory.make()
+        let view = formElement.view
+        view.autosizeHeight(width: 375)
+        STPSnapshotVerifyView(view)
     }
 
     func testEPM_subtitle() {

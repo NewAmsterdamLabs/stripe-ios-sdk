@@ -36,6 +36,18 @@
 
 "MM/YY" = "AA/YY";
 
+"Only credit and prepaid cards are accepted" = "Yalnızca kredi ve ön ödemeli kartlar kabul edilir";
+
+"Only credit cards are accepted" = "Yalnızca kredi kartları kabul edilir";
+
+"Only debit and credit cards are accepted" = "Yalnızca bankamatik ve kredi kartları kabul edilir";
+
+"Only debit and prepaid cards are accepted" = "Yalnızca bankamatik ve ön ödemeli kartlar kabul edilir";
+
+"Only debit cards are accepted" = "Yalnızca bankamatik kartları kabul edilir";
+
+"Only prepaid cards are accepted" = "Yalnızca ön ödemeli kartlar kabul edilir";
+
 "Postal Code" = "Posta Kodu";
 
 "Shipping Address" = "Gönderi Adresi";
@@ -47,8 +59,6 @@
 "The selected brand is not allowed" = "Seçilen markaya izin verilmiyor";
 
 "To scan your card, allow camera access in Settings." = "Kartınızı taramak için Ayarlar'da kamera erişimine izin verin.";
-
-"Your ZIP is invalid." = "Posta kodunuz geçersiz.";
 
 "Your card has expired." = "Kartınızın süresi dolmuş.";
 
@@ -67,8 +77,6 @@
 "Your card's security code is incomplete." = "Kartınızın güvenlik kodu eksik.";
 
 "Your card's security code is invalid." = "Kartınızın güvenlik kodu geçersiz.";
-
-"Your postal code is invalid." = "Posta kodunuz geçersiz.";
 
 "card number" = "kart numarası";
 

@@ -148,6 +148,21 @@ modules:
     readme: StripeIdentity/README.md
   size_report: true
 
+- podspec: StripeIssuing.podspec
+  scheme: StripeIssuing
+  framework_name: StripeIssuing
+  localization_dir: StripeIssuing/StripeIssuing
+  custom_string_convertible_dir: StripeIssuing/StripeIssuing/Source
+  supports_catalyst: false
+  docs:
+    output: docs/stripeissuing
+    readme: StripeIssuing/README.md
+    include:
+       - StripeCore
+       - StripePayments
+       - StripePaymentsUI
+  size_report: true
+
 - podspec: StripeApplePay.podspec
   scheme: StripeApplePay
   framework_name: StripeApplePay
@@ -172,6 +187,7 @@ modules:
 - podspec: StripeFinancialConnections.podspec
   scheme: StripeFinancialConnections
   framework_name: StripeFinancialConnections
+  localization_dir: StripeFinancialConnections/StripeFinancialConnections
   docs:
     output: docs/stripefinancialconnections
     readme: StripeFinancialConnections/README.md
@@ -201,6 +217,18 @@ modules:
       - StripeCore
   size_report: true
 
+- podspec: StripeCryptoOnramp.podspec
+  scheme: StripeCryptoOnramp
+  framework_name: StripeCryptoOnramp
+  localization_dir: StripeCryptoOnramp/StripeCryptoOnramp
+  supports_catalyst: false
+  docs:
+    output: docs/stripecryptoonramp
+    readme: StripeCryptoOnramp/README.md
+    include:
+      - StripeCore
+  size_report: true
+
 # All podspecs that get pushed to Cocoapods in the order of dependencies such
 # that a pods dependencies must appear before it in the list.
 # This is the order that podspecs will be pushed to `pod trunk`.
@@ -212,8 +240,11 @@ pod_push_order:
 - StripePayments.podspec
 - StripePaymentsUI.podspec
 - StripePaymentSheet.podspec
+- StripeIssuing.podspec
 - Stripe.podspec
 - StripeIdentity.podspec
 - StripeCardScan.podspec
 - StripeFinancialConnections.podspec
 - StripeConnect.podspec
+- StripeCryptoOnramp.podspec
+

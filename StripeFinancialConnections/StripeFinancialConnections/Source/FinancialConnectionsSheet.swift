@@ -122,6 +122,9 @@ final public class FinancialConnectionsSheet {
     /// Any additional Elements context useful for the Financial Connections SDK.
     @_spi(STP) public var elementsSessionContext: StripeCore.ElementsSessionContext?
 
+    /// An existing consumer, if available.
+    @_spi(STP) public var existingConsumer: StripeCore.FinancialConnectionsConsumer?
+
     /// Analytics client to use for logging analytics
     @_spi(STP) public let analyticsClient: STPAnalyticsClientProtocol
 
@@ -190,7 +193,7 @@ final public class FinancialConnectionsSheet {
     /// - Parameter presentingViewController: The view controller to present the financial connections sheet.
     /// - Returns: The result of the financial connections session after the financial connections sheet is dismissed, along with the bank account token.
     @MainActor
-    @_spi(v25) public func presentForToken(from presentingViewController: UIViewController) async -> TokenResult {
+    public func presentForToken(from presentingViewController: UIViewController) async -> TokenResult {
         await withCheckedContinuation { continuation in
             presentForToken(from: presentingViewController) { (result: TokenResult) in
                 continuation.resume(returning: result)
@@ -232,6 +235,19 @@ final public class FinancialConnectionsSheet {
                                     .unknown(debugDescription: "\(errorDescription)\n\n\(sessionInfo)")
                             )
                         )
+                    case .linkedAccount(let id):
+                        let errorDescription = "Linked Account flow is not currently supported via this interface."
+                        let sessionInfo =
+                        """
+                        linkedAccountId=\(id)
+                        """
+
+                        completion(
+                            .failed(
+                                error: FinancialConnectionsSheetError
+                                    .unknown(debugDescription: "\(errorDescription)\n\n\(sessionInfo)")
+                            )
+                        )
                     }
                 case .canceled:
                     completion(.canceled)
@@ -246,7 +262,7 @@ final public class FinancialConnectionsSheet {
     /// - Parameter presentingViewController: The view controller to present the financial connections sheet.
     /// - Returns: The result of the financial connections session after the financial connections sheet is dismissed.
     @MainActor
-    @_spi(v25) public func present(from presentingViewController: UIViewController) async -> Result {
+    public func present(from presentingViewController: UIViewController) async -> Result {
         await withCheckedContinuation { continuation in
             present(from: presentingViewController) { (result: Result) in
                 continuation.resume(returning: result)
@@ -298,7 +314,26 @@ final public class FinancialConnectionsSheet {
             }
         }
 
-        let financialConnectionsApiClient: any FinancialConnectionsAPI = FinancialConnectionsAsyncAPIClient(apiClient: apiClient)
+        var financialConnectionsApiClient: any FinancialConnectionsAPI = FinancialConnectionsAsyncAPIClient(apiClient: apiClient)
+
+        if let existingConsumer {
+            let verificationSessions = existingConsumer.verificationSessions.map { verificationSession in
+                VerificationSession(
+                    type: .init(rawValue: verificationSession.type.rawValue) ?? .unparsable,
+                    state: .init(rawValue: verificationSession.state.rawValue) ?? .unparsable
+                )
+            }
+            let consumerSession = ConsumerSessionData(
+                clientSecret: existingConsumer.clientSecret,
+                emailAddress: existingConsumer.emailAddress,
+                redactedFormattedPhoneNumber: existingConsumer.redactedFormattedPhoneNumber,
+                verificationSessions: verificationSessions
+            )
+            financialConnectionsApiClient.isLinkWithStripe = true
+            financialConnectionsApiClient.consumerSession = consumerSession
+            financialConnectionsApiClient.consumerPublishableKey = existingConsumer.publishableKey
+        }
+
         hostController = HostController(
             apiClient: financialConnectionsApiClient,
             analyticsClientV1: analyticsClient,
@@ -326,17 +361,27 @@ final public class FinancialConnectionsSheet {
         _ navigationController: FinancialConnectionsNavigationController,
         _ presentingViewController: UIViewController
     ) {
-        let toPresent: UIViewController
-        let animated: Bool
+        let shouldUseWrapper: Bool = {
+            guard UIDevice.current.userInterfaceIdiom != .pad else {
+                return false
+            }
+            if #available(iOS 26.0, *) {
+                // iOS 26 doesn't shrink the presenting ViewController in the way that
+                // earlier versions do, so we don't need to use the wrapper for it.
+                return false
+            } else {
+                return true
+            }
+        }()
+
         if UIDevice.current.userInterfaceIdiom == .pad {
             navigationController.modalPresentationStyle = .formSheet
-            toPresent = navigationController
-            animated = true
-        } else {
+        } else if shouldUseWrapper {
             wrapperViewController = ModalPresentationWrapperViewController(vc: navigationController)
-            toPresent = wrapperViewController!
-            animated = false
         }
+
+        let toPresent = wrapperViewController ?? navigationController
+        let animated = !shouldUseWrapper
         PresentationManager.shared.present(toPresent, from: presentingViewController, animated: animated)
     }
 }
@@ -351,17 +396,15 @@ extension FinancialConnectionsSheet: HostControllerDelegate {
         didFinish result: HostControllerResult,
         linkAccountSessionId: String?
     ) {
+        wrapperViewController?.startFadeOutIfNeeded()
         viewController.dismiss(
             animated: true,
             completion: {
                 let flowResult = HostControllerOutcome(result: result, sessionId: linkAccountSessionId)
                 if let wrapperViewController = self.wrapperViewController {
-                    wrapperViewController.dismiss(
-                        animated: false,
-                        completion: {
-                            self.completion?(flowResult)
-                        }
-                    )
+                    wrapperViewController.dismiss(animated: false) {
+                        self.completion?(flowResult)
+                    }
                     self.wrapperViewController = nil
                 } else {
                     self.completion?(flowResult)

@@ -36,6 +36,18 @@
 
 "MM/YY" = "ММ/ГГ";
 
+"Only credit and prepaid cards are accepted" = "Принимаются только кредитные и предоплаченные карты";
+
+"Only credit cards are accepted" = "Принимаются только кредитные карты";
+
+"Only debit and credit cards are accepted" = "Принимаются только дебетовые и кредитные карты";
+
+"Only debit and prepaid cards are accepted" = "Принимаются только дебетовые и предоплаченные карты";
+
+"Only debit cards are accepted" = "Принимаются только дебетовые карты";
+
+"Only prepaid cards are accepted" = "Принимаются только предоплаченные карты";
+
 "Postal Code" = "Почтовый индекс";
 
 "Shipping Address" = "Адрес доставки";
@@ -47,8 +59,6 @@
 "The selected brand is not allowed" = "Выбранный бренд недоступен";
 
 "To scan your card, allow camera access in Settings." = "Чтобы сканировать карту, войдите в \"Настройки\" и разрешите доступ к камере.";
-
-"Your ZIP is invalid." = "Введенный почтовый индекс неверен.";
 
 "Your card has expired." = "Срок действия карты истек.";
 
@@ -67,8 +77,6 @@
 "Your card's security code is incomplete." = "Код CVV/CVC карты введен не полностью.";
 
 "Your card's security code is invalid." = "Код CVV/CVC карты недействителен.";
-
-"Your postal code is invalid." = "Введенный почтовый индекс недействителен.";
 
 "card number" = "номер карты";
 

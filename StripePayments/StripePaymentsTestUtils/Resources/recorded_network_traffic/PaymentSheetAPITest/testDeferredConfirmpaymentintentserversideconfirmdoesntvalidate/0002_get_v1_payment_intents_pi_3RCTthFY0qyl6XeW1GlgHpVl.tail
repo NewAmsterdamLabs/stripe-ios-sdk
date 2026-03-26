@@ -1,4 +1,5 @@
 GET
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmpaymentintentserversideconfirmdoesntvalidate/0002_get_v1_payment_intents_pi_3RCTthFY0qyl6XeW1GlgHpVl.tail
 https:\/\/api\.stripe\.com\/v1\/payment_intents\/pi_3RCTthFY0qyl6XeW1GlgHpVl\?client_secret=pi_3RCTthFY0qyl6XeW1GlgHpVl_secret_uwhBaPHL05ZXNH7la1mMdJ9HW&expand%5B0%5D=payment_method$
 200
 application/json
@@ -10,19 +11,42 @@ reporting-endpoints: coop="https://q.stripe.com/coop-report"
 x-wc: ABGHI
 Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
 cross-origin-opener-policy-report-only: same-origin; report-to="coop"
+========
+https:\/\/api\.stripe\.com\/v1\/payment_intents\/pi_3RyFvDFY0qyl6XeW0iNC6u7a\?client_secret=pi_3RyFvDFY0qyl6XeW0iNC6u7a_secret_I6mI2bxgo6FYRYOD9YcCrLErA&expand%5B0%5D=payment_method$
+200
+application/json
+Content-Type: application/json
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidsavedcard/0007_get_v1_payment_intents_pi_3RyFvDFY0qyl6XeW0iNC6u7a.tail
 Access-Control-Allow-Origin: *
-x-stripe-routing-context-priority-tier: api-testmode
 x-stripe-priority-routing-enabled: true
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmpaymentintentserversideconfirmdoesntvalidate/0002_get_v1_payment_intents_pi_3RCTthFY0qyl6XeW1GlgHpVl.tail
 report-to: {"group":"coop","max_age":8640,"endpoints":[{"url":"https://q.stripe.com/coop-report"}],"include_subdomains":true}
 request-id: req_C85trpHYh0HY93
 Content-Length: 1935
 Vary: Origin
 Date: Thu, 10 Apr 2025 22:48:38 GMT
 stripe-version: 2020-08-27
+========
+content-security-policy: base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none'; img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src 'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=hrpu2xZN5_xu2l8f8J6s3FuMvF6Qx878OuWRAmrwD45KfVu_iialdpmVmrm3Wc9v25JSn2FLE6ifaST9
+x-wc: ABGHIJ
+access-control-allow-methods: GET, HEAD, PUT, PATCH, POST, DELETE
+Server: nginx
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidsavedcard/0007_get_v1_payment_intents_pi_3RyFvDFY0qyl6XeW0iNC6u7a.tail
 access-control-expose-headers: Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required, X-Stripe-Privileged-Session-Required
 access-control-max-age: 300
+Cache-Control: no-cache, no-store
+Date: Wed, 20 Aug 2025 17:35:40 GMT
+stripe-version: 2020-08-27
 access-control-allow-credentials: true
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmpaymentintentserversideconfirmdoesntvalidate/0002_get_v1_payment_intents_pi_3RCTthFY0qyl6XeW1GlgHpVl.tail
 Content-Type: application/json
+========
+Content-Length: 2022
+x-stripe-routing-context-priority-tier: api-testmode
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+Vary: Origin
+request-id: req_80ThQTc45QCKJ8
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidsavedcard/0007_get_v1_payment_intents_pi_3RyFvDFY0qyl6XeW0iNC6u7a.tail
 
 {
   "payment_method_configuration_details" : null,
@@ -42,14 +66,20 @@ Content-Type: application/json
   "next_action" : null,
   "total_details" : {
     "amount_discount" : 0,
+    "amount_tip" : null,
     "amount_tax" : 0
   },
   "payment_method" : {
     "object" : "payment_method",
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmpaymentintentserversideconfirmdoesntvalidate/0002_get_v1_payment_intents_pi_3RCTthFY0qyl6XeW1GlgHpVl.tail
     "id" : "pm_1RCTtgFY0qyl6XeWz09p7srA",
+========
+    "id" : "pm_1RyFvDFY0qyl6XeWVzGrLhts",
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidsavedcard/0007_get_v1_payment_intents_pi_3RyFvDFY0qyl6XeW0iNC6u7a.tail
     "billing_details" : {
       "email" : null,
       "phone" : null,
+      "tax_id" : null,
       "name" : null,
       "address" : {
         "state" : null,
@@ -87,25 +117,39 @@ Content-Type: application/json
       "country" : "US"
     },
     "livemode" : false,
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmpaymentintentserversideconfirmdoesntvalidate/0002_get_v1_payment_intents_pi_3RCTthFY0qyl6XeW1GlgHpVl.tail
     "created" : 1744325316,
+========
+    "created" : 1755711339,
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidsavedcard/0007_get_v1_payment_intents_pi_3RyFvDFY0qyl6XeW0iNC6u7a.tail
     "allow_redisplay" : "unspecified",
     "type" : "card",
     "customer" : null
   },
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmpaymentintentserversideconfirmdoesntvalidate/0002_get_v1_payment_intents_pi_3RCTthFY0qyl6XeW1GlgHpVl.tail
   "client_secret" : "pi_3RCTthFY0qyl6XeW1GlgHpVl_secret_uwhBaPHL05ZXNH7la1mMdJ9HW",
   "id" : "pi_3RCTthFY0qyl6XeW1GlgHpVl",
+========
+  "client_secret" : "pi_3RyFvDFY0qyl6XeW0iNC6u7a_secret_I6mI2bxgo6FYRYOD9YcCrLErA",
+  "id" : "pi_3RyFvDFY0qyl6XeW0iNC6u7a",
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidsavedcard/0007_get_v1_payment_intents_pi_3RyFvDFY0qyl6XeW0iNC6u7a.tail
   "confirmation_method" : "automatic",
   "amount_details" : {
     "tip" : {
 
     }
   },
+  "excluded_payment_method_types" : null,
   "processing" : null,
   "receipt_email" : null,
   "payment_method_types" : [
     "card"
   ],
   "setup_future_usage" : null,
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmpaymentintentserversideconfirmdoesntvalidate/0002_get_v1_payment_intents_pi_3RCTthFY0qyl6XeW1GlgHpVl.tail
   "created" : 1744325317,
+========
+  "created" : 1755711339,
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmvalidsavedcard/0007_get_v1_payment_intents_pi_3RyFvDFY0qyl6XeW0iNC6u7a.tail
   "description" : null
 }

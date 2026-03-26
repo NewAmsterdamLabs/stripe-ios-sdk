@@ -6,7 +6,7 @@
 //
 
 import SafariServices
-@_spi(PrivateBetaConnect) @_spi(DashboardOnly) @testable import StripeConnect
+@_spi(DashboardOnly) @testable import StripeConnect
 @_spi(STP) import StripeCore
 import WebKit
 import XCTest
@@ -18,7 +18,6 @@ class AccountManagementViewControllerTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        STPAPIClient.shared.publishableKey = "pk_test"
         componentManager.shouldLoadContent = false
         componentManager.analyticsClientFactory = MockComponentAnalyticsClient.init
     }

@@ -221,12 +221,6 @@ class EmptyFinancialConnectionsAPIClient: FinancialConnectionsAPI {
         return Promise<StripeFinancialConnections.ConsumerSessionResponse>()
     }
 
-    func markLinkStepUpAuthenticationVerified(
-        clientSecret: String
-    ) -> Future<FinancialConnectionsSessionManifest> {
-        return Promise<StripeFinancialConnections.FinancialConnectionsSessionManifest>()
-    }
-
     func linkAccountSignUp(
         emailAddress: String,
         phoneNumber: String,
@@ -251,7 +245,8 @@ class EmptyFinancialConnectionsAPIClient: FinancialConnectionsAPI {
         consumerSessionClientSecret: String,
         bankAccountId: String,
         billingAddress: BillingAddress?,
-        billingEmail: String?
+        billingEmail: String?,
+        clientAttributionMetadata: STPClientAttributionMetadata?
     ) -> StripeCore.Future<StripeFinancialConnections.FinancialConnectionsPaymentDetails> {
         Promise<StripeFinancialConnections.FinancialConnectionsPaymentDetails>()
     }
@@ -261,7 +256,9 @@ class EmptyFinancialConnectionsAPIClient: FinancialConnectionsAPI {
         paymentDetailsId: String,
         expectedPaymentMethodType: String,
         billingEmail: String?,
-        billingPhone: String?
+        billingPhone: String?,
+        allowRedisplay: String?,
+        clientAttributionMetadata: STPClientAttributionMetadata?
     ) -> Future<FinancialConnectionsSharePaymentDetails> {
         Promise<StripeFinancialConnections.FinancialConnectionsSharePaymentDetails>()
     }
@@ -269,7 +266,9 @@ class EmptyFinancialConnectionsAPIClient: FinancialConnectionsAPI {
     func paymentMethods(
         consumerSessionClientSecret: String,
         paymentDetailsId: String,
-        billingDetails: ElementsSessionContext.BillingDetails?
+        billingDetails: ElementsSessionContext.BillingDetails?,
+        allowRedisplay: String?,
+        clientAttributionMetadata: STPClientAttributionMetadata?
     ) -> StripeCore.Future<StripeFinancialConnections.LinkBankPaymentMethod> {
         Promise<StripeFinancialConnections.LinkBankPaymentMethod>()
     }

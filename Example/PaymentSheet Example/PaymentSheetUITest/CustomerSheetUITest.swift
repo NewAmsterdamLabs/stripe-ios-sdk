@@ -10,6 +10,21 @@ class CustomerSheetUITest: XCTestCase {
     var app: XCUIApplication!
     let timeout: TimeInterval = 10
 
+    /// This element's `label` contains all the analytic events sent by the SDK since the the playground was loaded, as a base-64 encoded string.
+    /// - Note: Only exists in test playground.
+    lazy var analyticsLogElement: XCUIElement = { app.staticTexts["_testAnalyticsLog"] }()
+    /// Convenience var to grab all the events sent since the playground was loaded.
+    var analyticsLog: [[String: Any]] {
+        let logRawString = analyticsLogElement.label
+        guard
+            let data = Data(base64Encoded: logRawString),
+            let json = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]]
+        else {
+            return []
+        }
+        return json
+    }
+
     override func setUpWithError() throws {
         try super.setUpWithError()
         // Put setup code here. This method is called before the invocation of each test method in the class.
@@ -330,7 +345,7 @@ class CustomerSheetUITest: XCTestCase {
 
         // Go through connections flow
         app.buttons["consent_agree_button"].tap()
-        app.staticTexts["Test Institution"].forceTapElement()
+        app.staticTexts["Test (Non-OAuth)"].forceTapElement()
         // "Success" institution is automatically selected because its the first
         app.buttons["connect_accounts_button"].waitForExistenceAndTap(timeout: timeout)
 
@@ -381,18 +396,6 @@ class CustomerSheetUITest: XCTestCase {
         app.otherElements["consent_manually_verify_label"].links.firstMatch.tap()
         try! fillUSBankData_microdeposits(app)
 
-        let continueManualEntry = app.buttons["manual_entry_continue_button"]
-        XCTAssertTrue(continueManualEntry.waitForExistence(timeout: timeout))
-        continueManualEntry.tap()
-
-        // Fill out Link
-        XCTAssertTrue(app.textFields["Email"].waitForExistence(timeout: timeout))
-        app.typeText("test-\(UUID().uuidString)@example.com")
-        XCTAssertTrue(app.textFields["Phone number"].waitForExistence(timeout: timeout))
-        app.typeText("3105551234")
-        app.toolbars.buttons["Done"].tap()
-        app.buttons["Save with Link"].waitForExistenceAndTap(timeout: timeout)
-
         let doneManualEntry = app.buttons["success_done_button"]
         XCTAssertTrue(doneManualEntry.waitForExistence(timeout: timeout))
         doneManualEntry.tap()
@@ -418,7 +421,6 @@ class CustomerSheetUITest: XCTestCase {
         app.staticTexts["+ Add"].waitForExistenceAndTap(timeout: timeout)
 
         let numberField = app.textFields["Card number"]
-        let cardBrandChoiceDropdown = app.pickerWheels.firstMatch
 
         // Type full card number to start fetching card brands again
         numberField.forceTapWhenHittableInTestCase(self)
@@ -428,16 +430,16 @@ class CustomerSheetUITest: XCTestCase {
         app.typeText("123") // CVC
         app.typeText("12345") // Postal
 
-        // Card brand choice drop down should be enabled
-        XCTAssertTrue(app.textFields["Select card brand (optional)"].waitForExistenceAndTap(timeout: timeout))
-        XCTAssertTrue(cardBrandChoiceDropdown.waitForExistence(timeout: timeout))
-        cardBrandChoiceDropdown.selectNextOption()
-        app.toolbars.buttons["Done"].tap()
+        let cardBrandChoiceCB = app.buttons["Cartes Bancaires"]
+        let cardBrandChoiceVisa = app.buttons["Visa"]
+
+        // Card brand choice should be enabled
+        cardBrandChoiceCB.waitForExistenceAndTap(timeout: timeout)
         // Bug where it autoadvances to the MM / YY field even though it's filled out, have to tap Done again
         app.toolbars.buttons["Done"].tap()
 
         // We should have selected cartes bancaires
-        XCTAssertTrue(app.textFields["Cartes Bancaires"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.buttons["Cartes Bancaires"].isSelected)
 
         // Finish saving card
         app.buttons["Save"].waitForExistenceAndTap(timeout: timeout)
@@ -457,11 +459,17 @@ class CustomerSheetUITest: XCTestCase {
         // Saved card should show the edit icon since it is co-branded
         XCTAssertTrue(app.buttons["CircularButton.Edit"].waitForExistenceAndTap(timeout: timeout))
 
+        XCTAssertTrue(cardBrandChoiceCB.waitForExistence(timeout: timeout))
+
+        // Tapping the selected card brand again should not deselect it
+        XCTAssertTrue(cardBrandChoiceCB.isSelected)
+        cardBrandChoiceCB.tap()
+        XCTAssertTrue(cardBrandChoiceCB.isSelected)
+
         // Update this card
-        XCTAssertTrue(app.textFields["Cartes Bancaires"].waitForExistenceAndTap(timeout: timeout))
-        XCTAssertTrue(app.pickerWheels.firstMatch.waitForExistence(timeout: timeout))
-        app.pickerWheels.firstMatch.swipeUp()
-        app.toolbars.buttons["Done"].tap()
+        XCTAssertFalse(cardBrandChoiceVisa.isSelected)
+        cardBrandChoiceVisa.tap()
+        XCTAssertTrue(cardBrandChoiceVisa.isSelected)
         app.buttons["Save"].waitForExistenceAndTap(timeout: timeout)
 
         // We should have updated to Visa
@@ -499,31 +507,29 @@ class CustomerSheetUITest: XCTestCase {
         app.staticTexts["+ Add"].waitForExistenceAndTap(timeout: timeout)
 
         // We should have selected Visa due to preferreedNetworks configuration API
-        let cardBrandTextField = app.textFields["Visa"]
-        let cardBrandChoiceDropdown = app.pickerWheels.firstMatch
-        // Card brand choice textfield/dropdown should not be visible
-        XCTAssertFalse(cardBrandTextField.waitForExistence(timeout: 2))
+        let cardBrandChoiceVisa = app.buttons["Visa"]
+        let cardBrandChoiceCB = app.buttons["Cartes Bancaires"]
+        // Card brand choice textfield/selector should not be visible
+        XCTAssertFalse(cardBrandChoiceVisa.waitForExistence(timeout: 2))
 
         let numberField = app.textFields["Card number"]
         numberField.tap()
         // Enter 8 digits to start fetching card brand
         numberField.typeText("49730197")
 
-        // Card brand choice drop down should be enabled
-        cardBrandTextField.tap()
-        XCTAssertTrue(cardBrandChoiceDropdown.waitForExistence(timeout: timeout))
-        cardBrandChoiceDropdown.swipeDown()
-        app.toolbars.buttons["Cancel"].tap()
+        // Card brand choice selector should be enabled
+        XCTAssertTrue(cardBrandChoiceVisa.waitForExistence(timeout: 2))
 
         // We should have selected Visa due to preferreedNetworks configuration API
-        XCTAssertTrue(app.textFields["Visa"].waitForExistence(timeout: 2))
+        XCTAssertTrue(cardBrandChoiceVisa.isSelected)
+        XCTAssertFalse(cardBrandChoiceCB.isSelected)
 
         // Clear card text field, should reset selected card brand
         numberField.tap()
         numberField.clearText()
 
         // We should reset to showing unknown in the textfield for card brand
-        XCTAssertFalse(app.textFields["Select card brand (optional)"].waitForExistence(timeout: 2))
+        XCTAssertFalse(cardBrandChoiceVisa.waitForExistence(timeout: 2))
 
         // Type full card number to start fetching card brands again
         numberField.forceTapWhenHittableInTestCase(self)
@@ -533,8 +539,10 @@ class CustomerSheetUITest: XCTestCase {
         app.typeText("123") // CVC
         app.typeText("12345") // Postal
 
-        // Card brand choice drop down should be enabled and we should auto select Visa
-        XCTAssertTrue(app.textFields["Visa"].waitForExistence(timeout: timeout))
+        // Card brand choice selector should be enabled and we should auto select Visa
+        XCTAssertTrue(cardBrandChoiceVisa.waitForExistence(timeout: timeout))
+        XCTAssertTrue(cardBrandChoiceVisa.isSelected)
+        XCTAssertFalse(cardBrandChoiceCB.isSelected)
 
         // Finish saving card
         app.buttons["Save"].tap()
@@ -557,10 +565,11 @@ class CustomerSheetUITest: XCTestCase {
         let startCoordinate = app.collectionViews.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.99))
         startCoordinate.press(forDuration: 0.1, thenDragTo: app.collectionViews.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.99)))
         XCTAssertTrue(app.buttons.matching(identifier: "CircularButton.Edit").firstMatch.waitForExistenceAndTap())
-        XCTAssertTrue(app.otherElements.matching(identifier: "Card Brand Dropdown").firstMatch.waitForExistenceAndTap())
-        app.pickerWheels.firstMatch.selectNextOption()
-        app.toolbars.buttons["Done"].tap()
-        XCTAssertTrue(app.textFields["Visa"].waitForExistence(timeout: 3))
+        let cardBrandChoiceVisa = app.buttons["Visa"]
+        let cardBrandChoiceCB = app.buttons["Cartes Bancaires"]
+        cardBrandChoiceVisa.waitForExistenceAndTap(timeout: timeout)
+        XCTAssertTrue(cardBrandChoiceVisa.isSelected)
+        XCTAssertFalse(cardBrandChoiceCB.isSelected)
         app.buttons["Save"].waitForExistenceAndTap()
         XCTAssertTrue(app.buttons["Done"].waitForExistence(timeout: 3))
         XCTAssertEqual(app.images.matching(identifier: "carousel_card_visa").count, 2)
@@ -871,19 +880,26 @@ class CustomerSheetUITest: XCTestCase {
         app.pickerWheels.firstMatch.adjust(toPickerWheelValue: "🇺🇸 United States")
         app.toolbars.buttons["Done"].tap()
 
+        app.textFields["State"].tap()
+        app.pickerWheels.firstMatch.adjust(toPickerWheelValue: "Alabama")
+        app.toolbars.buttons["Done"].tap()
+
         let line1Field = app.textFields["Address line 1"]
         XCTAssertTrue(line1Field.waitForExistence(timeout: 3.0))
         line1Field.tap()
+        line1Field.clearText()
         line1Field.typeText("123 main")
 
         let cityField = app.textFields["City"]
         XCTAssertTrue(cityField.waitForExistence(timeout: 3.0))
         cityField.tap()
+        cityField.clearText()
         cityField.typeText("San Francisco")
 
         let zipField = app.textFields["ZIP"]
         XCTAssertTrue(zipField.waitForExistence(timeout: 3.0))
         zipField.tap()
+        zipField.clearText()
         zipField.typeText("12345" + XCUIKeyboardKey.return.rawValue)
 
         XCTAssertTrue(app.buttons["Save"].waitForExistenceAndTap(timeout: 3.0))
@@ -916,6 +932,42 @@ class CustomerSheetUITest: XCTestCase {
         XCTAssertEqual(zipCode, "12345")
         XCTAssertEqual(country, "United States")
     }
+
+    func testCachesFormDetails() throws {
+        var settings = CustomerSheetTestPlaygroundSettings.defaultValues()
+        settings.customerMode = .new
+        loadPlayground(app, settings)
+
+        app.staticTexts["None"].waitForExistenceAndTap(timeout: timeout)
+
+        // Tap Add button to open the form
+        app.staticTexts["+ Add"].waitForExistenceAndTap(timeout: timeout)
+
+        // Start entering card details
+        let cardNumberField = app.textFields["Card number"]
+        cardNumberField.waitForExistenceAndTap(timeout: timeout)
+        cardNumberField.typeText("4")
+        app.toolbars.buttons["Done"].tap()
+
+        // Switch to bank form
+        app.staticTexts["US bank account"].waitForExistenceAndTap(timeout: timeout)
+        let nameField = app.textFields["Full name"]
+        nameField.waitForExistenceAndTap(timeout: timeout)
+        nameField.typeText("H")
+
+        // Switch bank to card form and verify that input is still there
+        app.staticTexts["Card"].waitForExistenceAndTap(timeout: timeout)
+        // Hack - we do this twice since the first tap only dismisses the keyboard
+        app.staticTexts["Card"].waitForExistenceAndTap(timeout: timeout)
+        let cardInput = app.textFields["Card number"].value as? String
+        XCTAssertTrue(cardInput?.hasPrefix("4") == true, "Card number field should preserve entered data")
+
+        // Switch back to bank form and verify that input is still there
+        app.staticTexts["US bank account"].waitForExistenceAndTap(timeout: timeout)
+        let bankInput = app.textFields["Full name"].value as? String
+        XCTAssertTrue(bankInput?.hasPrefix("H") == true, "Bank name field should preserve entered data")
+    }
+
     // MARK: - Helpers
 
     func presentCSAndAddCardFrom(buttonLabel: String, cardNumber: String? = nil, tapAdd: Bool = true) {
@@ -956,7 +1008,17 @@ class CustomerSheetUITest: XCTestCase {
 
         try! fillSepaData(app)
 
-        app.buttons["Save"].tap()
+        let saveButton = app.buttons["Save"]
+        let saveButtonEnabled = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == true AND enabled == true"),
+            object: saveButton
+        )
+        XCTAssertEqual(
+            XCTWaiter.wait(for: [saveButtonEnabled], timeout: timeout),
+            .completed,
+            "Save button should be enabled before continuing from the SEPA form"
+        )
+        saveButton.tap()
 
         let confirmButton = app.buttons["Confirm"]
         XCTAssertTrue(confirmButton.waitForExistence(timeout: timeout))
@@ -977,5 +1039,60 @@ class CustomerSheetUITest: XCTestCase {
 
         let alert = app.alerts[alertTitle]
         alert.buttons[buttonToTap].tap()
+    }
+
+    func testCustomerSheetCardScannerOpensAutomatically() throws {
+        var settings = CustomerSheetTestPlaygroundSettings.defaultValues()
+        settings.opensCardScannerAutomatically = .on
+        settings.customerMode = .new
+
+        loadPlayground(app, settings)
+
+        let selectButton = app.staticTexts["None"]
+        XCTAssertTrue(selectButton.waitForExistence(timeout: timeout))
+        selectButton.tap()
+
+        // Verify STPCardScanner is NOT in analytics product_usage when sheet is open but card form hasn't been opened
+        let initialProductUsage = analyticsLog.last!["product_usage"] as! [String]
+        XCTAssertFalse(initialProductUsage.contains("STPCardScanner"), "STPCardScanner should not be in product_usage before opening card form")
+
+        app.staticTexts["+ Add"].waitForExistenceAndTap(timeout: timeout)
+
+        // Wait for the close card scanner button to appear, which indicates the scanner is open and analytics updated
+        let closeScannerButton = app.buttons["Close card scanner"]
+        XCTAssertTrue(closeScannerButton.waitForExistence(timeout: 10.0), "Close card scanner button should appear when scanner opens")
+
+        // Verify STPCardScanner IS in analytics product_usage after opening card form
+        let updatedProductUsage = analyticsLog.last!["product_usage"] as! [String]
+        XCTAssertTrue(updatedProductUsage.contains("STPCardScanner"), "STPCardScanner should be in product_usage after opening card form")
+
+        // Close the card scanner
+        closeScannerButton.tap()
+
+        // Verify card scanner is closed
+        XCTAssertFalse(closeScannerButton.waitForExistence(timeout: 2.0), "Card scanner should be closed after tapping close button")
+
+        // Verify we can open the scanner again using the scan button
+        let scanCardButton = app.buttons["Scan card"]
+        XCTAssertTrue(scanCardButton.waitForExistence(timeout: 5.0), "Scan card button should exist")
+        scanCardButton.tap()
+        XCTAssertTrue(closeScannerButton.waitForExistence(timeout: 10.0), "Card scanner should open when tapping scan button")
+
+        // Verify that editing a form field closes the scanner
+        let cardNumberField = app.textFields["Card number"]
+        XCTAssertTrue(cardNumberField.waitForExistence(timeout: 10.0), "Card number field should exist")
+        cardNumberField.tap()
+
+        // Verify scanner is closed after editing form field
+        XCTAssertFalse(closeScannerButton.exists, "Card scanner should be closed when editing form fields")
+
+        // Close the card entry form
+        let backButton = app.buttons["Back"]
+        XCTAssertTrue(backButton.waitForExistence(timeout: timeout))
+        backButton.tap()
+
+        let closeButton = app.buttons["Close"]
+        XCTAssertTrue(closeButton.waitForExistence(timeout: timeout))
+        closeButton.tap()
     }
 }

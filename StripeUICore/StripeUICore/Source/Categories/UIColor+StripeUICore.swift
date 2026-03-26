@@ -94,6 +94,8 @@ import UIKit
         // Prefer using a white foreground as long as a minimum contrast threshold is met.
         // Factor the container color to compensate for "local adaptation".
         // https://github.com/w3c/wcag/issues/695
+        // Note: Pre-iOS 26, .systemBlue has a contrastToWhite of >3.6 but after iOS 26 it is <3.6.
+        //      This means that on iOS 26 and later, .systemBlue will switch to black text in dark mode.
         let threshold: CGFloat = isDarkMode ? 3.6 : 2.2
         if contrastRatioToWhite > threshold {
             return .white
@@ -144,19 +146,6 @@ import UIKit
     var disabledColor: UIColor {
         let (_, _, _, alpha) = rgba
         return self.withAlphaComponent(alpha * 0.4)
-    }
-
-    /// Returns a translucent mask based on the brightness of the color
-    var translucentMaskColor: UIColor {
-        let alpha: CGFloat = 0.04
-        let colorMaskForLight = UIColor.black.withAlphaComponent(alpha)
-        let colorMaskForDark = UIColor.white.withAlphaComponent(alpha)
-
-        return isBright
-            ? UIColor.dynamic(light: colorMaskForLight,
-                              dark: colorMaskForDark)
-            : UIColor.dynamic(light: colorMaskForDark,
-                              dark: colorMaskForLight)
     }
 
     /// Returns this color in a "disabled" state by reducing the alpha by 40% if `isDisabled` is `true`,

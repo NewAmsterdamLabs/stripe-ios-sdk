@@ -1,4 +1,5 @@
 POST
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RCTtiFY0qyl6XeW1Y3yW6p1_confirm.tail
 https:\/\/api\.stripe\.com\/v1\/payment_intents\/pi_3RCTtiFY0qyl6XeW1Y3yW6p1\/confirm$
 402
 application/json
@@ -7,31 +8,58 @@ content-security-policy: base-uri 'none'; default-src 'none'; form-action 'none'
 Server: nginx
 Cache-Control: no-cache, no-store
 reporting-endpoints: coop="https://q.stripe.com/coop-report"
+========
+https:\/\/api\.stripe\.com\/v1\/payment_intents\/pi_3RW1OTFY0qyl6XeW1v2ixP94\/confirm$
+402
+application/json
+access-control-allow-methods: GET, HEAD, PUT, PATCH, POST, DELETE
+content-security-policy: base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none'; img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src 'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=zg1TfBsW21177h2pycQaQkHvz6Kv4DkdLBSsQnEu5XwGCbBGmMZJnylAh0Vbk8sLCMQHQcd4ggvVP8If
+Server: nginx
+Cache-Control: no-cache, no-store
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RW1OTFY0qyl6XeW1v2ixP94_confirm.tail
 x-wc: ABGHI
 Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
-cross-origin-opener-policy-report-only: same-origin; report-to="coop"
 Access-Control-Allow-Origin: *
 stripe-should-retry: false
 x-stripe-priority-routing-enabled: true
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RCTtiFY0qyl6XeW1Y3yW6p1_confirm.tail
 report-to: {"group":"coop","max_age":8640,"endpoints":[{"url":"https://q.stripe.com/coop-report"}],"include_subdomains":true}
 request-id: req_JADplZfvZcTmwf
+========
+request-id: req_TDZEoOd6m4HKVv
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RW1OTFY0qyl6XeW1v2ixP94_confirm.tail
 x-stripe-routing-context-priority-tier: api-testmode
-Content-Length: 4600
+Content-Length: 4680
 Vary: Origin
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RCTtiFY0qyl6XeW1Y3yW6p1_confirm.tail
 Date: Thu, 10 Apr 2025 22:48:39 GMT
 original-request: req_JADplZfvZcTmwf
 stripe-version: 2020-08-27
 idempotency-key: 4d721020-c038-44b8-98e7-219e883412ae
+========
+Date: Tue, 03 Jun 2025 20:25:10 GMT
+original-request: req_TDZEoOd6m4HKVv
+stripe-version: 2020-08-27
+idempotency-key: 02ec931f-498c-4805-af3c-ef6ec0d3cb08
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RW1OTFY0qyl6XeW1v2ixP94_confirm.tail
 access-control-expose-headers: Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required, X-Stripe-Privileged-Session-Required
 access-control-max-age: 300
 access-control-allow-credentials: true
 Content-Type: application/json
 Content-Language: en-us
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RCTtiFY0qyl6XeW1Y3yW6p1_confirm.tail
 X-Stripe-Mock-Request: client_secret=pi_3RCTtiFY0qyl6XeW1Y3yW6p1_secret_uz9mhRXWaQ0SkV9qLH28VV4by&expand\[0]=payment_method&payment_method=pm_card_visa_chargeDeclinedInsufficientFunds&payment_method_options\[card]\[setup_future_usage]=&shipping\[address]\[country]=US&shipping\[address]\[line1]=Line%201&shipping\[name]=Jane%20Doe&shipping\[phone]=5551234567&use_stripe_sdk=true
 
 {
   "error" : {
     "charge" : "ch_3RCTtiFY0qyl6XeW1nSrPatW",
+========
+X-Stripe-Mock-Request: client_secret=pi_3RW1OTFY0qyl6XeW1v2ixP94_secret_9i0YfEB5HoOXtj5b9AXLpIiiv&expand\[0]=payment_method&payment_method=pm_card_visa_chargeDeclinedInsufficientFunds&payment_method_options\[card]\[setup_future_usage]=&shipping\[address]\[country]=US&shipping\[address]\[line1]=Line%201&shipping\[name]=Jane%20Doe&shipping\[phone]=5551234567&use_stripe_sdk=true
+
+{
+  "error" : {
+    "charge" : "ch_3RW1OTFY0qyl6XeW1VnkvX3U",
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RW1OTFY0qyl6XeW1v2ixP94_confirm.tail
     "payment_intent" : {
       "payment_method_configuration_details" : null,
       "canceled_at" : null,
@@ -57,7 +85,11 @@ X-Stripe-Mock-Request: client_secret=pi_3RCTtiFY0qyl6XeW1Y3yW6p1_secret_uz9mhRXW
       "object" : "payment_intent",
       "currency" : "usd",
       "last_payment_error" : {
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RCTtiFY0qyl6XeW1Y3yW6p1_confirm.tail
         "charge" : "ch_3RCTtiFY0qyl6XeW1nSrPatW",
+========
+        "charge" : "ch_3RW1OTFY0qyl6XeW1VnkvX3U",
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RW1OTFY0qyl6XeW1v2ixP94_confirm.tail
         "decline_code" : "insufficient_funds",
         "code" : "card_declined",
         "doc_url" : "https:\/\/stripe.com\/docs\/error-codes\/card-declined",
@@ -65,10 +97,15 @@ X-Stripe-Mock-Request: client_secret=pi_3RCTtiFY0qyl6XeW1Y3yW6p1_secret_uz9mhRXW
         "type" : "card_error",
         "payment_method" : {
           "object" : "payment_method",
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RCTtiFY0qyl6XeW1Y3yW6p1_confirm.tail
           "id" : "pm_1RCTtiFY0qyl6XeWgPBIWhpt",
+========
+          "id" : "pm_1RW1OTFY0qyl6XeW27ujAphU",
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RW1OTFY0qyl6XeW1v2ixP94_confirm.tail
           "billing_details" : {
             "email" : null,
             "phone" : null,
+            "tax_id" : null,
             "name" : null,
             "address" : {
               "state" : null,
@@ -101,12 +138,20 @@ X-Stripe-Mock-Request: client_secret=pi_3RCTtiFY0qyl6XeW1Y3yW6p1_secret_uz9mhRXW
             },
             "wallet" : null,
             "display_brand" : "visa",
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RCTtiFY0qyl6XeW1Y3yW6p1_confirm.tail
             "exp_month" : 4,
+========
+            "exp_month" : 6,
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RW1OTFY0qyl6XeW1v2ixP94_confirm.tail
             "exp_year" : 2026,
             "country" : "US"
           },
           "livemode" : false,
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RCTtiFY0qyl6XeW1Y3yW6p1_confirm.tail
           "created" : 1744325318,
+========
+          "created" : 1748982309,
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RW1OTFY0qyl6XeW1v2ixP94_confirm.tail
           "allow_redisplay" : "unspecified",
           "type" : "card",
           "customer" : null
@@ -118,11 +163,17 @@ X-Stripe-Mock-Request: client_secret=pi_3RCTtiFY0qyl6XeW1Y3yW6p1_secret_uz9mhRXW
       "next_action" : null,
       "total_details" : {
         "amount_discount" : 0,
+        "amount_tip" : null,
         "amount_tax" : 0
       },
       "payment_method" : null,
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RCTtiFY0qyl6XeW1Y3yW6p1_confirm.tail
       "client_secret" : "pi_3RCTtiFY0qyl6XeW1Y3yW6p1_secret_uz9mhRXWaQ0SkV9qLH28VV4by",
       "id" : "pi_3RCTtiFY0qyl6XeW1Y3yW6p1",
+========
+      "client_secret" : "pi_3RW1OTFY0qyl6XeW1v2ixP94_secret_9i0YfEB5HoOXtj5b9AXLpIiiv",
+      "id" : "pi_3RW1OTFY0qyl6XeW1v2ixP94",
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RW1OTFY0qyl6XeW1v2ixP94_confirm.tail
       "confirmation_method" : "automatic",
       "amount_details" : {
         "tip" : {
@@ -135,21 +186,34 @@ X-Stripe-Mock-Request: client_secret=pi_3RCTtiFY0qyl6XeW1Y3yW6p1_secret_uz9mhRXW
         "card"
       ],
       "setup_future_usage" : null,
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RCTtiFY0qyl6XeW1Y3yW6p1_confirm.tail
       "created" : 1744325318,
       "description" : null
     },
     "decline_code" : "insufficient_funds",
     "request_log_url" : "https:\/\/dashboard.stripe.com\/test\/logs\/req_JADplZfvZcTmwf?t=1744325318",
+========
+      "created" : 1748982309,
+      "description" : null
+    },
+    "decline_code" : "insufficient_funds",
+    "request_log_url" : "https:\/\/dashboard.stripe.com\/test\/logs\/req_TDZEoOd6m4HKVv?t=1748982309",
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RW1OTFY0qyl6XeW1v2ixP94_confirm.tail
     "code" : "card_declined",
     "doc_url" : "https:\/\/stripe.com\/docs\/error-codes\/card-declined",
     "message" : "Your card has insufficient funds.",
     "type" : "card_error",
     "payment_method" : {
       "object" : "payment_method",
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RCTtiFY0qyl6XeW1Y3yW6p1_confirm.tail
       "id" : "pm_1RCTtiFY0qyl6XeWgPBIWhpt",
+========
+      "id" : "pm_1RW1OTFY0qyl6XeW27ujAphU",
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RW1OTFY0qyl6XeW1v2ixP94_confirm.tail
       "billing_details" : {
         "email" : null,
         "phone" : null,
+        "tax_id" : null,
         "name" : null,
         "address" : {
           "state" : null,
@@ -182,12 +246,20 @@ X-Stripe-Mock-Request: client_secret=pi_3RCTtiFY0qyl6XeW1Y3yW6p1_secret_uz9mhRXW
         },
         "wallet" : null,
         "display_brand" : "visa",
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RCTtiFY0qyl6XeW1Y3yW6p1_confirm.tail
         "exp_month" : 4,
+========
+        "exp_month" : 6,
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RW1OTFY0qyl6XeW1v2ixP94_confirm.tail
         "exp_year" : 2026,
         "country" : "US"
       },
       "livemode" : false,
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RCTtiFY0qyl6XeW1Y3yW6p1_confirm.tail
       "created" : 1744325318,
+========
+      "created" : 1748982309,
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testDeferredConfirmsavedinsufficientfundscard/0002_post_v1_payment_intents_pi_3RW1OTFY0qyl6XeW1v2ixP94_confirm.tail
       "allow_redisplay" : "unspecified",
       "type" : "card",
       "customer" : null

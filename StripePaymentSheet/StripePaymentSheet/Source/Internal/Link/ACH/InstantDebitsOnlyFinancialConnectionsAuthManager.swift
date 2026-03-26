@@ -42,7 +42,6 @@ final class InstantDebitsOnlyAuthenticationSessionManager: NSObject {
     enum Error: Swift.Error, LocalizedError {
         case failedToStart
         case noURL
-        case unexpectedURL
         case noPaymentMethodID
         case canceled
 
@@ -146,7 +145,7 @@ final class InstantDebitsOnlyAuthenticationSessionManager: NSObject {
 extension InstantDebitsOnlyAuthenticationSessionManager: ASWebAuthenticationPresentationContextProviding {
 
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        return self.window ?? ASPresentationAnchor()
+        return self.window ?? stp_makeFallbackPresentationAnchor()
     }
 }
 

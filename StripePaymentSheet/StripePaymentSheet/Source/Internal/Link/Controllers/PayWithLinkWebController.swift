@@ -58,14 +58,6 @@ final class PayWithLinkWebController: NSObject, ASWebAuthenticationPresentationC
     }
     var presentationVC: UIViewController?
 
-    enum LinkAccountError: Error {
-        case noLinkAccount
-
-        var localizedDescription: String {
-            "No Link account is set"
-        }
-    }
-
     final class Context {
         let intent: Intent
         let elementsSession: STPElementsSession
@@ -91,7 +83,7 @@ final class PayWithLinkWebController: NSObject, ASWebAuthenticationPresentationC
             self.intent = intent
             self.elementsSession = elementsSession
             self.configuration = configuration
-            self.callToAction = callToAction ?? intent.callToAction
+            self.callToAction = callToAction ?? .makeDefaultType(intent: intent)
             self.alwaysUseEphemeralSession = alwaysUseEphemeralSession
         }
     }

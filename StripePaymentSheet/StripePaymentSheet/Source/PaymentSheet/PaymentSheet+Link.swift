@@ -65,103 +65,29 @@ extension PaymentSheet {
         elementsSession: STPElementsSession,
         shouldOfferApplePay: Bool,
         shouldFinishOnClose: Bool,
-        completion: (() -> Void)?
+        onClose: (() -> Void)? = nil
     ) {
-        let payWithLinkVC = PayWithLinkViewController(
-            intent: intent,
-            elementsSession: elementsSession,
-            configuration: configuration,
-            shouldOfferApplePay: shouldOfferApplePay,
-            shouldFinishOnClose: shouldFinishOnClose,
-            analyticsHelper: self.analyticsHelper
-        )
+        let payWithNativeLink = PayWithNativeLinkController(mode: .full, intent: intent, elementsSession: elementsSession, configuration: configuration, analyticsHelper: analyticsHelper, confirmationChallenge: confirmationChallenge)
 
-        payWithLinkVC.payWithLinkDelegate = self
-
-        if UIDevice.current.userInterfaceIdiom == .pad {
-            payWithLinkVC.modalPresentationStyle = .formSheet
-        }
-        payWithLinkVC.isModalInPresentation = true
-
-        presentingController.present(payWithLinkVC, animated: true, completion: completion)
-    }
-
-    func verifyLinkSessionIfNeeded(
-        with paymentOption: PaymentOption,
-        intent: Intent,
-        completion: ((Bool) -> Void)? = nil
-    ) {
-        guard
-            case .link(let linkOption) = paymentOption,
-            let linkAccount = linkOption.account,
-            linkAccount.sessionState == .requiresVerification
-        else {
-            // No verification required
-            completion?(true)
-            return
-        }
-
-        let verificationController = LinkVerificationController(
-            mode: .inlineLogin,
-            linkAccount: linkAccount,
-            configuration: configuration
-        )
-        verificationController.present(from: bottomSheetViewController) { [weak self] result in
-            self?.bottomSheetViewController.dismiss(animated: true, completion: nil)
-            switch result {
-            case .completed:
-                completion?(true)
-            case .canceled, .failed:
-                completion?(false)
+        payWithNativeLink.presentAsBottomSheet(from: presentingController, shouldOfferApplePay: shouldOfferApplePay, shouldFinishOnClose: shouldFinishOnClose, completion: { result, _, didFinish in
+            if case let .failed(error) = result {
+                self.mostRecentError = error
             }
-        }
-    }
 
+            if didFinish {
+                self.completion?(result)
+            }
+
+            onClose?()
+        })
+    }
 }
 
 @available(iOSApplicationExtension, unavailable)
 @available(macCatalystApplicationExtension, unavailable)
-extension PaymentSheet: PayWithLinkViewControllerDelegate {
+extension PaymentSheet {
 
-    func payWithLinkViewControllerDidConfirm(
-        _ payWithLinkViewController: PayWithLinkViewController,
-        intent: Intent,
-        elementsSession: STPElementsSession,
-        with paymentOption: PaymentOption,
-        completion: @escaping (PaymentSheetResult, StripeCore.STPAnalyticsClient.DeferredIntentConfirmationType?) -> Void
-    ) {
-        PaymentSheet.confirm(
-            configuration: self.configuration,
-            authenticationContext: self.bottomSheetViewController,
-            intent: intent,
-            elementsSession: elementsSession,
-            paymentOption: paymentOption,
-            paymentHandler: self.paymentHandler,
-            integrationShape: .complete,
-            analyticsHelper: analyticsHelper)
-        { result, confirmationType in
-            if case let .failed(error) = result {
-                self.mostRecentError = error
-            }
-            self.analyticsHelper.logPayment(paymentOption: paymentOption, result: result, deferredIntentConfirmationType: confirmationType)
-
-            completion(result, confirmationType)
-        }
-    }
-
-    func payWithLinkViewControllerDidCancel(_ payWithLinkViewController: PayWithLinkViewController) {
-        payWithLinkViewController.dismiss(animated: true)
-    }
-
-    func payWithLinkViewControllerDidFinish(
-        _ payWithLinkViewController: PayWithLinkViewController,
-        result: PaymentSheetResult,
-        deferredIntentConfirmationType: StripeCore.STPAnalyticsClient.DeferredIntentConfirmationType?
-    ) {
-        completion?(result)
-    }
-
-    func findPaymentSheetViewController() -> PaymentSheetViewControllerProtocol? {
+    private func findPaymentSheetViewController() -> PaymentSheetViewControllerProtocol? {
         for vc in bottomSheetViewController.contentStack {
             if let paymentSheetVC = vc as? PaymentSheetViewControllerProtocol {
                 return paymentSheetVC
@@ -175,16 +101,81 @@ extension PaymentSheet: PayWithLinkViewControllerDelegate {
 // MARK: - Native Link helpers
 
 /// Check if native Link is available on this device
-func deviceCanUseNativeLink(elementsSession: STPElementsSession, configuration: PaymentElementConfiguration) -> Bool {
-    let useAttestationEndpoints = elementsSession.linkSettings?.useAttestationEndpoints ?? false
+func deviceCanUseNativeLink(
+    useAttestationEndpoints: Bool?,
+    apiClient: STPAPIClient
+) -> Bool {
+    let useAttestationEndpoints = useAttestationEndpoints ?? false
     guard useAttestationEndpoints else {
         return false
     }
 
     // If we're in testmode, we don't need to attest for native Link
-    if configuration.apiClient.isTestmode {
+    if apiClient.isTestmode {
         return true
     }
 
-    return configuration.apiClient.stripeAttest.isSupported
+    return apiClient.stripeAttest.isSupported
+}
+
+/// Check if native Link is available on this device
+func deviceCanUseNativeLink(elementsSession: STPElementsSession, configuration: PaymentElementConfiguration) -> Bool {
+    return deviceCanUseNativeLink(
+        useAttestationEndpoints: elementsSession.linkSettings?.useAttestationEndpoints,
+        apiClient: configuration.apiClient
+    )
+}
+
+// MARK: - Link features
+
+extension PaymentSheet {
+
+    @_spi(STP) public enum LinkFeatureFlags {
+
+        /// Decides whether Link inline verification is shown in the `WalletButtonsView`.
+        @_spi(STP) public static var enableLinkInlineVerification: Bool = false
+    }
+}
+
+// MARK: - Link disabled reasons
+
+extension PaymentSheet {
+
+    enum LinkDisabledReason: String {
+        /// The Elements session response indicates that Link isn't supported.
+        case notSupportedInElementsSession = "not_supported_in_elements_session"
+        /// Link is disabled via `PaymentSheet.LinkConfiguration`.
+        case linkConfiguration = "link_configuration"
+        /// Card brand filtering is requested and native Link isn't available.
+        case cardBrandFiltering = "card_brand_filtering"
+        /// Billing details collection is requested and native Link isn't available.
+        case billingDetailsCollection = "billing_details_collection"
+    }
+
+    enum LinkSignupDisabledReason: String {
+        /// Link itself is not enabled.
+        case linkNotEnabled = "link_not_enabled"
+        /// The card funding source is not supported.
+        case linkCardNotSupported = "link_card_not_supported"
+        /// Link signup is disabled in Elements session. Consult backend logs for more info.
+        case disabledInElementsSession = "disabled_in_elements_session"
+        /// Link signup opt-in feature is enabled, but the merchant didn't provide an email address via the customer or billing details.
+        case signupOptInFeatureNoEmailProvided = "signup_opt_in_feature_no_email_provided"
+        /// Attestation is requested, but isn't supported on this device.
+        case attestationIssues = "attestation_issues"
+        /// The customer has used Link before in this app.
+        case linkUsedBefore = "link_used_before"
+    }
+}
+
+extension Array where Element == PaymentSheet.LinkDisabledReason {
+    var analyticsValue: String {
+        return self.map { $0.rawValue }.joined(separator: ",")
+    }
+}
+
+extension Array where Element == PaymentSheet.LinkSignupDisabledReason {
+    var analyticsValue: String {
+        return self.map { $0.rawValue }.joined(separator: ",")
+    }
 }

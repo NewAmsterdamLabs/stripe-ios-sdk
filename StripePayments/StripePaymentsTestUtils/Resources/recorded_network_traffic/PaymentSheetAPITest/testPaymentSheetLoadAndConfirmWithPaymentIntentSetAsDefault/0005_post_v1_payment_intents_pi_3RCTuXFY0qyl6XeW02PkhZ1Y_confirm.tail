@@ -1,4 +1,5 @@
 POST
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0005_post_v1_payment_intents_pi_3RCTuXFY0qyl6XeW02PkhZ1Y_confirm.tail
 https:\/\/api\.stripe\.com\/v1\/payment_intents\/pi_3RCTuXFY0qyl6XeW02PkhZ1Y\/confirm$
 200
 application/json
@@ -8,25 +9,49 @@ Server: nginx
 Cache-Control: no-cache, no-store
 reporting-endpoints: coop="https://q.stripe.com/coop-report"
 x-wc: ABGHI
+========
+https:\/\/api\.stripe\.com\/v1\/payment_intents\/pi_3Rq5NPFY0qyl6XeW03BLDiDL\/confirm$
+200
+application/json
+access-control-allow-methods: GET, HEAD, PUT, PATCH, POST, DELETE
+content-security-policy: base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none'; img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src 'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=2PS24os_hr7_xwcOjqMKqVN71CD3aYp26BNtWhLV7eUIRp7lG71R3dVUvdSYa49g5c7-5s4W-9x06qSv
+Server: nginx
+Cache-Control: no-cache, no-store
+x-wc: ABGHIJ
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0005_post_v1_payment_intents_pi_3Rq5NPFY0qyl6XeW03BLDiDL_confirm.tail
 Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
-cross-origin-opener-policy-report-only: same-origin; report-to="coop"
 Access-Control-Allow-Origin: *
 stripe-should-retry: false
 x-stripe-priority-routing-enabled: true
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0005_post_v1_payment_intents_pi_3RCTuXFY0qyl6XeW02PkhZ1Y_confirm.tail
 report-to: {"group":"coop","max_age":8640,"endpoints":[{"url":"https://q.stripe.com/coop-report"}],"include_subdomains":true}
 request-id: req_8NvVh23eZZAqUt
+========
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0005_post_v1_payment_intents_pi_3Rq5NPFY0qyl6XeW03BLDiDL_confirm.tail
 x-stripe-routing-context-priority-tier: api-testmode
-Content-Length: 2305
+request-id: req_v9hsVrEU6uxxvy
+Content-Length: 2351
 Vary: Origin
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0005_post_v1_payment_intents_pi_3RCTuXFY0qyl6XeW02PkhZ1Y_confirm.tail
 Date: Thu, 10 Apr 2025 22:49:31 GMT
 original-request: req_8NvVh23eZZAqUt
 stripe-version: 2020-08-27
 idempotency-key: ec479b10-b829-49fa-8939-43a67387c301
+========
+Date: Tue, 29 Jul 2025 04:43:01 GMT
+original-request: req_v9hsVrEU6uxxvy
+stripe-version: 2020-08-27
+idempotency-key: 2f0c05e4-0392-449e-a5ec-4b8ed5e8a990
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0005_post_v1_payment_intents_pi_3Rq5NPFY0qyl6XeW03BLDiDL_confirm.tail
 access-control-expose-headers: Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required, X-Stripe-Privileged-Session-Required
 access-control-max-age: 300
 access-control-allow-credentials: true
 Content-Type: application/json
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0005_post_v1_payment_intents_pi_3RCTuXFY0qyl6XeW02PkhZ1Y_confirm.tail
 X-Stripe-Mock-Request: client_secret=pi_3RCTuXFY0qyl6XeW02PkhZ1Y_secret_s7Iurlys1cOvkvmeee2E5sJQI&expand\[0]=payment_method&payment_method_data\[allow_redisplay]=always&payment_method_data\[card]\[cvc]=123&payment_method_data\[card]\[exp_month]=12&payment_method_data\[card]\[exp_year]=32&payment_method_data\[card]\[number]=4242424242424242&payment_method_data\[payment_user_agent]=.*&payment_method_data\[type]=card&payment_method_options\[card]\[setup_future_usage]=off_session&set_as_default_payment_method=true&shipping\[address]\[country]=US&shipping\[address]\[line1]=Line%201&shipping\[name]=Jane%20Doe&shipping\[phone]=5551234567&use_stripe_sdk=true
+========
+X-Stripe-Mock-Request: client_secret=pi_3Rq5NPFY0qyl6XeW03BLDiDL_secret_CwzbkNh6VRG00ewjcldIb9MN5&expand\[0]=payment_method&payment_method_data\[allow_redisplay]=always&payment_method_data\[card]\[cvc]=123&payment_method_data\[card]\[exp_month]=12&payment_method_data\[card]\[exp_year]=32&payment_method_data\[card]\[number]=4242424242424242&payment_method_data\[client_attribution_metadata]\[elements_session_config_id]=.*&payment_method_data\[client_attribution_metadata]\[merchant_integration_source]=elements&payment_method_data\[client_attribution_metadata]\[merchant_integration_subtype]=mobile&payment_method_data\[client_attribution_metadata]\[merchant_integration_version]=.*&payment_method_data\[client_attribution_metadata]\[payment_intent_creation_flow]=standard&payment_method_data\[client_attribution_metadata]\[payment_method_selection_flow]=merchant_specified&payment_method_data\[guid]=.*&payment_method_data\[muid]=.*&payment_method_data\[payment_user_agent]=.*&payment_method_data\[sid]=.*&payment_method_data\[type]=card&payment_method_options\[card]\[setup_future_usage]=off_session&set_as_default_payment_method=true&shipping\[address]\[country]=US&shipping\[address]\[line1]=Line%201&shipping\[name]=Jane%20Doe&shipping\[phone]=5551234567&use_stripe_sdk=true
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0005_post_v1_payment_intents_pi_3Rq5NPFY0qyl6XeW03BLDiDL_confirm.tail
 
 {
   "payment_method_configuration_details" : null,
@@ -64,10 +89,15 @@ X-Stripe-Mock-Request: client_secret=pi_3RCTuXFY0qyl6XeW02PkhZ1Y_secret_s7Iurlys
   "status" : "succeeded",
   "payment_method" : {
     "object" : "payment_method",
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0005_post_v1_payment_intents_pi_3RCTuXFY0qyl6XeW02PkhZ1Y_confirm.tail
     "id" : "pm_1RCTuYFY0qyl6XeWVi6GnR8X",
+========
+    "id" : "pm_1Rq5NQFY0qyl6XeWSZ6gK4XO",
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0005_post_v1_payment_intents_pi_3Rq5NPFY0qyl6XeW03BLDiDL_confirm.tail
     "billing_details" : {
       "email" : null,
       "phone" : null,
+      "tax_id" : null,
       "name" : null,
       "address" : {
         "state" : null,
@@ -105,17 +135,31 @@ X-Stripe-Mock-Request: client_secret=pi_3RCTuXFY0qyl6XeW02PkhZ1Y_secret_s7Iurlys
       "country" : "US"
     },
     "livemode" : false,
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0005_post_v1_payment_intents_pi_3RCTuXFY0qyl6XeW02PkhZ1Y_confirm.tail
     "created" : 1744325370,
     "allow_redisplay" : "always",
     "type" : "card",
     "customer" : "cus_S6hJM9ixSKsvY6"
   },
   "client_secret" : "pi_3RCTuXFY0qyl6XeW02PkhZ1Y_secret_s7Iurlys1cOvkvmeee2E5sJQI",
+========
+    "created" : 1753764180,
+    "allow_redisplay" : "always",
+    "type" : "card",
+    "customer" : "cus_SlccebGGnxXT0g"
+  },
+  "client_secret" : "pi_3Rq5NPFY0qyl6XeW03BLDiDL_secret_CwzbkNh6VRG00ewjcldIb9MN5",
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0005_post_v1_payment_intents_pi_3Rq5NPFY0qyl6XeW03BLDiDL_confirm.tail
   "total_details" : {
     "amount_discount" : 0,
+    "amount_tip" : null,
     "amount_tax" : 0
   },
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0005_post_v1_payment_intents_pi_3RCTuXFY0qyl6XeW02PkhZ1Y_confirm.tail
   "id" : "pi_3RCTuXFY0qyl6XeW02PkhZ1Y",
+========
+  "id" : "pi_3Rq5NPFY0qyl6XeW03BLDiDL",
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0005_post_v1_payment_intents_pi_3Rq5NPFY0qyl6XeW03BLDiDL_confirm.tail
   "confirmation_method" : "automatic",
   "amount_details" : {
     "tip" : {
@@ -128,6 +172,10 @@ X-Stripe-Mock-Request: client_secret=pi_3RCTuXFY0qyl6XeW02PkhZ1Y_secret_s7Iurlys
     "card"
   ],
   "setup_future_usage" : null,
+<<<<<<<< HEAD:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0005_post_v1_payment_intents_pi_3RCTuXFY0qyl6XeW02PkhZ1Y_confirm.tail
   "created" : 1744325369,
+========
+  "created" : 1753764179,
+>>>>>>>> 25.9.0:StripePayments/StripePaymentsTestUtils/Resources/recorded_network_traffic/PaymentSheetAPITest/testPaymentSheetLoadAndConfirmWithPaymentIntentSetAsDefault/0005_post_v1_payment_intents_pi_3Rq5NPFY0qyl6XeW03BLDiDL_confirm.tail
   "description" : null
 }

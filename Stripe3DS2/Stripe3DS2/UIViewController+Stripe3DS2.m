@@ -8,6 +8,7 @@
 
 #import "UIViewController+Stripe3DS2.h"
 
+#import "STDSVisionSupport.h"
 #import "UIButton+CustomInitialization.h"
 #import "STDSUICustomization.h"
 
@@ -26,8 +27,12 @@
     cancelButton.accessibilityIdentifier = @"Cancel";
     [cancelButton addTarget:self action:cancelButtonSelector forControlEvents:UIControlEventTouchUpInside];
     UIBarButtonItem *cancelBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:cancelButton];
+#if defined(__IPHONE_26_0) && !STP_TARGET_VISION
+    if (@available(iOS 26, *)) {
+        cancelButton.configuration = UIButtonConfiguration.glassButtonConfiguration;
+    }
+#endif
     self.navigationItem.rightBarButtonItem = cancelBarButtonItem;
-    
     // Title
     self.title = navigationBarCustomization.headerText;
     NSMutableDictionary *titleTextAttributes = [NSMutableDictionary dictionary];

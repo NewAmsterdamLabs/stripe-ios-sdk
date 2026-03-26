@@ -16,7 +16,6 @@ final class EmbeddedFormViewControllerSnapshotTests: STPSnapshotTestCase {
 
     override func setUp() async throws {
         await PaymentSheetLoader.loadMiscellaneousSingletons()
-        StripeAPI.defaultPublishableKey = nil
     }
 
     // MARK: - Helper Methods
@@ -177,7 +176,6 @@ final class EmbeddedFormViewControllerSnapshotTests: STPSnapshotTestCase {
         sut.updateErrorLabel(for: MockError())
         verify(sut)
     }
-
 }
 
 extension EmbeddedFormViewControllerSnapshotTests: EmbeddedFormViewControllerDelegate {

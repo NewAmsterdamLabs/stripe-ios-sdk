@@ -11,17 +11,26 @@
 import Foundation
 import UIKit
 
-@_spi(STP) import StripeCore
 @_spi(STP) import StripePayments
 @_spi(STP) import StripePaymentsUI
 
 // MARK: - Intent
 
-/// An internal type representing either a PaymentIntent, SetupIntent, or a "deferred Intent"
+/// An internal type representing either a PaymentIntent, SetupIntent, a "deferred Intent", or a CheckoutSession
 enum Intent {
     case paymentIntent(STPPaymentIntent)
     case setupIntent(STPSetupIntent)
     case deferredIntent(intentConfig: PaymentSheet.IntentConfiguration)
+    case checkoutSession(STPCheckoutSession)
+
+    var stripeId: String? {
+        switch self {
+        case .paymentIntent(let intent): intent.stripeId
+        case .setupIntent(let intent): intent.stripeID
+        case .deferredIntent: nil
+        case .checkoutSession(let session): session.stripeId
+        }
+    }
 
     var isPaymentIntent: Bool {
         switch self {
@@ -36,6 +45,8 @@ enum Intent {
             case .setup:
                 return false
             }
+        case .checkoutSession(let session):
+            return session.mode == .payment || session.mode == .subscription
         }
     }
 
@@ -47,6 +58,8 @@ enum Intent {
             return false
         case .deferredIntent:
             return true
+        case .checkoutSession:
+            return false
         }
     }
 
@@ -54,7 +67,7 @@ enum Intent {
         switch self {
         case .deferredIntent(let intentConfig):
             return intentConfig
-        default:
+        case .paymentIntent, .setupIntent, .checkoutSession:
             return nil
         }
     }
@@ -65,7 +78,8 @@ enum Intent {
             return intentConfig.requireCVCRecollection
         case .paymentIntent(let paymentIntent):
             return paymentIntent.paymentMethodOptions?.card?.requireCvcRecollection ?? false
-        case .setupIntent:
+        case .setupIntent, .checkoutSession:
+            // TODO(porter) Figure out CVC recollection flag during confirmation work
             return false
         }
     }
@@ -83,6 +97,8 @@ enum Intent {
             case .setup(let currency, _):
                 return currency
             }
+        case .checkoutSession(let session):
+            return session.currency
         }
     }
 
@@ -99,23 +115,51 @@ enum Intent {
             case .setup:
                 return nil
             }
+        case .checkoutSession(let session):
+            switch session.mode {
+            case .unknown:
+                stpAssertionFailure("Received CheckoutSession in unknown mode")
+                return nil
+            case .payment:
+                return session.totals?.total
+            case .setup:
+                return nil
+            case .subscription:
+                fatalError("Subscriptoins not yet implemented for CheckoutSessions")
+            }
         }
     }
 
-    /// True if this is a PaymentIntent with sfu not equal to none or a SetupIntent
-    var isSettingUp: Bool {
+    var setupFutureUsageString: String? {
         switch self {
         case .paymentIntent(let paymentIntent):
-            return paymentIntent.setupFutureUsage != .none
-        case .setupIntent:
-            return true
+            return paymentIntent.setupFutureUsage.stringValue
         case .deferredIntent(let intentConfig):
-            switch intentConfig.mode {
-            case .payment(_, _, let setupFutureUsage, _, _):
-                return setupFutureUsage != nil
-            case .setup:
-                return true
+            if case .payment(_, _, let setupFutureUsage, _, _) = intentConfig.mode {
+                return setupFutureUsage?.rawValue
             }
+            return nil
+        case .setupIntent, .checkoutSession:
+            // TODO(porter) Figure out SFU string during confirmation work
+            return nil
+        }
+    }
+
+    var isPaymentMethodOptionsSetupFutureUsageSet: Bool? {
+        switch self {
+        case .paymentIntent(let paymentIntent):
+            return paymentIntent.paymentMethodOptions?.isSetupFutureUsageSet ?? false
+        case .deferredIntent(let intentConfig):
+            if case .payment(_, _, _, _, let paymentMethodOptions) = intentConfig.mode {
+                guard let setupFutureUsageValues = paymentMethodOptions?.setupFutureUsageValues else {
+                    return false
+                }
+                return !setupFutureUsageValues.isEmpty
+            }
+            return nil
+        case .setupIntent, .checkoutSession:
+            // TODO(porter) Figure out PMO+SFU during confirmation work
+            return nil
         }
     }
 
@@ -134,6 +178,14 @@ enum Intent {
                     return paymentMethodOptionsSetupFutureUsage != .none
                 }
                 return setupFutureUsage != nil
+            case .setup:
+                return true
+            }
+        case .checkoutSession(let checkoutSession):
+            switch checkoutSession.mode {
+            case .payment, .subscription, .unknown:
+                // TODO(porter) Figure out SFU during confirmation work
+                return false
             case .setup:
                 return true
             }

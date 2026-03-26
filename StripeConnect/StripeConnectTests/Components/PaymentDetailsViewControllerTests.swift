@@ -6,7 +6,7 @@
 //
 
 import SafariServices
-@_spi(PrivateBetaConnect) @_spi(DashboardOnly) @testable import StripeConnect
+@_spi(DashboardOnly) @testable import StripeConnect
 @_spi(STP) import StripeCore
 import WebKit
 import XCTest
@@ -14,7 +14,6 @@ import XCTest
 class PaymentDetailsViewControllerTests: XCTestCase {
     @MainActor
     func testDelegate() async throws {
-        STPAPIClient.shared.publishableKey = "pk_test"
         let componentManager = EmbeddedComponentManager(fetchClientSecret: {
             return nil
         })
@@ -35,7 +34,6 @@ class PaymentDetailsViewControllerTests: XCTestCase {
     }
 
     func testSetPayment() throws {
-        STPAPIClient.shared.publishableKey = "pk_test"
         let componentManager = EmbeddedComponentManager(fetchClientSecret: {
             return nil
         })

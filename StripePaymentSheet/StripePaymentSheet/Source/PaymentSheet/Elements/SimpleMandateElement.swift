@@ -30,7 +30,7 @@ class SimpleMandateElement: PaymentMethodElement {
         }
     }
 
-    var delegate: StripeUICore.ElementDelegate?
+    weak var delegate: StripeUICore.ElementDelegate?
     var view: UIView {
         return mandateTextView
     }
@@ -39,6 +39,16 @@ class SimpleMandateElement: PaymentMethodElement {
 
     init(mandateText: String, customerAlreadySawMandate: Bool, theme: ElementsAppearance = .default) {
         mandateTextView = SimpleMandateTextView(mandateText: mandateText, theme: theme)
+        self.customerAlreadySawMandate = customerAlreadySawMandate
+    }
+
+    init(
+        mandateText: NSAttributedString,
+        customerAlreadySawMandate: Bool,
+        textAlignment: NSTextAlignment,
+        theme: ElementsAppearance = .default
+    ) {
+        mandateTextView = SimpleMandateTextView(mandateText: mandateText, textAlignment: textAlignment, theme: theme)
         self.customerAlreadySawMandate = customerAlreadySawMandate
     }
 

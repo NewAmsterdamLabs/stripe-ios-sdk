@@ -9,12 +9,12 @@ import XCTest
 import SafariServices
 @testable@_spi(STP) import StripeCore
 @testable@_spi(STP) import StripePayments
-@testable@_spi(STP) @_spi(CustomerSessionBetaAccess) @_spi(PaymentMethodOptionsSetupFutureUsagePreview) import StripePaymentSheet
+@testable@_spi(STP) @_spi(PaymentMethodOptionsSetupFutureUsagePreview) import StripePaymentSheet
 @testable@_spi(STP) import StripePaymentsTestUtils
 @testable@_spi(STP) import StripeUICore
 
 @MainActor
-final class PaymentSheet_GDPR_ConfirmFlowTests: STPNetworkStubbingTestCase {
+final class PaymentSheetGDPRConfirmFlowTests: STPNetworkStubbingTestCase {
     enum IntentKind: CaseIterable {
         case paymentIntent_intentFirst_csc
         case paymentIntent_deferredIntent_csc
@@ -181,17 +181,14 @@ final class PaymentSheet_GDPR_ConfirmFlowTests: STPNetworkStubbingTestCase {
         try await _testAndAssert(intentKind: .paymentIntentPMOSFU_intentFirst_csc,
                                  elementsSession: elementsSession(paymentMethodSave: true),
                                  checkbox: .checked,
-                                 shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                                  expectedAllowRedisplay: .attached(.always))
         try await _testAndAssert(intentKind: .paymentIntentPMOSFU_intentFirst_csc,
                                  elementsSession: elementsSession(paymentMethodSave: true),
                                  checkbox: .unchecked,
-                                 shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                                  expectedAllowRedisplay: .attached(.limited))
         try await _testAndAssert(intentKind: .paymentIntentPMOSFU_intentFirst_csc,
                                  elementsSession: elementsSession(paymentMethodSave: false),
                                  checkbox: .hidden,
-                                 shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                                  expectedAllowRedisplay: .attached(.limited))
     }
 
@@ -199,17 +196,14 @@ final class PaymentSheet_GDPR_ConfirmFlowTests: STPNetworkStubbingTestCase {
         try await _testAndAssert(intentKind: .paymentIntentPMOSFU_deferredIntent_csc,
                                  elementsSession: elementsSession(paymentMethodSave: true),
                                  checkbox: .checked,
-                                 shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                                  expectedAllowRedisplay: .attached(.always))
         try await _testAndAssert(intentKind: .paymentIntentPMOSFU_deferredIntent_csc,
                                  elementsSession: elementsSession(paymentMethodSave: true),
                                  checkbox: .unchecked,
-                                 shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                                  expectedAllowRedisplay: .attached(.limited))
         try await _testAndAssert(intentKind: .paymentIntentPMOSFU_deferredIntent_csc,
                                  elementsSession: elementsSession(paymentMethodSave: false),
                                  checkbox: .hidden,
-                                 shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                                  expectedAllowRedisplay: .attached(.limited))
     }
 
@@ -217,17 +211,14 @@ final class PaymentSheet_GDPR_ConfirmFlowTests: STPNetworkStubbingTestCase {
         try await _testAndAssert(intentKind: .paymentIntentPMOSFU_deferredIntent_ssc,
                                  elementsSession: elementsSession(paymentMethodSave: true),
                                  checkbox: .checked,
-                                 shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                                  expectedAllowRedisplay: .attached(.always))
         try await _testAndAssert(intentKind: .paymentIntentPMOSFU_deferredIntent_ssc,
                                  elementsSession: elementsSession(paymentMethodSave: true),
                                  checkbox: .unchecked,
-                                 shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                                  expectedAllowRedisplay: .attached(.limited))
         try await _testAndAssert(intentKind: .paymentIntentPMOSFU_deferredIntent_ssc,
                                  elementsSession: elementsSession(paymentMethodSave: false),
                                  checkbox: .hidden,
-                                 shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                                  expectedAllowRedisplay: .attached(.limited))
     }
 
@@ -235,17 +226,14 @@ final class PaymentSheet_GDPR_ConfirmFlowTests: STPNetworkStubbingTestCase {
         try await _testAndAssert(intentKind: .paymentIntentTopLevelSFUPMOSFUNone_intentFirst_csc,
                                  elementsSession: elementsSession(paymentMethodSave: true),
                                  checkbox: .checked,
-                                 shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                                  expectedAllowRedisplay: .attached(.always))
         try await _testAndAssert(intentKind: .paymentIntentTopLevelSFUPMOSFUNone_intentFirst_csc,
                                  elementsSession: elementsSession(paymentMethodSave: true),
                                  checkbox: .unchecked,
-                                 shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                                  expectedAllowRedisplay: .unattached)
         try await _testAndAssert(intentKind: .paymentIntentTopLevelSFUPMOSFUNone_intentFirst_csc,
                                  elementsSession: elementsSession(paymentMethodSave: false),
                                  checkbox: .hidden,
-                                 shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                                  expectedAllowRedisplay: .unattached)
     }
 
@@ -253,17 +241,14 @@ final class PaymentSheet_GDPR_ConfirmFlowTests: STPNetworkStubbingTestCase {
         try await _testAndAssert(intentKind: .paymentIntentTopLevelSFUPMOSFUNone_deferredIntent_csc,
                                  elementsSession: elementsSession(paymentMethodSave: true),
                                  checkbox: .checked,
-                                 shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                                  expectedAllowRedisplay: .attached(.always))
         try await _testAndAssert(intentKind: .paymentIntentTopLevelSFUPMOSFUNone_deferredIntent_csc,
                                  elementsSession: elementsSession(paymentMethodSave: true),
                                  checkbox: .unchecked,
-                                 shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                                  expectedAllowRedisplay: .unattached)
         try await _testAndAssert(intentKind: .paymentIntentTopLevelSFUPMOSFUNone_deferredIntent_csc,
                                  elementsSession: elementsSession(paymentMethodSave: false),
                                  checkbox: .hidden,
-                                 shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                                  expectedAllowRedisplay: .unattached)
     }
 
@@ -271,17 +256,14 @@ final class PaymentSheet_GDPR_ConfirmFlowTests: STPNetworkStubbingTestCase {
         try await _testAndAssert(intentKind: .paymentIntentTopLevelSFUPMOSFUNone_deferredIntent_ssc,
                                  elementsSession: elementsSession(paymentMethodSave: true),
                                  checkbox: .checked,
-                                 shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                                  expectedAllowRedisplay: .attached(.always))
         try await _testAndAssert(intentKind: .paymentIntentTopLevelSFUPMOSFUNone_deferredIntent_ssc,
                                  elementsSession: elementsSession(paymentMethodSave: true),
                                  checkbox: .unchecked,
-                                 shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                                  expectedAllowRedisplay: .unattached)
         try await _testAndAssert(intentKind: .paymentIntentTopLevelSFUPMOSFUNone_deferredIntent_ssc,
                                  elementsSession: elementsSession(paymentMethodSave: false),
                                  checkbox: .hidden,
-                                 shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                                  expectedAllowRedisplay: .unattached)
     }
 
@@ -380,17 +362,14 @@ final class PaymentSheet_GDPR_ConfirmFlowTests: STPNetworkStubbingTestCase {
         try await _testAndAssert(intentKind: .paymentIntentPMOSFU_intentFirst_csc,
                 elementsSession: ._testCardValue(),
                 checkbox: .hidden,
-                shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                 expectedAllowRedisplay: .attached(.unspecified))
         try await _testAndAssert(intentKind: .paymentIntentPMOSFU_deferredIntent_csc,
                 elementsSession: ._testCardValue(),
                 checkbox: .hidden,
-                shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                 expectedAllowRedisplay: .attached(.unspecified))
         try await _testAndAssert(intentKind: .paymentIntentPMOSFU_deferredIntent_ssc,
                 elementsSession: ._testCardValue(),
                 checkbox: .hidden,
-                shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                 expectedAllowRedisplay: .attached(.unspecified))
     }
 
@@ -398,33 +377,27 @@ final class PaymentSheet_GDPR_ConfirmFlowTests: STPNetworkStubbingTestCase {
         try await _testAndAssert(intentKind: .paymentIntentTopLevelSFUPMOSFUNone_intentFirst_csc,
                                  elementsSession: ._testCardValue(),
                                  checkbox: .checked,
-                                 shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                                  expectedAllowRedisplay: .attached(.unspecified))
         try await _testAndAssert(intentKind: .paymentIntentTopLevelSFUPMOSFUNone_deferredIntent_csc,
                                  elementsSession: ._testCardValue(),
                                  checkbox: .checked,
-                                 shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                                  expectedAllowRedisplay: .attached(.unspecified))
         try await _testAndAssert(intentKind: .paymentIntentTopLevelSFUPMOSFUNone_deferredIntent_ssc,
                                  elementsSession: ._testCardValue(),
                                  checkbox: .checked,
-                                 shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                                  expectedAllowRedisplay: .attached(.unspecified))
 
         try await _testAndAssert(intentKind: .paymentIntentTopLevelSFUPMOSFUNone_intentFirst_csc,
                                  elementsSession: ._testCardValue(),
                                  checkbox: .unchecked,
-                                 shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                                  expectedAllowRedisplay: .unattached)
         try await _testAndAssert(intentKind: .paymentIntentTopLevelSFUPMOSFUNone_deferredIntent_csc,
                                  elementsSession: ._testCardValue(),
                                  checkbox: .unchecked,
-                                 shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                                  expectedAllowRedisplay: .unattached)
         try await _testAndAssert(intentKind: .paymentIntentTopLevelSFUPMOSFUNone_deferredIntent_ssc,
                                  elementsSession: ._testCardValue(),
                                  checkbox: .unchecked,
-                                 shouldReadPaymentMethodOptionsSetupFutureUsage: true,
                                  expectedAllowRedisplay: .unattached)
     }
 
@@ -477,7 +450,6 @@ final class PaymentSheet_GDPR_ConfirmFlowTests: STPNetworkStubbingTestCase {
                         currency: String = "USD",
                         merchantCountry: MerchantCountry = .US,
                         checkbox: CheckboxBehavior,
-                        shouldReadPaymentMethodOptionsSetupFutureUsage: Bool = false,
                         expectedAllowRedisplay: ExpectedAllowRedisplay) async throws {
         let apiClient = STPAPIClient(publishableKey: merchantCountry.publishableKey)
         let newCustomer = try await STPTestingAPIClient.shared().fetchCustomerAndEphemeralKey(customerID: nil,
@@ -497,7 +469,6 @@ final class PaymentSheet_GDPR_ConfirmFlowTests: STPNetworkStubbingTestCase {
                                elementsSession: elementsSession,
                                customerId: newCustomer.customer,
                                currency: currency,
-                               shouldReadPaymentMethodOptionsSetupFutureUsage: shouldReadPaymentMethodOptionsSetupFutureUsage,
                                apiClient: apiClient,
                                paymentMethodType: .stripe(.card),
                                merchantCountry: merchantCountry) { form in
@@ -530,7 +501,6 @@ final class PaymentSheet_GDPR_ConfirmFlowTests: STPNetworkStubbingTestCase {
         elementsSession: STPElementsSession,
         customerId: String,
         currency: String,
-        shouldReadPaymentMethodOptionsSetupFutureUsage: Bool,
         apiClient: STPAPIClient,
         paymentMethodType: PaymentSheet.PaymentMethodType,
         merchantCountry: MerchantCountry,
@@ -542,12 +512,11 @@ final class PaymentSheet_GDPR_ConfirmFlowTests: STPNetworkStubbingTestCase {
             config.returnURL = "https://foo.com"
             config.apiClient = apiClient
             config.customer = PaymentSheet.CustomerConfiguration(id: customerId, customerSessionClientSecret: "cuss_123")
-            config.shouldReadPaymentMethodOptionsSetupFutureUsage = shouldReadPaymentMethodOptionsSetupFutureUsage
             return config
         }()
 
         // Initialize PaymentSheet at least once to set the correct payment_user_agent for this process:
-        let ic = PaymentSheet.IntentConfiguration(mode: .setup(), confirmHandler: { _, _, _ in })
+        let ic = PaymentSheet.IntentConfiguration(mode: .setup(), confirmHandler: { _, _ in return "" })
         _ = PaymentSheet(mode: .deferredIntent(ic), configuration: PaymentSheet.Configuration())
 
         // Make the form
@@ -652,7 +621,7 @@ final class PaymentSheet_GDPR_ConfirmFlowTests: STPNetworkStubbingTestCase {
 }
 
 // MARK: - Creation Helpers
-extension PaymentSheet_GDPR_ConfirmFlowTests {
+extension PaymentSheetGDPRConfirmFlowTests {
     func elementsSession(paymentMethodSave: Bool,
                          allowRedisplayOverride: STPPaymentMethodAllowRedisplay? = nil) -> STPElementsSession {
         let paymentMethodSaveValue = paymentMethodSave ? "enabled" : "disabled"
@@ -907,7 +876,7 @@ extension PaymentSheet_GDPR_ConfirmFlowTests {
     }
 }
 
-extension PaymentSheet_GDPR_ConfirmFlowTests: PaymentSheetAuthenticationContext {
+extension PaymentSheetGDPRConfirmFlowTests: PaymentSheetAuthenticationContext {
     func authenticationPresentingViewController() -> UIViewController {
         return UIViewController()
     }

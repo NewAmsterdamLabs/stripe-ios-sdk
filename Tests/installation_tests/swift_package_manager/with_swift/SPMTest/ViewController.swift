@@ -13,6 +13,7 @@ import StripeCardScan
 import StripeFinancialConnections
 import StripeIdentity
 import StripePaymentSheet
+import StripeIssuing
 import UIKit
 
 class ViewController: UIViewController {
@@ -44,6 +45,13 @@ class ViewController: UIViewController {
         let _ = PaymentSheet(
             setupIntentClientSecret: "",
             configuration: PaymentSheet.Configuration()
+        )
+        
+        let _ = STPPushProvisioningDetailsParams.init(
+            cardId: "test",
+            certificates: [],
+            nonce: Data(),
+            nonceSignature: Data()
         )
 
         if #available(iOS 15.0, *) {

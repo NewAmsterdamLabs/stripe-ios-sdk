@@ -17,11 +17,11 @@ import UIKit
     /// If not provided, all bank authentication sessions will happen in a secure browser within this app.
     let returnUrl: URL?
 
-    /// The API Client instance used to make requests to Stripe.
-    let apiClient: FCLiteAPIClient = FCLiteAPIClient(backingAPIClient: .shared)
-
     /// Any additional Elements context useful for the Financial Connections SDK.
     @_spi(STP) public var elementsSessionContext: ElementsSessionContext?
+
+    /// A existing consumer, if avaialble.
+    @_spi(STP) public var existingConsumer: FinancialConnectionsConsumer?
 
     private var navigationController: UINavigationController?
     private var wrapperViewController: FCLiteModalPresentationWrapper?
@@ -52,6 +52,9 @@ import UIKit
     ) {
         Self.activeInstance = self
         self.completionHandler = completion
+
+        var apiClient: FCLiteAPIClient = FCLiteAPIClient(backingAPIClient: .shared)
+        apiClient.consumerPublishableKey = existingConsumer?.publishableKey
 
         let containerVC = FCLiteContainerViewController(
             clientSecret: clientSecret,
@@ -87,24 +90,28 @@ import UIKit
     }
 
     private func handleFlowCompletion(result: FinancialConnectionsSDKResult) {
-        // First dismiss the navigation controller
-        self.navigationController?.dismiss(animated: true) { [weak self] in
+        DispatchQueue.main.async { [weak self] in
             guard let self else { return }
 
-            // Dismiss the wrapper if it exists
-            if let wrapper = self.wrapperViewController {
-                wrapper.dismiss(animated: false) { [weak self] in
-                    guard let self, let completion = self.completionHandler else { return }
+            // First dismiss the navigation controller
+            self.navigationController?.dismiss(animated: true) { [weak self] in
+                guard let self else { return }
 
-                    // Clear references and call the completion handler
+                // Dismiss the wrapper if it exists
+                if let wrapper = self.wrapperViewController {
+                    wrapper.dismiss(animated: false) { [weak self] in
+                        guard let self, let completion = self.completionHandler else { return }
+
+                        // Clear references and call the completion handler
+                        self.cleanupReferences()
+                        completion(result)
+                    }
+                } else {
+                    // No wrapper, just clean up and call completion directly
+                    guard let completion = self.completionHandler else { return }
                     self.cleanupReferences()
                     completion(result)
                 }
-            } else {
-                // No wrapper, just clean up and call completion directly
-                guard let completion = self.completionHandler else { return }
-                self.cleanupReferences()
-                completion(result)
             }
         }
     }

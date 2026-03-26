@@ -5,11 +5,13 @@
 //  Created by David Estes on 8/11/23.
 //
 
+import Contacts
 import Foundation
+import PassKit
 @_spi(STP) @testable import StripeCore
 @_spi(STP) import StripeCoreTestUtils
 @_spi(STP) import StripePayments
-@_spi(STP) @_spi(PaymentMethodOptionsSetupFutureUsagePreview) @testable import StripePaymentSheet
+@_spi(STP) @_spi(CheckoutSessionsPreview) @_spi(PaymentMethodOptionsSetupFutureUsagePreview) @_spi(AppearanceAPIAdditionsPreview) @testable import StripePaymentSheet
 import StripePaymentsTestUtils
 @_spi(STP) import StripeUICore
 
@@ -22,6 +24,9 @@ public extension PaymentSheet.Configuration {
         configuration.allowsPaymentMethodsRequiringShippingAddress = true
         if isApplePayEnabled {
             configuration.applePay = .init(merchantId: "merchant id", merchantCountryCode: "US")
+        }
+        if #available(iOS 26.0, visionOS 26.0, *) {
+            configuration.appearance.applyLiquidGlassIfPossible()
         }
         return configuration
     }
@@ -41,12 +46,32 @@ public extension EmbeddedPaymentElement.Configuration {
     }
 }
 
+public extension PaymentSheet.Appearance {
+    mutating func applyLiquidGlassIfPossible() {
+#if !os(visionOS)
+        if #available(iOS 26.0, visionOS 26.0, *) {
+            self.applyLiquidGlass()
+        }
+#endif
+    }
+    func applyingLiquidGlassIfPossible() -> PaymentSheet.Appearance {
+        var copy = self
+#if !os(visionOS)
+        if #available(iOS 26.0, visionOS 26.0, *) {
+            copy.applyLiquidGlass()
+        }
+#endif
+        return copy
+    }
+}
+
 extension STPElementsSession {
     static func _testValue(
         orderedPaymentMethodTypes: [STPPaymentMethodType] = [.card],
         unactivatedPaymentMethodTypes: [STPPaymentMethodType] = [],
         countryCode: String? = nil,
         merchantCountryCode: String? = nil,
+        merchantLogoUrl: URL? = nil,
         linkSettings: LinkSettings? = nil,
         experimentsData: ExperimentsData? = nil,
         flags: [String: Bool] = [:],
@@ -55,16 +80,20 @@ extension STPElementsSession {
         isApplePayEnabled: Bool = true,
         externalPaymentMethods: [ExternalPaymentMethod] = [],
         customPaymentMethods: [CustomPaymentMethod] = [],
+        passiveCaptchaData: PassiveCaptchaData? = nil,
         customer: ElementsCustomer? = nil,
         isBackupInstance: Bool = false
     ) -> STPElementsSession {
         return .init(
             allResponseFields: [:],
             sessionID: "test_123",
+            configID: "test_config",
             orderedPaymentMethodTypes: orderedPaymentMethodTypes,
+            orderedPaymentMethodTypesAndWallets: [],
             unactivatedPaymentMethodTypes: unactivatedPaymentMethodTypes,
             countryCode: countryCode,
             merchantCountryCode: merchantCountryCode,
+            merchantLogoUrl: merchantLogoUrl,
             linkSettings: linkSettings,
             experimentsData: experimentsData,
             flags: flags,
@@ -73,12 +102,13 @@ extension STPElementsSession {
             isApplePayEnabled: isApplePayEnabled,
             externalPaymentMethods: externalPaymentMethods,
             customPaymentMethods: customPaymentMethods,
+            passiveCaptchaData: passiveCaptchaData,
             customer: customer
         )
     }
 
-    static func _testCardValue() -> STPElementsSession {
-        return _testValue(paymentMethodTypes: ["card"])
+    static func _testCardValue(flags: [String: Bool] = [:]) -> STPElementsSession {
+        return _testValue(orderedPaymentMethodTypes: [.card], flags: flags)
     }
 
     static func _testDefaultCardValue(defaultPaymentMethod: String?, paymentMethods: [[AnyHashable: Any]]? = nil) -> STPElementsSession {
@@ -108,7 +138,8 @@ extension STPElementsSession {
         paymentMethods: [[AnyHashable: Any]]? = nil,
         linkUseAttestation: Bool? = nil,
         linkSuppress2FA: Bool? = nil,
-        hasLinkConsumerIncentive: Bool = false
+        hasLinkConsumerIncentive: Bool = false,
+        linkSupportedPaymentMethodsOnboardingEnabled: [String] = ["CARD"]
     ) -> STPElementsSession {
         var json = STPTestUtils.jsonNamed("ElementsSession")!
         json[jsonDict: "payment_method_preference"]?["ordered_payment_method_types"] = paymentMethodTypes
@@ -129,8 +160,8 @@ extension STPElementsSession {
                                     "api_key_expiry": 12345,
                                     "customer": "cus_123",
                                     "components": customerSessionData,
-                                    ],
-                                ]
+                                ],
+            ]
             if let defaultPaymentMethod {
                 json[jsonDict: "customer"]?["default_payment_method"] = defaultPaymentMethod
             }
@@ -177,26 +208,32 @@ extension STPElementsSession {
             json[jsonDict: "link_settings"]!["link_mobile_disable_signup"] = disableLinkSignup
         }
 
+        json[jsonDict: "link_settings"]!["link_supported_payment_methods_onboarding_enabled"] = linkSupportedPaymentMethodsOnboardingEnabled
+
         let elementsSession = STPElementsSession.decodedObject(fromAPIResponse: json)!
         return elementsSession
     }
 
     static func _testValue(
         intent: Intent,
+        isLinkPassthroughModeEnabled: Bool? = nil,
         linkMode: LinkMode? = nil,
         linkFundingSources: Set<LinkSettings.FundingSource> = [],
         defaultPaymentMethod: String? = nil,
         paymentMethods: [[AnyHashable: Any]]? = nil,
-        allowsSetAsDefaultPM: Bool = false
+        allowsSetAsDefaultPM: Bool = false,
+        linkSupportedPaymentMethodsOnboardingEnabled: [String] = ["CARD"]
     ) -> STPElementsSession {
         let paymentMethodTypes: [String] = {
             switch intent {
             case .paymentIntent(let paymentIntent):
-                return paymentIntent.paymentMethodTypes.map { STPPaymentMethod.string(from: .init(rawValue: $0.intValue) ?? .unknown) ?? "unknown" }
+                return paymentIntent.paymentMethodTypes.map { STPPaymentMethod.string(from: $0) ?? "unknown" }
             case .setupIntent(let setupIntent):
-                return setupIntent.paymentMethodTypes.map { STPPaymentMethod.string(from: .init(rawValue: $0.intValue) ?? .unknown) ?? "unknown" }
+                return setupIntent.paymentMethodTypes.map { STPPaymentMethod.string(from: $0) ?? "unknown" }
             case .deferredIntent(let intentConfig):
                 return intentConfig.paymentMethodTypes ?? []
+            case .checkoutSession(let checkoutSession):
+                return checkoutSession.paymentMethodTypes.map { STPPaymentMethod.string(from: $0) ?? "unknown" }
             }
         }()
         var customerSessionData: [String: Any]?
@@ -217,10 +254,12 @@ extension STPElementsSession {
         return STPElementsSession._testValue(
             paymentMethodTypes: paymentMethodTypes,
             customerSessionData: customerSessionData,
+            isLinkPassthroughModeEnabled: isLinkPassthroughModeEnabled,
             linkMode: linkMode,
             linkFundingSources: linkFundingSources,
             defaultPaymentMethod: defaultPaymentMethod,
-            paymentMethods: paymentMethods
+            paymentMethods: paymentMethods,
+            linkSupportedPaymentMethodsOnboardingEnabled: linkSupportedPaymentMethodsOnboardingEnabled
         )
     }
 }
@@ -254,140 +293,58 @@ extension Intent {
         setupFutureUsage: PaymentSheet.IntentConfiguration.SetupFutureUsage? = nil,
         paymentMethodOptionsSetupFutureUsage: [STPPaymentMethodType: PaymentSheet.IntentConfiguration.SetupFutureUsage]? = nil
     ) -> Intent {
-        return .deferredIntent(intentConfig: .init(mode: .payment(amount: 1010, currency: "USD", setupFutureUsage: setupFutureUsage, paymentMethodOptions: PaymentSheet.IntentConfiguration.Mode.PaymentMethodOptions(setupFutureUsageValues: paymentMethodOptionsSetupFutureUsage)), confirmHandler: { _, _, _ in }))
+        return .deferredIntent(intentConfig: .init(mode: .payment(amount: 1010, currency: "USD", setupFutureUsage: setupFutureUsage, paymentMethodOptions: PaymentSheet.IntentConfiguration.Mode.PaymentMethodOptions(setupFutureUsageValues: paymentMethodOptionsSetupFutureUsage)), confirmHandler: { _, _ in return "" }))
+    }
+
+    static func _testCheckoutSession(
+        mode: Checkout.Mode = .payment,
+        amount: Int? = 2345,
+        currency: String = "USD"
+    ) -> Intent {
+        let modeParam = switch mode {
+        case .payment: "payment"
+        case .setup: "setup"
+        default: fatalError("TODO: implement for subscription/unknown mode")
+        }
+        guard let paymentStatus = switch mode {
+        case .payment: "unpaid"
+        case .setup: "no_payment_required"
+        case .subscription, .unknown: nil
+        } else {
+            fatalError("TODO: add subscription/unknown support")
+        }
+        var json: [String: Any] = [
+            "session_id": "cs_test_xxx",
+            "object": "checkout.session",
+            "mode": modeParam,
+            "status": "open",
+            "payment_status": paymentStatus,
+            "currency": currency.lowercased(),
+            "livemode": false,
+            "payment_method_types": ["card"],
+        ]
+        if let amount {
+            json["total_summary"] = [
+                "due": amount,
+                "subtotal": amount,
+                "total": amount,
+            ]
+        }
+        let checkoutSession = STPCheckoutSession.decodedObject(fromAPIResponse: json)!
+        return .checkoutSession(checkoutSession)
     }
 }
 
-extension STPPaymentMethod {
-    static let _testCardJSON = [
-        "id": "pm_123card",
-        "type": "card",
-        "card": [
-            "last4": "4242",
-            "brand": "visa",
-            "fingerprint": "B8XXs2y2JsVBtB9f",
-            "networks": ["available": ["visa"]],
-            "exp_month": "01",
-            "exp_year": "2040",
-        ],
-    ] as [AnyHashable: Any]
-
-    static func _testCard() -> STPPaymentMethod {
-        return STPPaymentMethod.decodedObject(fromAPIResponse: _testCardJSON)!
-    }
-    static func _testCard(line1: String? = nil,
-                          line2: String? = nil,
-                          city: String? = nil,
-                          state: String? = nil,
-                          postalCode: String? = nil,
-                          countryCode: String? = nil) -> STPPaymentMethod {
-        var address: [String: String] = [:]
-        if let line1 {
-            address["line1"] = line1
-        }
-        if let line2 {
-            address["line2"] = line2
-        }
-        if let city {
-            address["city"] = city
-        }
-        if let state {
-            address["state"] = state
-        }
-        if let postalCode {
-            address["postal_code"] = postalCode
-        }
-        if let countryCode {
-            address["country"] = countryCode
-        }
-        return STPPaymentMethod.decodedObject(fromAPIResponse: [
-            "id": "pm_123card",
-            "type": "card",
-            "card": [
-                "last4": "4242",
-                "brand": "visa",
-                "fingerprint": "B8XXs2y2JsVBtB9f",
-                "networks": ["available": ["visa"]],
-                "exp_month": "01",
-                "exp_year": "2040",
-            ],
-            "billing_details": [
-                "address": address,
-            ],
-        ])!
-    }
-    static func _testCardAmex() -> STPPaymentMethod {
-        return STPPaymentMethod.decodedObject(fromAPIResponse: [
-            "id": "pm_123card",
-            "type": "card",
-            "card": [
-                "last4": "0005",
-                "brand": "amex",
-            ],
-        ])!
-    }
-
-    static func _testCardCoBranded(brand: String = "visa", displayBrand: String? = nil, networks: [String] = ["visa", "amex"]) -> STPPaymentMethod {
-        var apiResponse: [String: Any] = [
-            "id": "pm_123card",
-            "type": "card",
-            "card": [
-                "last4": "4242",
-                "brand": brand,
-                "networks": ["available": networks],
-                "exp_month": "01",
-                "exp_year": "2040",
-            ],
-        ]
-        if let displayBrand {
-            apiResponse[jsonDict: "card"]?["display_brand"] = displayBrand
-        }
-        return STPPaymentMethod.decodedObject(fromAPIResponse: apiResponse)!
-    }
-
-    static func _testUSBankAccount() -> STPPaymentMethod {
-        return STPPaymentMethod.decodedObject(fromAPIResponse: [
-            "id": "pm_123",
-            "type": "us_bank_account",
-            "us_bank_account": [
-                "account_holder_type": "individual",
-                "account_type": "checking",
-                "bank_name": "STRIPE TEST BANK",
-                "fingerprint": "ickfX9sbxIyAlbuh",
-                "last4": "6789",
-                "networks": [
-                  "preferred": "ach",
-                  "supported": [
-                    "ach",
-                  ],
-                ] as [String: Any],
-                "routing_number": "110000000",
-            ] as [String: Any],
-            "billing_details": [
-                "name": "Sam Stripe",
-                "email": "sam@stripe.com",
-            ] as [String: Any],
-        ])!
-    }
-
-    static func _testSEPA() -> STPPaymentMethod {
-        return STPPaymentMethod.decodedObject(fromAPIResponse: [
-            "id": "pm_123",
-            "type": "sepa_debit",
-            "sepa_debit": [
-                "last4": "1234",
-            ],
-            "billing_details": [
-                "name": "Sam Stripe",
-                "email": "sam@stripe.com",
-            ] as [String: Any],
-        ])!
+extension PaymentSheet.IntentConfiguration {
+    static func _testValue() -> Self {
+        return .init(mode: .payment(amount: 100, currency: "USD")) { _, _ in return "" }
     }
 }
 
 extension PaymentSheet.Appearance {
     static var _testMSPaintTheme: PaymentSheet.Appearance {
         var appearance = PaymentSheet.Appearance()
+        appearance.applyLiquidGlassIfPossible()
 
         // Customize the font
         var font = PaymentSheet.Appearance.Font()
@@ -396,12 +353,14 @@ extension PaymentSheet.Appearance {
 
         appearance.cornerRadius = 0.0
         appearance.borderWidth = 2.0
+        appearance.sheetCornerRadius = 16.0
         appearance.shadow = PaymentSheet.Appearance.Shadow(
             color: .orange,
             opacity: 0.5,
             offset: CGSize(width: 0, height: 2),
             radius: 4
         )
+        appearance.formInsets = NSDirectionalEdgeInsets(top: 30, leading: 50, bottom: 70, trailing: 10)
 
         // Customize the colors
         var colors = PaymentSheet.Appearance.Colors()
@@ -417,8 +376,14 @@ extension PaymentSheet.Appearance {
         colors.icon = .green
         colors.danger = .purple
 
+        // Customize the primary button
+        var primaryButton = PaymentSheet.Appearance.PrimaryButton()
+        primaryButton.height = 50
+        primaryButton.cornerRadius = 8
+
         appearance.font = font
         appearance.colors = colors
+        appearance.primaryButton = primaryButton
 
         return appearance
     }
@@ -426,7 +391,7 @@ extension PaymentSheet.Appearance {
 
 extension PaymentSheetLoader.LoadResult {
     static func _testValue(paymentMethodTypes: [String], savedPaymentMethods: [STPPaymentMethod]) -> Self {
-        let intentConfig = PaymentSheet.IntentConfiguration(mode: .payment(amount: 1000, currency: "USD")) { _, _, _ in }
+        let intentConfig = PaymentSheet.IntentConfiguration(mode: .payment(amount: 1000, currency: "USD")) { _, _ in return "" }
         let elementsSession = STPElementsSession._testValue(
             paymentMethodTypes: paymentMethodTypes
         )
@@ -494,5 +459,30 @@ extension STPCardBrandChoice {
             supportedCobrandedNetworks: [:],
             allResponseFields: [:]
         )
+    }
+}
+
+extension STPFixtures {
+    static func testPKPaymentWithContactDetails() -> PKPayment {
+        let payment = simulatorApplePayPayment()
+
+        let shipping = PKContact()
+        shipping.name = PersonNameComponentsFormatter().personNameComponents(from: "Jane Doe")
+        shipping.emailAddress = "jane@example.com"
+        let address = CNMutablePostalAddress()
+        address.street = "510 Townsend St"
+        address.isoCountryCode = "US"
+        address.city = "San Francisco"
+        address.state = "CA"
+        address.postalCode = "94103"
+        shipping.postalAddress = address
+
+        let billing = PKContact()
+        billing.name = PersonNameComponentsFormatter().personNameComponents(from: "Jane Doe")
+        billing.emailAddress = "jane@example.com"
+
+        _ = payment.perform(NSSelectorFromString("setShippingContact:"), with: shipping)
+        _ = payment.perform(NSSelectorFromString("setBillingContact:"), with: billing)
+        return payment
     }
 }

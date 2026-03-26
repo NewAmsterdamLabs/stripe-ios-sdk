@@ -36,6 +36,18 @@
 
 "MM/YY" = "MM/GG";
 
+"Only credit and prepaid cards are accepted" = "Tiek pieņemtas tikai kredītkartes un priekšapmaksas kartes";
+
+"Only credit cards are accepted" = "Tiek pieņemtas tikai kredītkartes";
+
+"Only debit and credit cards are accepted" = "Tiek pieņemtas tikai debetkartes un kredītkartes";
+
+"Only debit and prepaid cards are accepted" = "Tiek pieņemtas tikai debetkartes un priekšapmaksas kartes";
+
+"Only debit cards are accepted" = "Tiek pieņemtas tikai debetkartes";
+
+"Only prepaid cards are accepted" = "Tiek pieņemtas tikai priekšapmaksas kartes";
+
 "Postal Code" = "Pasta indekss";
 
 "Shipping Address" = "Piegādes adrese";
@@ -47,8 +59,6 @@
 "The selected brand is not allowed" = "Atlasītais zīmols nav atļauts";
 
 "To scan your card, allow camera access in Settings." = "Lai noskenētu karti, Iestatījumos atļaujiet piekļuvi kamerai.";
-
-"Your ZIP is invalid." = "Pasta indekss nav derīgs.";
 
 "Your card has expired." = "Kartes derīguma termiņš ir beidzies.";
 
@@ -67,8 +77,6 @@
 "Your card's security code is incomplete." = "Kartes drošības kods nav pilnīgs.";
 
 "Your card's security code is invalid." = "Kartes drošības kods nav derīgs.";
-
-"Your postal code is invalid." = "Pasta indekss nav derīgs.";
 
 "card number" = "kartes numurs";
 

@@ -36,6 +36,18 @@
 
 "MM/YY" = "MM/ÅÅ";
 
+"Only credit and prepaid cards are accepted" = "Bare kredittkort og forhåndsbetalte kort godtas";
+
+"Only credit cards are accepted" = "Bare kredittkort godtas";
+
+"Only debit and credit cards are accepted" = "Bare debet- og kredittkort godtas";
+
+"Only debit and prepaid cards are accepted" = "Bare debetkort og forhåndsbetalte kort godtas";
+
+"Only debit cards are accepted" = "Bare debetkort godtas";
+
+"Only prepaid cards are accepted" = "Bare forhåndsbetalte kort godtas";
+
 "Postal Code" = "Postnummer";
 
 "Shipping Address" = "Forsendelsesadresse";
@@ -47,8 +59,6 @@
 "The selected brand is not allowed" = "Det valgte merket er ikke godkjent";
 
 "To scan your card, allow camera access in Settings." = "Gi tilgang til kamera i Innstillinger for å skanne kortet.";
-
-"Your ZIP is invalid." = "ZIP er ugyldig.";
 
 "Your card has expired." = "Kortet ditt er utløpt.";
 
@@ -67,8 +77,6 @@
 "Your card's security code is incomplete." = "Kortets sikkerhetskode er ufullstendig.";
 
 "Your card's security code is invalid." = "Kortets sikkerhetskode er ugyldig.";
-
-"Your postal code is invalid." = "Postnummeret er ugyldig.";
 
 "card number" = "kortnummer";
 

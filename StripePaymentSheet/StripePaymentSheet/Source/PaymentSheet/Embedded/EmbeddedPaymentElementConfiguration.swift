@@ -116,7 +116,7 @@ extension EmbeddedPaymentElement {
         public var externalPaymentMethodConfiguration: ExternalPaymentMethodConfiguration?
 
         /// Configuration for custom payment methods.
-        @_spi(CustomPaymentMethodsBeta) public var customPaymentMethodConfiguration: CustomPaymentMethodConfiguration?
+        public var customPaymentMethodConfiguration: CustomPaymentMethodConfiguration?
 
         /// By default, PaymentSheet will use a dynamic ordering that optimizes payment method display for the customer.
         /// You can override the default order in which payment methods are displayed in PaymentSheet with a list of payment method types.
@@ -135,15 +135,32 @@ extension EmbeddedPaymentElement {
         /// Note: For Apple Pay, the list of supported card brands is determined by combining `StripeAPI.supportedPKPaymentNetworks()` with `StripeAPI.additionalEnabledApplePayNetworks` and then applying the `cardBrandAcceptance` filter. This filtered list is then assigned to `PKPaymentRequest.supportedNetworks`, ensuring that only the allowed card brands are available for Apple Pay transactions. Any `PKPaymentNetwork` that does not correspond to a `BrandCategory` will be blocked if you have specified an allow list, or will not be blocked if you have specified a disallow list.
         /// Note: This is only a client-side solution.
         /// Note: Card brand filtering is not currently supported by Link.
-        public var cardBrandAcceptance: PaymentSheet.CardBrandAcceptance = .all
+        public var cardBrandAcceptance: CardBrandAcceptance = .all
 
-        /// If true, the payment method options setup future usage overrides the top-level setup future usage if set
-        @_spi(PaymentMethodOptionsSetupFutureUsagePreview) public var shouldReadPaymentMethodOptionsSetupFutureUsage: Bool = false
+        /// By default, the embedded payment element will accept cards of all funding types (credit, debit, prepaid, unknown).
+        /// You can specify which card funding types to allow.
+        /// When a customer enters a card that isn't allowed, a warning will be displayed, but they can still complete the payment.
+        ///
+        /// This is a client-side UX feature only. You must validate the funding type on your server using the confirmation token or radar rules before confirming the payment to ensure only allowed funding types are accepted.
+        @_spi(CardFundingFilteringPrivatePreview) public var allowedCardFundingTypes: CardFundingType = .all
+
+        /// By default, the card form will provide a button to open the card scanner.
+        /// If true, the card form will instead initialize with the card scanner already open.
+        public var opensCardScannerAutomatically: Bool = false
+
+        /// If true, device will attest and assert on confirmation requests
+        @_spi(STP) public var enableAttestationOnConfirmation: Bool = false
+
+        /// A map for specifying when legal agreements are displayed for each payment method type.
+        /// If the payment method is not specified in the list, the TermsDisplay value will default to `.automatic`.
+        /// Valid payment method types include:
+        /// .card
+        public var termsDisplay: [STPPaymentMethodType: PaymentSheet.TermsDisplay] = [:]
 
         /// The view can display payment methods like “Card” that, when tapped, open a form sheet where customers enter their payment method details. The sheet has a button at the bottom. `FormSheetAction` enumerates the actions the button can perform.
         public enum FormSheetAction {
             /// The button says “Pay” or “Setup”. When tapped, we confirm the payment or setup in the form sheet.
-            /// - Parameter completion: Called with the result of the payment or setup.
+            /// - Parameter completion: Called with the result of the payment or setup when the sheet is closed.
             case confirm(
                 completion: (EmbeddedPaymentElementResult) -> Void
             )
@@ -180,6 +197,18 @@ extension EmbeddedPaymentElement {
         public var rowSelectionBehavior: RowSelectionBehavior = .default
 
         /// Initializes a Configuration with default values
-        public init() {}
+        public init() {
+            validateConfiguration()
+        }
+    }
+}
+
+extension EmbeddedPaymentElement.Configuration {
+    private func validateConfiguration() {
+        for (paymentMethodType, _) in termsDisplay {
+            if paymentMethodType != .card {
+                stpAssertionFailure("EmbeddedPaymentElement.Configuration termsDisplay contains unsupported payment method type: \(paymentMethodType)")
+            }
+        }
     }
 }

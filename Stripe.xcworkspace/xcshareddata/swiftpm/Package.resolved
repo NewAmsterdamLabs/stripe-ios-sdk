@@ -1,15 +1,6 @@
 {
-  "originHash" : "f16dd06a8f672ea0982887741f3e9e8b32d2e926529cffefd0ba4f377c7018ab",
+  "originHash" : "0e9f9808e3877fc1b1da4cdeb25afc5f9e441d2f43613d0d63757da5d6d181d1",
   "pins" : [
-    {
-      "identity" : "capture-core-sp",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/BlinkID/capture-core-sp",
-      "state" : {
-        "revision" : "5d0ae57d265cb5d7dcf255d93dd3421b5c825e46",
-        "version" : "1.2.3"
-      }
-    },
     {
       "identity" : "ios-snapshot-test-case",
       "kind" : "remoteSourceControl",
@@ -50,8 +41,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/xctest-dynamic-overlay",
       "state" : {
-        "revision" : "39de59b2d47f7ef3ca88a039dff3084688fe27f4",
-        "version" : "1.5.2"
+        "revision" : "b2ed9eabefe56202ee4939dd9fc46b6241c88317",
+        "version" : "1.6.1"
       }
     }
   ],

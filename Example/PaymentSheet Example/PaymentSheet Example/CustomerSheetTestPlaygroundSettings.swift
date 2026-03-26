@@ -155,6 +155,19 @@ public struct CustomerSheetTestPlaygroundSettings: Codable, Equatable {
         case allowVisa
     }
 
+    enum EnableAttestationOnConfirmation: String, PickerEnum {
+        static var enumName: String { "Enable attestation on confirmation" }
+
+        case on
+        case off
+    }
+
+    enum OpensCardScannerAutomatically: String, PickerEnum {
+        static let enumName: String = "opensCardScannerAutomatically"
+        case on
+        case off
+    }
+
     var customerMode: CustomerMode
     var customerId: String?
     var customerKeyType: CustomerKeyType
@@ -162,6 +175,7 @@ public struct CustomerSheetTestPlaygroundSettings: Codable, Equatable {
     var applePay: ApplePay
     var headerTextForSelectionScreen: String?
     var defaultBillingAddress: DefaultBillingAddress
+    var enableAttestationOnConfirmation: EnableAttestationOnConfirmation
     var autoreload: Autoreload
 
     var attachDefaults: BillingDetailsAttachDefaults
@@ -177,6 +191,7 @@ public struct CustomerSheetTestPlaygroundSettings: Codable, Equatable {
     var paymentMethodAllowRedisplayFilters: PaymentMethodAllowRedisplayFilters
     var paymentMethodSyncDefault: PaymentMethodSyncDefault
     var cardBrandAcceptance: CardBrandAcceptance
+    var opensCardScannerAutomatically: OpensCardScannerAutomatically
 
     static func defaultValues() -> CustomerSheetTestPlaygroundSettings {
         return CustomerSheetTestPlaygroundSettings(customerMode: .new,
@@ -186,6 +201,7 @@ public struct CustomerSheetTestPlaygroundSettings: Codable, Equatable {
                                                    applePay: .on,
                                                    headerTextForSelectionScreen: nil,
                                                    defaultBillingAddress: .off,
+                                                   enableAttestationOnConfirmation: .on,
                                                    autoreload: .on,
                                                    attachDefaults: .off,
                                                    collectName: .automatic,
@@ -199,12 +215,14 @@ public struct CustomerSheetTestPlaygroundSettings: Codable, Equatable {
                                                    paymentMethodRemoveLast: .enabled,
                                                    paymentMethodAllowRedisplayFilters: .always,
                                                    paymentMethodSyncDefault: .disabled,
-                                                   cardBrandAcceptance: .all)
+                                                   cardBrandAcceptance: .all,
+                                                   opensCardScannerAutomatically: .off)
     }
 
     var base64Data: String {
         let jsonData = try! JSONEncoder().encode(self)
-        return jsonData.base64EncodedString()
+        let compressedData = try! (jsonData as NSData).compressed(using: .lzfse) as Data
+        return compressedData.base64EncodedString()
     }
 
     static let nsUserDefaultsKey = "CustomerSheetPlaygroundSettings"

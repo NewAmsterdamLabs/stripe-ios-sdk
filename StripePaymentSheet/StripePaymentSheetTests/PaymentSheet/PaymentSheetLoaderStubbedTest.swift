@@ -9,6 +9,7 @@ import OHHTTPStubs
 import OHHTTPStubsSwift
 @_spi(STP) @testable import StripeCore
 @_spi(STP) import StripeCoreTestUtils
+import StripePaymentsObjcTestUtils
 import XCTest
 
 class PaymentSheetLoaderStubbedTest: APIStubbedTestCase {
@@ -24,9 +25,7 @@ class PaymentSheetLoaderStubbedTest: APIStubbedTestCase {
     }
 
     func testReturningCustomerWithNoSavedCards() throws {
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_200, pmType: "card")
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_200, pmType: "us_bank_account")
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_200, pmType: "sepa_debit")
+        StubbedBackend.stubPaymentMethods(paymentMethodTypes: [])
         StubbedBackend.stubSessions(paymentMethods: "\"card\", \"us_bank_account\"")
         StubbedBackend.stubCustomers()
         StubbedBackend.stubLookup()
@@ -68,9 +67,7 @@ class PaymentSheetLoaderStubbedTest: APIStubbedTestCase {
     }
 
     func testReturningCustomerWithSingleSavedCard() throws {
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_withCard_200, pmType: "card")
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_200, pmType: "us_bank_account")
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_200, pmType: "sepa_debit")
+        StubbedBackend.stubPaymentMethods(paymentMethodTypes: [.card])
         StubbedBackend.stubSessions(paymentMethods: "\"card\", \"us_bank_account\"")
         StubbedBackend.stubCustomers()
         StubbedBackend.stubLookup()
@@ -111,9 +108,7 @@ class PaymentSheetLoaderStubbedTest: APIStubbedTestCase {
     }
 
     func testReturningCustomerWithCardAndUSBankAccount_onlyCards() throws {
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_withCard_200, pmType: "card")
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_withUSBank_200, pmType: "us_bank_account")
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_200, pmType: "sepa_debit")
+        StubbedBackend.stubPaymentMethods(paymentMethodTypes: [.card, .USBankAccount])
         StubbedBackend.stubSessions(paymentMethods: "\"card\"")
         StubbedBackend.stubCustomers()
         StubbedBackend.stubLookup()
@@ -145,9 +140,7 @@ class PaymentSheetLoaderStubbedTest: APIStubbedTestCase {
     }
 
     func testReturningCustomerWithCardAndUSBankAccount() throws {
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_withCard_200, pmType: "card")
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_withUSBank_200, pmType: "us_bank_account")
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_200, pmType: "sepa_debit")
+        StubbedBackend.stubPaymentMethods(paymentMethodTypes: [.card, .USBankAccount])
         StubbedBackend.stubSessions(paymentMethods: "\"card\", \"us_bank_account\"")
         StubbedBackend.stubCustomers()
         StubbedBackend.stubLookup()
@@ -193,9 +186,7 @@ class PaymentSheetLoaderStubbedTest: APIStubbedTestCase {
             return HTTPStubsResponse(data: try! FileMock.payment_intents_200.data(), statusCode: 200, headers: nil)
         }
         // ...and the customer has payment methods...
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_withCard_200, pmType: "card")
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_200, pmType: "us_bank_account")
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_200, pmType: "sepa_debit")
+        StubbedBackend.stubPaymentMethods(paymentMethodTypes: [.card])
         StubbedBackend.stubCustomers()
         StubbedBackend.stubLookup()
 
@@ -207,7 +198,7 @@ class PaymentSheetLoaderStubbedTest: APIStubbedTestCase {
             mode: .paymentIntentClientSecret("pi_1234_secret_1234"),
             configuration: configuration,
             analyticsHelper: ._testValue(configuration: configuration, analyticsClient: analyticsClient),
-            integrationShape: .complete
+            integrationShape: .paymentSheet
         ) { result in
             loaded.fulfill()
             switch result {
@@ -220,7 +211,7 @@ class PaymentSheetLoaderStubbedTest: APIStubbedTestCase {
 
                 // ...with an ElementsSession whose payment method types is equal to the PaymentIntent...
                 XCTAssertEqual(
-                    paymentIntent.paymentMethodTypes.map { STPPaymentMethodType(rawValue: $0.intValue) },
+                    paymentIntent.paymentMethodTypes,
                     loadResult.elementsSession.orderedPaymentMethodTypes
                 )
 
@@ -256,9 +247,7 @@ class PaymentSheetLoaderStubbedTest: APIStubbedTestCase {
         } response: { _ in
             return HTTPStubsResponse(data: try! FileMock.payment_intents_misordered_pms_200.data(), statusCode: 200, headers: nil)
         }
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_200, pmType: "card")
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_200, pmType: "us_bank_account")
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_200, pmType: "sepa_debit")
+        StubbedBackend.stubPaymentMethods(paymentMethodTypes: [])
         StubbedBackend.stubCustomers()
         StubbedBackend.stubLookup()
 
@@ -270,7 +259,7 @@ class PaymentSheetLoaderStubbedTest: APIStubbedTestCase {
             mode: .paymentIntentClientSecret("pi_1234_secret_1234"),
             configuration: configuration,
             analyticsHelper: ._testValue(configuration: configuration, analyticsClient: analyticsClient),
-            integrationShape: .complete
+            integrationShape: .paymentSheet
         ) { result in
             loaded.fulfill()
             switch result {
@@ -283,7 +272,7 @@ class PaymentSheetLoaderStubbedTest: APIStubbedTestCase {
 
                 // ...with an ElementsSession whose payment method types contain the same as the PaymentIntent...
                 XCTAssertEqual(
-                    Set(paymentIntent.paymentMethodTypes.map { STPPaymentMethodType(rawValue: $0.intValue) }),
+                    Set(paymentIntent.paymentMethodTypes.map { $0 }),
                     Set(loadResult.elementsSession.orderedPaymentMethodTypes)
                 )
 
@@ -309,9 +298,7 @@ class PaymentSheetLoaderStubbedTest: APIStubbedTestCase {
         } response: { _ in
             return HTTPStubsResponse(data: try! FileMock.payment_intents_no_card_200.data(), statusCode: 200, headers: nil)
         }
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_200, pmType: "card")
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_200, pmType: "us_bank_account")
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_200, pmType: "sepa_debit")
+        StubbedBackend.stubPaymentMethods(paymentMethodTypes: [])
         StubbedBackend.stubCustomers()
         StubbedBackend.stubLookup()
 
@@ -323,7 +310,7 @@ class PaymentSheetLoaderStubbedTest: APIStubbedTestCase {
             mode: .paymentIntentClientSecret("pi_1234_secret_1234"),
             configuration: configuration,
             analyticsHelper: ._testValue(configuration: configuration, analyticsClient: analyticsClient),
-            integrationShape: .complete
+            integrationShape: .paymentSheet
         ) { result in
             loaded.fulfill()
             switch result {
@@ -336,7 +323,7 @@ class PaymentSheetLoaderStubbedTest: APIStubbedTestCase {
 
                 // ...with an ElementsSession whose payment method types is equal to the PaymentIntent...
                 XCTAssertEqual(
-                    paymentIntent.paymentMethodTypes.map { STPPaymentMethodType(rawValue: $0.intValue) },
+                    paymentIntent.paymentMethodTypes.map { $0 },
                     loadResult.elementsSession.orderedPaymentMethodTypes
                 )
             case .failure(let error):
@@ -360,9 +347,7 @@ class PaymentSheetLoaderStubbedTest: APIStubbedTestCase {
             return HTTPStubsResponse(data: try! FileMock.setup_intents_200.data(), statusCode: 200, headers: nil)
         }
         // ...and the customer has payment methods...
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_withCard_200, pmType: "card")
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_200, pmType: "us_bank_account")
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_200, pmType: "sepa_debit")
+        StubbedBackend.stubPaymentMethods(paymentMethodTypes: [.card])
         StubbedBackend.stubCustomers()
         StubbedBackend.stubLookup()
 
@@ -374,7 +359,7 @@ class PaymentSheetLoaderStubbedTest: APIStubbedTestCase {
             mode: .setupIntentClientSecret("seti_1234_secret_1234"),
             configuration: configuration,
             analyticsHelper: ._testValue(configuration: configuration, analyticsClient: analyticsClient),
-            integrationShape: .complete
+            integrationShape: .paymentSheet
         ) { result in
             loaded.fulfill()
             switch result {
@@ -387,7 +372,7 @@ class PaymentSheetLoaderStubbedTest: APIStubbedTestCase {
 
                 // ...with an ElementsSession whose payment method types is equal to the SetupIntent...
                 XCTAssertEqual(
-                    setupIntent.paymentMethodTypes.map { STPPaymentMethodType(rawValue: $0.intValue) },
+                    setupIntent.paymentMethodTypes,
                     loadResult.elementsSession.orderedPaymentMethodTypes
                 )
 
@@ -419,12 +404,10 @@ class PaymentSheetLoaderStubbedTest: APIStubbedTestCase {
         }
 
         // ...and we're using a deferred intent without PM types specified...
-        var intentConfig = PaymentSheet.IntentConfiguration(mode: .payment(amount: 100, currency: "usd"), confirmHandler: { _, _, _ in })
+        var intentConfig = PaymentSheet.IntentConfiguration(mode: .payment(amount: 100, currency: "usd"), confirmHandler: { _, _ in return "" })
 
         // ...and the customer has payment methods...
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_withCard_200, pmType: "card")
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_200, pmType: "us_bank_account")
-        StubbedBackend.stubPaymentMethods(fileMock: .saved_payment_methods_200, pmType: "sepa_debit")
+        StubbedBackend.stubPaymentMethods(paymentMethodTypes: [.card])
         StubbedBackend.stubCustomers()
         StubbedBackend.stubLookup()
 
@@ -436,7 +419,7 @@ class PaymentSheetLoaderStubbedTest: APIStubbedTestCase {
             mode: .deferredIntent(intentConfig),
             configuration: configuration,
             analyticsHelper: ._testValue(configuration: configuration, analyticsClient: analyticsClient),
-            integrationShape: .complete
+            integrationShape: .paymentSheet
         ) { result in
             loaded.fulfill()
             switch result {
@@ -479,7 +462,7 @@ class PaymentSheetLoaderStubbedTest: APIStubbedTestCase {
             mode: .deferredIntent(intentConfig),
             configuration: configuration,
             analyticsHelper: ._testValue(configuration: configuration, analyticsClient: analyticsClient),
-            integrationShape: .complete
+            integrationShape: .paymentSheet
         ) { result in
             loaded2.fulfill()
             switch result {
@@ -515,7 +498,68 @@ class PaymentSheetLoaderStubbedTest: APIStubbedTestCase {
         wait(for: [loaded2], timeout: 2)
     }
 
+    func testCheckoutSessionWithCustomerConfigurationThrowsError() {
+        let json = STPTestUtils.jsonNamed("CheckoutSession")!
+        let checkoutSession = STPCheckoutSession.decodedObject(fromAPIResponse: json)!
+
+        var configuration = PaymentSheet.Configuration()
+        configuration.apiClient = stubbedAPIClient()
+        configuration.customer = PaymentSheet.CustomerConfiguration(id: "cus_123", ephemeralKeySecret: "ek_456")
+
+        let loaded = expectation(description: "Loaded")
+        STPAssertTestUtil.shouldSuppressNextSTPAlert = true
+        PaymentSheetLoader.load(
+            mode: .checkoutSession(checkoutSession),
+            configuration: configuration,
+            analyticsHelper: ._testValue(integrationShape: .complete),
+            integrationShape: .paymentSheet
+        ) { result in
+            switch result {
+            case .success:
+                XCTFail("Expected failure when customer is set with CheckoutSession mode")
+            case .failure(let error):
+                guard case PaymentSheetError.integrationError = error else {
+                    XCTFail("Expected PaymentSheetError.integrationError, got \(error)")
+                    return
+                }
+            }
+            loaded.fulfill()
+        }
+        wait(for: [loaded], timeout: 2)
+    }
+
+    func testCheckoutSessionWithoutEmailThrowsError() {
+        var json = STPTestUtils.jsonNamed("CheckoutSession")!
+        json["customer_email"] = NSNull()
+        let checkoutSession = STPCheckoutSession.decodedObject(fromAPIResponse: json)!
+
+        var configuration = PaymentSheet.Configuration()
+        configuration.apiClient = stubbedAPIClient()
+
+        let loaded = expectation(description: "Loaded")
+        STPAssertTestUtil.shouldSuppressNextSTPAlert = true
+        PaymentSheetLoader.load(
+            mode: .checkoutSession(checkoutSession),
+            configuration: configuration,
+            analyticsHelper: ._testValue(integrationShape: .complete),
+            integrationShape: .paymentSheet
+        ) { result in
+            switch result {
+            case .success:
+                XCTFail("Expected failure when email is not set with CheckoutSession mode")
+            case .failure(let error):
+                guard case PaymentSheetError.integrationError = error else {
+                    XCTFail("Expected PaymentSheetError.integrationError, got \(error)")
+                    return
+                }
+            }
+            loaded.fulfill()
+        }
+        wait(for: [loaded], timeout: 2)
+    }
+
     func testSendsErrorAnalytic() {
+        // If v1/elements/session and the fallback fail to load...
         let analyticsClient = STPAnalyticsClient()
         stub { urlRequest in
             return urlRequest.url?.absoluteString.contains("/v1/elements/sessions") ?? false
@@ -526,15 +570,16 @@ class PaymentSheetLoaderStubbedTest: APIStubbedTestCase {
 
         let loadExpectation = XCTestExpectation(description: "Load PaymentSheet")
         // Test PaymentSheetLoader.load can load various IntentConfigurations
-        let confirmHandler: PaymentSheet.IntentConfiguration.ConfirmHandler = {_, _, _ in
+        let confirmHandler: PaymentSheet.IntentConfiguration.ConfirmHandler = {_, _ in
             XCTFail("Confirm handler shouldn't be called.")
+            return ""
         }
         let intentConfig = PaymentSheet.IntentConfiguration.init(mode: .payment(amount: 100, currency: "USD"), confirmHandler: confirmHandler)
         PaymentSheetLoader.load(
             mode: .deferredIntent(intentConfig),
             configuration: PaymentSheet.Configuration._testValue_MostPermissive(),
             analyticsHelper: ._testValue(configuration: PaymentSheet.Configuration._testValue_MostPermissive(), analyticsClient: analyticsClient),
-            integrationShape: .complete
+            integrationShape: .paymentSheet
         ) { result in
             loadExpectation.fulfill()
             switch result {
@@ -543,7 +588,7 @@ class PaymentSheetLoaderStubbedTest: APIStubbedTestCase {
             case .failure:
                 break
             }
-            // Should send a load failure analytic
+            // ...we should send a load failure analytic
             let analyticEvent = analyticsClient._testLogHistory.last
             XCTAssertEqual(analyticEvent?["event"] as? String, STPAnalyticEvent.paymentSheetLoadFailed.rawValue)
             XCTAssertEqual(analyticEvent?["error_type"] as? String, "NSURLErrorDomain")

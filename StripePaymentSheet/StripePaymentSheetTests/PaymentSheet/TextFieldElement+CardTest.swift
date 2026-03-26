@@ -10,7 +10,7 @@ import XCTest
 
 @testable@_spi(STP) import StripeCore
 @testable@_spi(STP) import StripePayments
-@testable@_spi(STP) import StripePaymentSheet
+@testable@_spi(STP) @_spi(CardFundingFilteringPrivatePreview) import StripePaymentSheet
 @testable@_spi(STP) import StripePaymentsTestUtils
 @testable@_spi(STP) import StripePaymentsUI
 @testable@_spi(STP) import StripeUICore
@@ -85,8 +85,11 @@ class TextFieldElementCardTest: STPNetworkStubbingTestCase {
     }
 
     func testBINRangeThatRequiresNetworkCallToValidate() {
-        // Set a publishable key for the metadata service
-        STPAPIClient.shared.publishableKey = STPTestingDefaultPublishableKey
+        STPAPIClient.shared.publishableKey = STPTestingDefaultPublishableKey // swiftlint:disable:this no_shared_api_client_mutation_in_tests
+        defer {
+            STPAPIClient.shared.publishableKey = nil // swiftlint:disable:this no_shared_api_client_mutation_in_tests
+        }
+        let apiClient = STPAPIClient(publishableKey: STPTestingDefaultPublishableKey)
 
         var configuration = TextFieldElement.PANConfiguration()
         let binController = STPBINController()
@@ -125,7 +128,7 @@ class TextFieldElementCardTest: STPNetworkStubbingTestCase {
 
         // After we've loaded the bin range...
         let e = expectation(description: "Fetch BIN Range")
-        binController.retrieveBINRanges(forPrefix: unionPay19_but_16_digits_entered) { _ in
+        binController.retrieveBINRanges(apiClient: apiClient, forPrefix: unionPay19_but_16_digits_entered) { _ in
             e.fulfill()
         }
         waitForExpectations(timeout: 10, handler: nil)
@@ -145,7 +148,7 @@ class TextFieldElementCardTest: STPNetworkStubbingTestCase {
 
         // Hack to let STPBINRange finish network calls before running another test
         let allRetrievalsAreComplete = expectation(description: "Fetch BIN Range")
-        binController.retrieveBINRanges(forPrefix: unionPay19_but_16_digits_entered) { _ in
+        binController.retrieveBINRanges(apiClient: apiClient, forPrefix: unionPay19_but_16_digits_entered) { _ in
             allRetrievalsAreComplete.fulfill()
         }
         waitForExpectations(timeout: 10, handler: nil)
@@ -153,7 +156,7 @@ class TextFieldElementCardTest: STPNetworkStubbingTestCase {
 
     func testBINRangeThatRequiresNetworkCallToValidateWhenCallFails() {
         // We set an invalid publishable key so that STPBINRange calls to the API fail
-        STPAPIClient.shared.publishableKey = ""
+        let apiClient = STPAPIClient(publishableKey: "")
         var configuration = TextFieldElement.PANConfiguration()
         let binController = STPBINController()
         configuration.binController = binController
@@ -184,7 +187,7 @@ class TextFieldElementCardTest: STPNetworkStubbingTestCase {
 
         // After we've unsuccessfully loaded the bin range...
         let e = expectation(description: "Fetch BIN Range")
-        binController.retrieveBINRanges(forPrefix: unionPay19_but_16_digits_entered) { _ in
+        binController.retrieveBINRanges(apiClient: apiClient, forPrefix: unionPay19_but_16_digits_entered) { _ in
             e.fulfill()
         }
         waitForExpectations(timeout: 10, handler: nil)
@@ -206,14 +209,14 @@ class TextFieldElementCardTest: STPNetworkStubbingTestCase {
 
         // Hack to let STPBINRange finish network calls before running another test
         let allRetrievalsAreComplete = expectation(description: "Fetch BIN Range")
-        binController.retrieveBINRanges(forPrefix: unionPay19_but_16_digits_entered) { _ in
+        binController.retrieveBINRanges(apiClient: apiClient, forPrefix: unionPay19_but_16_digits_entered) { _ in
             allRetrievalsAreComplete.fulfill()
         }
         waitForExpectations(timeout: 10, handler: nil)
     }
 
     func testCVCValidation() {
-        let emptyError = TextFieldElement.Error.empty
+        let emptyError = TextFieldElement.Error.empty(localizedDescription: .Localized.your_cards_security_code_is_incomplete)
         let incompleteError = TextFieldElement.Error.incomplete(
             localizedDescription: .Localized.your_cards_security_code_is_incomplete
         )
@@ -270,7 +273,7 @@ class TextFieldElementCardTest: STPNetworkStubbingTestCase {
 
         let testcases: [String: ElementValidationState] = [
             // Test empty -> incomplete -> complete
-            "": .invalid(error: TextFieldElement.Error.empty, shouldDisplay: false),
+            "": .invalid(error: TextFieldElement.Error.empty(localizedDescription: String.Localized.your_cards_expiration_date_is_incomplete), shouldDisplay: false),
             "0": .invalid(error: Error.incomplete, shouldDisplay: true),
             "1": .invalid(error: Error.incomplete, shouldDisplay: true),
             "12": .invalid(error: Error.incomplete, shouldDisplay: true),
@@ -351,7 +354,7 @@ class TextFieldElementCardTest: STPNetworkStubbingTestCase {
 
     func testAlertsOnExpected19DigitCard() {
         // Set a publishable key for the metadata service
-        STPAPIClient.shared.publishableKey = STPTestingDefaultPublishableKey
+        let apiClient = STPAPIClient(publishableKey: STPTestingDefaultPublishableKey)
 
         // Set up a CardSectionElement:
         let cardSection = CardSectionElement(
@@ -362,7 +365,8 @@ class TextFieldElementCardTest: STPNetworkStubbingTestCase {
             hostedSurface: .paymentSheet,
             theme: .default,
             analyticsHelper: ._testValue(),
-            cardBrandFilter: .default
+            cardBrandFilter: .default,
+            opensCardScannerAutomatically: false
         )
         let textFieldElement = cardSection.panElement
 
@@ -371,7 +375,7 @@ class TextFieldElementCardTest: STPNetworkStubbingTestCase {
 
         // Cache the UnionPay BIN range first:
         let allRetrievalsAreComplete = expectation(description: "Fetch BIN Range")
-        (textFieldElement.configuration as! TextFieldElement.PANConfiguration).binController.retrieveBINRanges(forPrefix: unionPay19_but_16_digits_entered) { _ in
+        (textFieldElement.configuration as! TextFieldElement.PANConfiguration).binController.retrieveBINRanges(apiClient: apiClient, forPrefix: unionPay19_but_16_digits_entered) { _ in
             allRetrievalsAreComplete.fulfill()
         }
         // Wait for the fetch to complete
@@ -394,6 +398,57 @@ class TextFieldElementCardTest: STPNetworkStubbingTestCase {
         wait(for: [logExpectation], timeout: 10)
         // Put back the analytics delegate to avoid polluting the other test states
         STPAnalyticsClient.sharedClient.delegate = nil
+    }
+
+    func testCardSectionElement_cardFundingFiltering_showsWarningButRemainsValid() {
+        let apiClient = STPAPIClient(publishableKey: STPTestingDefaultPublishableKey)
+
+        // Set up a CardSectionElement with funding filter that only allows debit:
+        let cardSection = CardSectionElement(
+            collectName: false,
+            defaultValues: .init(),
+            preferredNetworks: nil,
+            cardBrandChoiceEligible: false,
+            hostedSurface: .paymentSheet,
+            theme: .default,
+            analyticsHelper: ._testValue(),
+            cardBrandFilter: .default,
+            cardFundingFilter: .init(allowedFundingTypes: .debit, filteringEnabled: true),
+            opensCardScannerAutomatically: false
+        )
+        let textFieldElement = cardSection.panElement
+
+        // Visa credit card
+        let visaCredit = "4242424242424242"
+
+        // First, fetch BIN ranges via the injected fundingBinController
+        let panConfig = textFieldElement.configuration as! TextFieldElement.PANConfiguration
+        let fetchExpectation = expectation(description: "Fetch BIN Range")
+        panConfig.fundingBinController!.retrieveBINRanges(
+            apiClient: apiClient,
+            forPrefix: String(visaCredit.prefix(6)),
+            recordErrorsAsSuccess: false,
+            onlyFetchForVariableLengthBINs: false
+        ) { _ in
+            fetchExpectation.fulfill()
+        }
+        wait(for: [fetchExpectation], timeout: 10)
+
+        // Enter the credit card number
+        textFieldElement.textFieldView.textField.text = visaCredit
+        textFieldElement.textFieldView.textDidChange()
+
+        // Check - card should still be VALID (not blocking)
+        XCTAssertTrue(
+            textFieldElement.validationState.isValid,
+            "Credit card should remain valid (warning-only, not blocking)"
+        )
+
+        // But should show a warning via warningLabelText
+        XCTAssertEqual(
+            textFieldElement.warningLabelText,
+            "Only debit cards are accepted"
+        )
     }
 
     func testPANValidation_cardBrandFiltering() throws {
@@ -419,7 +474,7 @@ class TextFieldElementCardTest: STPNetworkStubbingTestCase {
             "6200000000000005": .valid,  // cup
         ]
 
-        let configuration = TextFieldElement.PANConfiguration(cardFilter: .init(cardBrandAcceptance: .disallowed(brands: [.amex, .mastercard])))
+        let configuration = TextFieldElement.PANConfiguration(cardBrandFilter: .init(cardBrandAcceptance: .disallowed(brands: [.amex, .mastercard])))
         for (text, expected) in testcases {
             let actual = configuration.simulateValidationState(text)
             XCTAssertTrue(
@@ -427,6 +482,107 @@ class TextFieldElementCardTest: STPNetworkStubbingTestCase {
                 "Input \"\(text)\": expected \(expected) but got \(actual)"
             )
         }
+    }
+
+    func testPANValidation_cardFundingFiltering_noWarningWithoutNetworkFetch() throws {
+        // Without fetching from the network, hardcoded BIN ranges have .other funding
+        // so no funding warning should be shown (we don't have reliable funding info)
+
+        let testcases = [
+            "4242424242424242",  // visa (credit in reality, but hardcoded has .other)
+            "4000056655665556",  // visa (debit in reality, but hardcoded has .other)
+            "5555555555554444",  // mastercard
+        ]
+
+        // Only allow debit - but without network fetch, we don't know the funding type
+        var configuration = TextFieldElement.PANConfiguration(
+            cardFundingFilter: .init(allowedFundingTypes: .debit, filteringEnabled: true)
+        )
+        configuration.binController = STPBINController()
+
+        for text in testcases {
+            // Card should be valid (not blocked)
+            let validationState = configuration.simulateValidationState(text)
+            XCTAssertTrue(validationState.isValid, "Card should be valid even with funding filter before network fetch")
+
+            // No warning should be shown (hardcoded ranges don't have funding info)
+            let warningText = configuration.warningLabel(text: text)
+            XCTAssertNil(warningText, "No warning should be shown for hardcoded BIN ranges")
+        }
+    }
+
+    func testPANValidation_cardFundingFiltering_noWarningForAllowedFunding() throws {
+        let apiClient = STPAPIClient(publishableKey: STPTestingDefaultPublishableKey)
+        let fundingBinController = STPBINController()
+        var configuration = TextFieldElement.PANConfiguration(
+            cardFundingFilter: .init(allowedFundingTypes: .debit, filteringEnabled: true),
+            fundingBinController: fundingBinController
+        )
+        configuration.binController = STPBINController()
+
+        // Visa debit card number
+        let visaDebit = "4000056655665556"
+
+        // Fetch BIN ranges from the network using the funding controller
+        let fetchExpectation = expectation(description: "Fetch BIN Range")
+        fundingBinController.retrieveBINRanges(
+            apiClient: apiClient,
+            forPrefix: String(visaDebit.prefix(6)),
+            recordErrorsAsSuccess: false,
+            onlyFetchForVariableLengthBINs: false
+        ) { _ in
+            fetchExpectation.fulfill()
+        }
+        wait(for: [fetchExpectation], timeout: 10)
+
+        let binRange = fundingBinController.mostSpecificBINRange(forNumber: visaDebit)
+        if !binRange.isHardcoded && binRange.funding == .debit {
+            // Should be valid with no warning for debit card when debit is allowed
+            XCTAssertTrue(configuration.simulateValidationState(visaDebit).isValid)
+            XCTAssertNil(configuration.warningLabel(text: visaDebit), "No warning should be shown for allowed funding type")
+        }
+    }
+
+    func testPANValidation_cardFundingFiltering_noWarningWhenAllAllowed() throws {
+        // Test that no warning is shown when all funding types are allowed
+        let testcases = [
+            "4242424242424242",  // visa
+            "4000056655665556",  // visa (debit)
+            "5555555555554444",  // mastercard
+        ]
+
+        // Allow all funding types (default)
+        let configuration = TextFieldElement.PANConfiguration(
+            cardFundingFilter: .default
+        )
+
+        for text in testcases {
+            XCTAssertEqual(configuration.simulateValidationState(text), .valid)
+            XCTAssertNil(configuration.warningLabel(text: text), "No warning should be shown when all funding types are allowed")
+        }
+    }
+
+    func testAccessoryView_excludesCartesBancairesWithoutCBC() {
+        let configuration = TextFieldElement.PANConfiguration()
+        let view = configuration.accessoryView(for: "", theme: .default)
+        let rotatingView = view as? RotatingCardBrandsView
+        XCTAssertNotNil(rotatingView)
+        XCTAssertFalse(rotatingView!.cardBrands.contains(.cartesBancaires))
+        XCTAssertTrue(rotatingView!.cardBrands.contains(.visa))
+        XCTAssertTrue(rotatingView!.cardBrands.contains(.mastercard))
+        XCTAssertTrue(rotatingView!.cardBrands.contains(.amex))
+        XCTAssertTrue(rotatingView!.cardBrands.contains(.discover))
+    }
+
+    func testAccessoryView_includesCartesBancairesWithCBC() {
+        let cardBrandChoiceElement = CardBrandChoiceElement()
+        let configuration = TextFieldElement.PANConfiguration(cardBrandChoiceElement: cardBrandChoiceElement)
+        let view = configuration.accessoryView(for: "", theme: .default)
+        let rotatingView = view as? RotatingCardBrandsView
+        XCTAssertNotNil(rotatingView)
+        XCTAssertTrue(rotatingView!.cardBrands.contains(.cartesBancaires))
+        XCTAssertTrue(rotatingView!.cardBrands.contains(.visa))
+        XCTAssertTrue(rotatingView!.cardBrands.contains(.mastercard))
     }
 }
 
@@ -440,7 +596,7 @@ extension TextFieldElementConfiguration {
     }
 }
 
-extension ElementValidationState: Equatable {
+extension ElementValidationState: @retroactive Equatable {
     /// - Note: Assumes errors are equal if their localized descriptions are equal
     public static func == (lhs: ElementValidationState, rhs: ElementValidationState) -> Bool {
         switch (lhs, rhs) {

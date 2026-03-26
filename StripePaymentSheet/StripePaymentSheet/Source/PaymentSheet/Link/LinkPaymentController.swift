@@ -30,8 +30,7 @@ import UIKit
         let loadingViewController = LoadingViewController(
             delegate: self,
             appearance: PaymentSheet.Appearance.default,
-            isTestMode: configuration.apiClient.isTestmode,
-            loadingViewHeight: 244
+            isTestMode: configuration.apiClient.isTestmode
         )
         return loadingViewController
     }()
@@ -206,6 +205,8 @@ import UIKit
                     ) { [weak self] linkAccountSession, error in
                         self?.generateManifest(continuation: continuation, error: error, emailAddress: self?.configuration.defaultBillingDetails.email, linkAccountSession: linkAccountSession)
                     }
+            case .checkoutSession:
+                continuation.resume(throwing: PaymentSheetError.unknown(debugDescription: "Link payment controller is not yet supported by CheckoutSession"))
             }
         }
 
@@ -295,6 +296,8 @@ import UIKit
                 from: presentingViewController,
                 financialConnectionsCompletion: completionHandler
             )
+        case .checkoutSession:
+            completionHandler(nil, nil, PaymentSheetError.unknown(debugDescription: "Link payment controller is not yet supported by CheckoutSession") as NSError)
         }
     }
 
@@ -322,7 +325,8 @@ import UIKit
             intentId: nil,
             linkMode: nil,
             billingDetails: billingDetails,
-            eligibleForIncentive: false
+            eligibleForIncentive: false,
+            clientAttributionMetadata: nil
         )
     }
 
@@ -443,11 +447,11 @@ import UIKit
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Swift.Error>) in
             switch mode {
             case .paymentIntentClientSecret(let clientSecret):
-                let paymentIntentParams = STPPaymentIntentParams(clientSecret: clientSecret, paymentMethodType: .link)
+                let paymentIntentParams = STPPaymentIntentConfirmParams(clientSecret: clientSecret, paymentMethodType: .link)
                 paymentIntentParams.paymentMethodId = paymentMethodId
                 paymentIntentParams.mandateData = STPMandateDataParams.makeWithInferredValues()
-                STPPaymentHandler.shared().confirmPayment(
-                    paymentIntentParams, with: authenticationContext
+                STPPaymentHandler.shared().confirmPaymentIntent(
+                    params: paymentIntentParams, authenticationContext: authenticationContext
                 ) { (status, _, error) in
                     switch status {
                     case .canceled:
@@ -465,7 +469,7 @@ import UIKit
                 setupIntentParams.paymentMethodID = paymentMethodId
                 setupIntentParams.mandateData = STPMandateDataParams.makeWithInferredValues()
                 STPPaymentHandler.shared().confirmSetupIntent(
-                    setupIntentParams, with: authenticationContext
+                    params: setupIntentParams, authenticationContext: authenticationContext
                 ) { (status, _, error) in
                     switch status {
                     case .canceled:
@@ -479,26 +483,29 @@ import UIKit
                     }
                 }
             case .deferredIntent(let intentConfiguration):
-                let paymentMethod = STPPaymentMethod(stripeId: paymentMethodId, type: .link)
-                PaymentSheet
-                    .handleDeferredIntentConfirmation(
-                        confirmType: .saved(paymentMethod, paymentOptions: nil),
-                        configuration: configuration,
-                        intentConfig: intentConfiguration,
-                        authenticationContext: authenticationContext,
-                        paymentHandler: STPPaymentHandler.shared(),
-                        isFlowController: true,
-                        mandateData: STPMandateDataParams.makeWithInferredValues()) { result, _ in
-                    switch result {
+                let paymentMethod = STPPaymentMethod(stripeId: paymentMethodId, created: Date(), type: .link)
+                Task { @MainActor in
+                    let result = await PaymentSheet
+                        .routeDeferredIntentConfirmation(
+                            confirmType: .saved(paymentMethod, paymentOptions: nil, clientAttributionMetadata: nil, radarOptions: nil), // LinkPaymentController is standalone and isn't a part of MPE, so it doesn't generate a client_session_id and doesn't have an elements session object so we don't want to send CAM here
+                            configuration: configuration,
+                            intentConfig: intentConfiguration,
+                            authenticationContext: authenticationContext,
+                            paymentHandler: STPPaymentHandler.shared(),
+                            isFlowController: true,
+                            elementsSession: nil // Headless link does not have an elements session object
+                        )
+                    switch result.result {
                     case .canceled:
                         continuation.resume(throwing: Error.canceled)
                     case .failed(let error):
                         continuation.resume(throwing: error)
                     case .completed:
                         continuation.resume()
-
                     }
                 }
+            case .checkoutSession:
+                continuation.resume(throwing: PaymentSheetError.unknown(debugDescription: "Link payment controller is not yet supported by CheckoutSession"))
             }
         }
     }
@@ -547,6 +554,8 @@ private extension PaymentSheet.InitializationMode {
             case .setup:
                 return nil
             }
+        case .checkoutSession:
+            return nil
         }
     }
 
@@ -563,6 +572,8 @@ private extension PaymentSheet.InitializationMode {
             case .setup(let currency, _):
                 return currency
             }
+        case .checkoutSession:
+            return nil
         }
     }
 }

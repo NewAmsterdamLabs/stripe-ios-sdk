@@ -6,28 +6,17 @@
 //
 
 import AuthenticationServices
-import UIKit
 // `@preconcurrency` suppresses Sendable-related warnings from WebKit.
 @_spi(STP) import StripeCore
+import UIKit
 @preconcurrency import WebKit
 
 class FCLiteAuthFlowViewController: UIViewController {
-    enum WebFlowResult {
-        enum CancellationType {
-            case cancelledWithinWebview
-            case cancelledOutsideWebView
-        }
-
-        case success(returnUrl: URL)
-        case cancelled(CancellationType)
-        case failure(Error)
-    }
-
     private let manifest: LinkAccountSessionManifest
     private let elementsSessionContext: ElementsSessionContext?
     private let returnUrl: URL?
     private let onLoad: () -> Void
-    private let completion: ((WebFlowResult) -> Void)
+    private let completion: ((FCLiteWebFlowResult) -> Void)
 
     private var webAuthenticationSession: ASWebAuthenticationSession?
     private var webView: WKWebView!
@@ -36,6 +25,7 @@ class FCLiteAuthFlowViewController: UIViewController {
         HostedAuthUrlBuilder.build(
             baseHostedAuthUrl: manifest.hostedAuthURL,
             isInstantDebits: manifest.isInstantDebits,
+            hasExistingAccountholderToken: manifest.hasAccountholderToken,
             elementsSessionContext: elementsSessionContext
         )
     }
@@ -45,7 +35,7 @@ class FCLiteAuthFlowViewController: UIViewController {
         elementsSessionContext: ElementsSessionContext?,
         returnUrl: URL?,
         onLoad: @escaping () -> Void,
-        completion: @escaping ((WebFlowResult) -> Void)
+        completion: @escaping ((FCLiteWebFlowResult) -> Void)
     ) {
         self.onLoad = onLoad
         self.manifest = manifest
@@ -201,6 +191,6 @@ extension FCLiteAuthFlowViewController: WKUIDelegate {
 // MARK: ASWebAuthenticationPresentationContextProviding
 extension FCLiteAuthFlowViewController: ASWebAuthenticationPresentationContextProviding {
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        return self.view.window ?? ASPresentationAnchor()
+        return self.view.window ?? stp_makeFallbackPresentationAnchor()
     }
 }

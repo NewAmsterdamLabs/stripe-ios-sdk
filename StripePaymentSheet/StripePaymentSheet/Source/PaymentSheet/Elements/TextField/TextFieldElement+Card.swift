@@ -22,43 +22,55 @@ extension TextFieldElement {
         let rotatingCardBrandsView = RotatingCardBrandsView()
         let defaultValue: String?
         let cardBrand: STPCardBrand?
-        let cardBrandDropDown: DropdownFieldElement?
-        let cardFilter: CardBrandFilter
+        let cardBrandChoiceElement: CardBrandChoiceElement?
+        let cardBrandFilter: CardBrandFilter
+        let cardFundingFilter: CardFundingFilter
+        /// Separate BIN controller for funding filtering to avoid polluting
+        /// See: https://jira.corp.stripe.com/browse/RUN_MOBILESDK-5052
+        let fundingBinController: STPBINController?
 
-        init(defaultValue: String? = nil, cardBrand: STPCardBrand? = nil, cardBrandDropDown: DropdownFieldElement? = nil, cardFilter: CardBrandFilter = .default) {
+        init(
+            defaultValue: String? = nil,
+            cardBrand: STPCardBrand? = nil,
+            cardBrandChoiceElement: CardBrandChoiceElement? = nil,
+            cardBrandFilter: CardBrandFilter = .default,
+            cardFundingFilter: CardFundingFilter = .default,
+            fundingBinController: STPBINController? = nil
+        ) {
             self.defaultValue = defaultValue
             self.cardBrand = cardBrand
-            self.cardBrandDropDown = cardBrandDropDown
-            self.cardFilter = cardFilter
+            self.cardBrandChoiceElement = cardBrandChoiceElement
+            self.cardBrandFilter = cardBrandFilter
+            self.cardFundingFilter = cardFundingFilter
+            self.fundingBinController = fundingBinController
         }
 
         private func cardBrand(for text: String) -> STPCardBrand {
-            // Try to read the brands from the CBC dropdown
-            guard let cardBrandDropDown = cardBrandDropDown,
-                  let firstBrandString = cardBrandDropDown.nonPlacerholderItems.first?.rawData else {
+            // Try to read the selected brand from the CBC selector
+            guard let cardBrandChoiceElement = cardBrandChoiceElement else {
                 return STPCardValidator.brand(forNumber: text)
             }
 
-            let cardBrandFromDropDown = STPCard.brand(from: firstBrandString)
+            let selectedBrand = cardBrandChoiceElement.selectedBrand ?? .unknown
             let cardBrandFromBin = STPCardValidator.brand(forNumber: text)
-            return cardBrandFromDropDown == .unknown ? cardBrandFromBin : cardBrandFromDropDown
+            return selectedBrand == .unknown ? cardBrandFromBin : selectedBrand
         }
 
         func accessoryView(for text: String, theme: ElementsAppearance) -> UIView? {
             // If CBC is enabled and the PAN is not empty...
-            if let cardBrandDropDown = cardBrandDropDown, !text.isEmpty {
+            if let cardBrandChoiceElement = cardBrandChoiceElement, !text.isEmpty {
                 // Show unknown card brand if we have under 9 pan digits and no card brands
-                if 9 > text.count && cardBrandDropDown.nonPlacerholderItems.isEmpty {
+                if 9 > text.count && cardBrandChoiceElement.brandCount == 0 {
                     return DynamicImageView.makeUnknownCardImageView(theme: theme)
-                } else if text.count >= 8 && cardBrandDropDown.nonPlacerholderItems.count > 1 {
-                    // Show the dropdown if we have 8 or more digits and at least 2 brands, otherwise fall through and show brand as normal
-                    return cardBrandDropDown.view
+                } else if text.count >= 8 && cardBrandChoiceElement.allowedBrandCount > 1 {
+                    // Show the selector if we have 8 or more digits and at least 2 allowed brands, otherwise fall through and show brand as normal
+                    return cardBrandChoiceElement.view
                 }
             }
 
             // If this is coming from the LastFourConfiguration, cardBrand(for: text) will retrieve a card brand from •••• •••• •••• last4, which may be incorrect, so we pass in the card brand for that case
             if let cardBrand = cardBrand,
-               cardBrandDropDown == nil {
+               cardBrandChoiceElement == nil {
                 rotatingCardBrandsView.cardBrands = [cardBrand]
                 return rotatingCardBrandsView
             }
@@ -69,8 +81,12 @@ extension TextFieldElement {
                     return DynamicImageView.makeUnknownCardImageView(theme: theme)
                 } else {
                     // display all available card brands
+                    // Only show Cartes Bancaires when card brand choice is enabled
+                    let isCBCEnabled = cardBrandChoiceElement != nil
                     rotatingCardBrandsView.cardBrands =
-                    RotatingCardBrandsView.orderedCardBrands(from: STPCardBrand.allCases.filter { cardFilter.isAccepted(cardBrand: $0) })
+                    RotatingCardBrandsView.orderedCardBrands(from: STPCardBrand.allCases.filter {
+                        cardBrandFilter.isAccepted(cardBrand: $0) && ($0 != .cartesBancaires || isCBCEnabled)
+                    })
                     return rotatingCardBrandsView
                 }
             } else {
@@ -98,12 +114,12 @@ extension TextFieldElement {
             case invalidLuhn
             case disallowedBrand(brand: STPCardBrand)
 
-            func shouldDisplay(isUserEditing: Bool) -> Bool {
+            func shouldDisplay(isUserEditing: Bool, displayEmptyFields: Bool) -> Bool {
                 switch self {
                 case .empty:
-                    return false
+                    return displayEmptyFields
                 case .incomplete, .invalidLuhn:
-                    return !isUserEditing
+                    return !isUserEditing || displayEmptyFields
                 case .invalidBrand, .disallowedBrand:
                     return true
                 }
@@ -112,7 +128,7 @@ extension TextFieldElement {
             var localizedDescription: String {
                 switch self {
                 case .empty:
-                    return ""
+                    return String.Localized.your_card_number_is_incomplete
                 case .incomplete:
                     return String.Localized.your_card_number_is_incomplete
                 case .invalidBrand, .invalidLuhn:
@@ -142,8 +158,8 @@ extension TextFieldElement {
 
             let cardBrand = cardBrand(for: text)
             // If the merchant is CBC eligible, don't show the disallowed error until we have time to hit the card metadata service to determine brands (at 8 digits)
-            let shouldShowDisallowedError = cardBrandDropDown == nil || text.count > 8
-            if !cardFilter.isAccepted(cardBrand: cardBrand) && shouldShowDisallowedError {
+            let shouldShowDisallowedError = cardBrandChoiceElement == nil || text.count > 8
+            if !cardBrandFilter.isAccepted(cardBrand: cardBrand) && shouldShowDisallowedError {
                 return .invalid(Error.disallowedBrand(brand: cardBrand))
             }
 
@@ -153,7 +169,8 @@ extension TextFieldElement {
                 let isCorrectPANLengthKnownYet = binController.hasBINRanges(forPrefix: text)
                 if !isCorrectPANLengthKnownYet {
                     // If `hasBINRanges` returns false, we need to call `retrieveBINRanges` to fetch the correct card length from the card metadata service. See go/card-metadata-edge.
-                    binController.retrieveBINRanges(forPrefix: text, recordErrorsAsSuccess: false) { _ in }
+                    // TODO: BIN retrieval is broken if you don't use STPAPIClient.shared (https://jira.corp.stripe.com/browse/MOBILESDK-4322)
+                    binController.retrieveBINRanges(apiClient: STPAPIClient.shared, forPrefix: text, recordErrorsAsSuccess: false) { _ in }
                     // If we don't know the correct length, return the shortest possible length for the brand
                     return binController.minCardNumberLength(for: binRange.brand)
                 } else {
@@ -191,6 +208,37 @@ extension TextFieldElement {
             }
             return attributed
         }
+
+        func warningLabel(text: String) -> String? {
+            guard cardFundingFilter != .default else { return nil }
+            guard text.count >= 6 else { return nil }
+            guard let fundingBinController else { return nil }
+
+            // Read funding data from isolated controller's cache
+            // (fundingBinController is injected from CardSectionElement to avoid polluting STPBINController.shared)
+            let binRanges = fundingBinController.binRanges(forNumber: text)
+
+            // Filter to only non-hardcoded BIN ranges (real data from metadata service)
+            let nonHardcodedRanges = binRanges.filter { !$0.isHardcoded }
+
+            // If there are no non-hardcoded ranges, don't warn (we don't have reliable funding info)
+            guard !nonHardcodedRanges.isEmpty else { return nil }
+
+            // Some cards may have dual funding types. Only block if ALL funding types are disallowed.
+            // If any funding type is accepted, allow the card.
+            for binRange in nonHardcodedRanges {
+                if cardFundingFilter.isAccepted(cardFundingType: binRange.funding) {
+                    return nil  // At least one funding type is allowed
+                }
+            }
+
+            // All funding types are disallowed, show warning
+            guard let warningMessage = cardFundingFilter.allowedFundingTypesDisplayString() else {
+                stpAssertionFailure("allowedFundingTypesDisplayString should return a value when filtering is active")
+                return nil
+            }
+            return warningMessage
+        }
     }
 }
 
@@ -215,7 +263,7 @@ extension TextFieldElement {
         }
         func validate(text: String, isOptional: Bool) -> ValidationState {
             if text.isEmpty {
-                return isOptional ? .valid : .invalid(TextFieldElement.Error.empty)
+                return isOptional ? .valid : .invalid(TextFieldElement.Error.empty(localizedDescription: String.Localized.your_cards_security_code_is_incomplete))
             }
 
             if text.count < STPCardValidator.minCVCLength() {
@@ -283,10 +331,10 @@ extension TextFieldElement {
             case invalidMonth
             case invalid
 
-            public func shouldDisplay(isUserEditing: Bool) -> Bool {
+            public func shouldDisplay(isUserEditing: Bool, displayEmptyFields: Bool) -> Bool {
                 switch self {
-                case .empty:                    return false
-                case .incomplete:               return !isUserEditing
+                case .empty:                    return displayEmptyFields
+                case .incomplete:               return !isUserEditing || displayEmptyFields
                 case .expired, .invalidMonth, .invalid:   return true
                 }
             }
@@ -294,7 +342,7 @@ extension TextFieldElement {
             public var localizedDescription: String {
                 switch self {
                 case .empty:
-                    return ""
+                    return String.Localized.your_cards_expiration_date_is_incomplete
                 case .incomplete:
                     return String.Localized.your_cards_expiration_date_is_incomplete
                 case .expired:
@@ -314,7 +362,7 @@ extension TextFieldElement {
 
             switch text.count {
             case 0:
-                return isOptional ? .valid : .invalid(TextFieldElement.Error.empty)
+                return isOptional ? .valid : .invalid(TextFieldElement.Error.empty(localizedDescription: String.Localized.your_cards_expiration_date_is_incomplete))
             case 1:
                 return .invalid(Error.incomplete)
             case 2, 3:
@@ -359,15 +407,15 @@ extension TextFieldElement {
         let lastFour: String
         let editConfiguration: EditConfiguration
         let cardBrand: STPCardBrand?
-        let cardBrandDropDown: DropdownFieldElement?
+        let cardBrandChoiceElement: CardBrandChoiceElement?
 
         private var lastFourFormatted: String {
             "•••• •••• •••• \(lastFour)"
         }
 
-        init(lastFour: String, editConfiguration: EditConfiguration, cardBrand: STPCardBrand?, cardBrandDropDown: DropdownFieldElement?) {
+        init(lastFour: String, editConfiguration: EditConfiguration, cardBrand: STPCardBrand?, cardBrandChoiceElement: CardBrandChoiceElement?) {
             self.lastFour = lastFour
-            self.cardBrandDropDown = cardBrandDropDown
+            self.cardBrandChoiceElement = cardBrandChoiceElement
             self.cardBrand = cardBrand
             self.editConfiguration = editConfiguration
         }
@@ -378,12 +426,12 @@ extension TextFieldElement {
 
         func accessoryView(for text: String, theme: ElementsAppearance) -> UIView? {
             // Re-use same logic from PANConfiguration for accessory view
-            return TextFieldElement.PANConfiguration(cardBrand: cardBrand, cardBrandDropDown: cardBrandDropDown).accessoryView(for: lastFourFormatted, theme: theme)
+            return TextFieldElement.PANConfiguration(cardBrand: cardBrand, cardBrandChoiceElement: cardBrandChoiceElement).accessoryView(for: lastFourFormatted, theme: theme)
         }
 
         func validate(text: String, isOptional: Bool) -> ValidationState {
             stpAssert(!editConfiguration.isEditable, "Validation assumes that the field is read-only")
-            return !lastFour.isEmpty ? .valid : .invalid(Error.empty)
+            return !lastFour.isEmpty ? .valid : .invalid(Error.empty(localizedDescription: ""))
         }
     }
 }

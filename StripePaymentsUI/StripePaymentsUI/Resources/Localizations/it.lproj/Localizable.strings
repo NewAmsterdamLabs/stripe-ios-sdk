@@ -36,6 +36,18 @@
 
 "MM/YY" = "MM/AA";
 
+"Only credit and prepaid cards are accepted" = "Sono accettate solo carte di credito e prepagate";
+
+"Only credit cards are accepted" = "Sono accettate solo carte di credito";
+
+"Only debit and credit cards are accepted" = "Sono accettate solo carte di debito e di credito";
+
+"Only debit and prepaid cards are accepted" = "Sono accettate solo carte di debito e prepagate";
+
+"Only debit cards are accepted" = "Sono accettate solo carte di debito";
+
+"Only prepaid cards are accepted" = "Sono accettate solo carte prepagate";
+
 "Postal Code" = "Codice postale";
 
 "Shipping Address" = "Indirizzo di spedizione";
@@ -47,8 +59,6 @@
 "The selected brand is not allowed" = "Il brand selezionato non è disponibile.";
 
 "To scan your card, allow camera access in Settings." = "Per scansionare la carta, concedi l'accesso alla fotocamera in Impostazioni.";
-
-"Your ZIP is invalid." = "Il CAP non è valido.";
 
 "Your card has expired." = "La tua carta è scaduta.";
 
@@ -67,8 +77,6 @@
 "Your card's security code is incomplete." = "Il codice di sicurezza della carta è incompleto.";
 
 "Your card's security code is invalid." = "Il codice di sicurezza della carta non è valido.";
-
-"Your postal code is invalid." = "Il codice postale non è valido.";
 
 "card number" = "numero carta";
 

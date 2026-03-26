@@ -71,6 +71,9 @@ class EmbeddedPaymentMethodsView: UIView {
             }
         }
     }
+    private var linkRowButton: RowButton? {
+        rowButtons.first(where: { $0.type == .link })
+    }
 
     private let mandateProvider: MandateTextProvider
     private let shouldShowMandate: Bool
@@ -196,7 +199,8 @@ class EmbeddedPaymentMethodsView: UIView {
             if let initialSelectedRowChangeButtonState {
                 selectedRowChangeButtonState = initialSelectedRowChangeButtonState
                 if initialSelectedRowChangeButtonState.shouldShowChangeButton {
-                    rowButtonMatchingInitialSelection.addChangeButton(sublabel: initialSelectedRowChangeButtonState.sublabel)
+                    rowButtonMatchingInitialSelection.addChangeButton()
+                    rowButtonMatchingInitialSelection.setSublabel(text: initialSelectedRowChangeButtonState.sublabel)
                 }
             }
             self.selectedRowButton = rowButtonMatchingInitialSelection
@@ -214,11 +218,16 @@ class EmbeddedPaymentMethodsView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    private func logRenderLPMs() {
+    deinit {
+        // Just to make sure no observer stays around
+        LinkAccountContext.shared.removeObserver(self)
+    }
+
+    private func logInitialDisplayedPaymentMethods() {
         // The user has to scroll through all the payment method options before checking out, so all of the lpms are visible
-        let visibleLPMs: [String] = rowButtons.filter { !$0.type.isSaved }.compactMap { $0.type.analyticsIdentifier }
-        let hiddenLPMs: [String] = []
-        analyticsHelper.logRenderLPMs(visibleLPMs: visibleLPMs, hiddenLPMs: hiddenLPMs)
+        let visiblePaymentMethods: [String] = rowButtons.filter { !$0.type.isSaved }.compactMap { $0.type.analyticsIdentifier }
+        let hiddenPaymentMethods: [String] = []
+        analyticsHelper.logInitialDisplayedPaymentMethods(visiblePaymentMethods: visiblePaymentMethods, hiddenPaymentMethods: hiddenPaymentMethods, paymentMethodLayout: .vertical)
     }
 
     private var previousHeight: CGFloat?
@@ -226,20 +235,45 @@ class EmbeddedPaymentMethodsView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
 
-        // to make sure that it doesn't log on height change
+        // Only log this once
         if !didLogRenderLPMs {
-            logRenderLPMs()
+            logInitialDisplayedPaymentMethods()
             didLogRenderLPMs = true
         }
 
+        // Calculate our natural height
+        let desiredHeight = systemLayoutSizeFitting(CGSize(width: frame.width, height: UIView.layoutFittingExpandedSize.height)).height
+
+        // If we never recorded a height, this is our first layout; don't notify the delegate.
         guard let previousHeight else {
             previousHeight = frame.height
             return
         }
 
-        if frame.height != previousHeight {
-            self.previousHeight = frame.height
+        // If the desired height is different from our last recorded, notify the delegate that our height is updating.
+        if desiredHeight != previousHeight {
+            self.previousHeight = desiredHeight
             delegate?.embeddedPaymentMethodsViewDidUpdateHeight()
+        }
+    }
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+
+        if window != nil {
+            if linkRowButton != nil {
+                initializeLinkAccountObserver()
+            }
+        } else {
+            LinkAccountContext.shared.removeObserver(self)
+        }
+    }
+
+    private func initializeLinkAccountObserver() {
+        LinkAccountContext.shared.addObserver(self, selector: #selector(onLinkAccountChange(_:)))
+
+        if let linkAccount = LinkAccountContext.shared.account, linkAccount.isRegistered {
+            updateLinkRow(for: linkAccount, animated: false)
         }
     }
 
@@ -254,6 +288,14 @@ class EmbeddedPaymentMethodsView: UIView {
         selectedRowButton = nil
     }
 
+    @objc
+    func onLinkAccountChange(_ notification: Notification) {
+        DispatchQueue.main.async { [weak self] in
+            let linkAccount = notification.object as? PaymentSheetLinkAccount
+            self?.updateLinkRow(for: linkAccount)
+        }
+    }
+
     // MARK: Tap handling
     func didTap(rowButton: RowButton) {
         self.selectedRowButton = rowButton
@@ -264,6 +306,20 @@ class EmbeddedPaymentMethodsView: UIView {
 
     func didTapViewMoreSavedPaymentMethods() {
         delegate?.embeddedPaymentMethodsViewDidTapViewMoreSavedPaymentMethods(selectedSavedPaymentMethod: selectedRowButton?.type.savedPaymentMethod)
+    }
+
+    func updateLinkRow(for linkAccount: PaymentSheetLinkAccount?, animated: Bool = true) {
+        guard let linkRowButton else {
+            return
+        }
+
+        var sublabel = String.Localized.link_subtitle_text
+
+        if let linkAccount, linkAccount.isRegistered {
+            sublabel = linkAccount.email
+        }
+
+        linkRowButton.setSublabel(text: sublabel, animated: animated)
     }
 
     func updateSavedPaymentMethodRow(_ savedPaymentMethods: [STPPaymentMethod],
@@ -378,6 +434,7 @@ class EmbeddedPaymentMethodsView: UIView {
         case (false, true): // Showing mandate -> Showing mandate
             UIView.transition(with: self.mandateView, duration: 0.25, options: .transitionCrossDissolve) {
                 self.mandateView.attributedText = mandateText
+                self.setNeedsLayout()
                 self.layoutIfNeeded()
             }
         case (true, false): // Hidden -> Hidden
@@ -437,7 +494,7 @@ class EmbeddedPaymentMethodsView: UIView {
     func makePaymentMethodRowButton(paymentMethodType: PaymentSheet.PaymentMethodType, savedPaymentMethods: [STPPaymentMethod]) -> RowButton {
         // We always add a hidden accessory button ("Change >") so we can show/hide it easily
         let accessoryButton = RowButton.RightAccessoryButton(
-            accessoryType: appearance.embeddedPaymentElement.row.style == .flatWithCheckmark ? .change : .changeWithChevron,
+            accessoryType: appearance.embeddedPaymentElement.row.style.omitChevronInAccessoryButton ? .change : .changeWithChevron,
             appearance: appearance,
             didTap: { [weak self] in
                 guard let self, let selectedRowButton else { return }
@@ -468,7 +525,7 @@ extension PaymentSheet.Appearance.EmbeddedPaymentElement.Row.Style {
         switch self {
         case .flatWithRadio:
             return UIEdgeInsets(top: 0, left: 30, bottom: 0, right: 0)
-        case .floatingButton, .flatWithCheckmark:
+        case .floatingButton, .flatWithCheckmark, .flatWithDisclosure:
             return .zero
         }
     }
@@ -481,7 +538,7 @@ extension Array where Element == STPPaymentMethod {
 }
 
 extension RowButton {
-    func addChangeButton(sublabel: String?) {
+    func addChangeButton() {
         // Hack: We assume the accessory view is "Change >"
         self.accessoryView?.isHidden = false
         self.setNeedsLayout()
@@ -489,9 +546,6 @@ extension RowButton {
         self.accessoryView?.alpha = 0
         UIView.animate(withDuration: 0.2) {
             self.accessoryView?.alpha = 1
-        }
-        if let sublabel {
-            setSublabel(text: sublabel)
         }
         makeSameHeightAsOtherRowButtonsIfNecessary()
     }

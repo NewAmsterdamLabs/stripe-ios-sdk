@@ -35,8 +35,8 @@ extension LinkPaymentMethodPicker {
                     bankIconView.image = makeBankIcon(for: bankAccount.iconCode)
                     cardBrandView.isHidden = true
                     bankIconView.isHidden = false
-                    primaryLabel.text = bankAccount.name
-                    secondaryLabel.text = paymentMethod?.paymentSheetLabel
+                    primaryLabel.text = bankAccount.displayName(with: paymentMethod?.nickname)
+                    secondaryLabel.text = "•••• \(bankAccount.last4)"
                     secondaryLabel.isHidden = false
                 case .none, .unparsable:
                     cardBrandView.isHidden = true
@@ -60,14 +60,14 @@ extension LinkPaymentMethodPicker {
             let label = UILabel()
             label.adjustsFontForContentSizeCategory = true
             label.font = LinkUI.font(forTextStyle: .bodyEmphasized, maximumPointSize: Constants.maxFontSize)
-            label.textColor = .linkPrimaryText
+            label.textColor = .linkTextPrimary
             return label
         }()
 
         private let secondaryLabel: UILabel = {
             let label = UILabel()
             label.font = LinkUI.font(forTextStyle: .caption, maximumPointSize: Constants.maxFontSize)
-            label.textColor = .linkSecondaryText
+            label.textColor = .linkTextTertiary
             return label
         }()
 
@@ -148,8 +148,8 @@ extension LinkPaymentMethodPicker {
 
         private func createGenericBankIcon() -> UIImage {
             let icon = PaymentSheetImageLibrary.linkBankIcon()
-            let iconColor: UIColor = .linkIconDefault
-            let backgroundColor: UIColor = .linkIconBackground
+            let iconColor: UIColor = .linkIconPrimary
+            let backgroundColor: UIColor = .linkSurfaceTertiary
 
             let iconSize: CGSize = .init(width: 16, height: 16)
             let backgroundSize: CGSize = .init(width: 24, height: 24)

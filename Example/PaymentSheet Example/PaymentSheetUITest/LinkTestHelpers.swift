@@ -51,7 +51,8 @@ extension XCTestCase {
             nameField.typeText("John Doe")
         }
 
-        XCTAssertTrue(app.buttons["Agree and continue"].waitForExistenceAndTap(timeout: 10))
+        app.swipeDown()
+        XCTAssertTrue(app.buttons["Continue"].waitForExistenceAndTap(timeout: 10))
     }
 
     func fillOutLinkCardData(
@@ -74,19 +75,39 @@ extension XCTestCase {
         nameField.tap()
         nameField.typeText("Jane Doe")
 
-        let line1Field = app.textFields["Address line 1"]
-        line1Field.tap()
-        line1Field.typeText("123 Main St")
+        // Check if autocomplete Address field exists, otherwise use individual fields
+        let addressField = app.textFields["Address"]
+        if addressField.exists {
+            app.fillAddressWithAutocomplete()
+        } else {
+            // Fill individual address fields when defaults are present
+            let addressLine1Field = app.textFields["Address line 1"]
+            if addressLine1Field.exists {
+                addressLine1Field.tap()
+                addressLine1Field.typeText("354 Oyster Point Blvd")
+            }
 
-        let cityField = app.textFields["City"]
-        cityField.tap()
-        cityField.typeText("Big City")
+            let cityField = app.textFields["City"]
+            if cityField.exists {
+                cityField.tap()
+                cityField.typeText("South San Francisco")
+            }
 
-        let zipField = app.textFields["ZIP"]
-        zipField.tap()
-        zipField.typeText("12345")
+            let stateField = app.textFields["State"]
+            if stateField.exists {
+                stateField.tap()
+                app.pickerWheels.firstMatch.adjust(toPickerWheelValue: "California")
+                app.toolbars.buttons["Done"].tap()
+            }
 
-        XCTAssertTrue(app.toolbars.buttons["Done"].waitForExistenceAndTap(timeout: 10))
+            let zipField = app.textFields["ZIP"]
+            if zipField.exists {
+                zipField.tap()
+                zipField.typeText("94080")
+            }
+
+            XCTAssertTrue(app.toolbars.buttons["Done"].waitForExistenceAndTap(timeout: 10))
+        }
     }
 
     func logInToLink(
@@ -105,6 +126,7 @@ extension XCTestCase {
     }
 
     func payLink(_ app: XCUIApplication) {
+        app.swipeUp()
         app.buttons
             .matching(identifier: "Pay $50.99")
             .matching(NSPredicate(format: "isEnabled == true"))
@@ -115,4 +137,31 @@ extension XCTestCase {
     func assertLinkPaymentSuccess(_ app: XCUIApplication) {
         XCTAssertTrue(app.staticTexts["Success!"].waitForExistence(timeout: 10.0))
     }
+
+    func tapTestNonOAuthInstituition(_ app: XCUIApplication) {
+        sleep(5) // allow search to become tappable, even if it's on screen
+        let searchTextField = app.textFields
+            .matching(NSPredicate(format: "label CONTAINS 'Search'"))
+            .firstMatch
+        searchTextField.waitForExistenceAndTap(timeout: 10)
+        app.typeText("Test (Non-OAuth)" + XCUIKeyboardKey.return.rawValue)
+        searchTextField
+            .coordinate(
+                withNormalizedOffset: CGVector(
+                    dx: 0.5,
+                    // bottom of search text field
+                    dy: 1.0
+                )
+            )
+        // at this point, we searched "Test (Non-OAuth)"
+        // and the first search result is "Test (Non-OAuth),"
+        // so here we guess that 80 pixels below search bar
+        // there will be a "Test (Non-OAuth)"
+        //
+        // we do this "guess" because every other method of
+        // selecting the institution did not work
+            .withOffset(CGVector(dx: 0, dy: 80))
+            .tap()
+    }
+
 }

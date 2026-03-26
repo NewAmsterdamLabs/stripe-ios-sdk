@@ -36,6 +36,18 @@
 
 "MM/YY" = "BB/TT";
 
+"Only credit and prepaid cards are accepted" = "Hanya kad kredit dan prabayar diterima";
+
+"Only credit cards are accepted" = "Hanya kad kredit yang diterima";
+
+"Only debit and credit cards are accepted" = "Hanya kad debit dan kredit diterima";
+
+"Only debit and prepaid cards are accepted" = "Hanya kad debit dan prabayar diterima";
+
+"Only debit cards are accepted" = "Hanya kad debit yang diterima";
+
+"Only prepaid cards are accepted" = "Hanya kad prabayar diterima";
+
 "Postal Code" = "Poskod";
 
 "Shipping Address" = "Alamat Pengiriman";
@@ -47,8 +59,6 @@
 "The selected brand is not allowed" = "Jenama yang dipilih tidak dibenarkan";
 
 "To scan your card, allow camera access in Settings." = "Untuk mengimbas kad anda, benarkan akses kamera dalam Tetapan.";
-
-"Your ZIP is invalid." = "Kod ZIP anda tidak sah.";
 
 "Your card has expired." = "Kad anda telah tamat tempoh.";
 
@@ -68,10 +78,8 @@
 
 "Your card's security code is invalid." = "Kod keselamatan kad anda tidak sah.";
 
-"Your postal code is invalid." = "Poskod anda tidak sah.";
-
 "card number" = "nombor kad";
 
-"example@example.com" = "contoh@contoh.com";
+"example@example.com" = "contoh@example.com";
 
 "expiration date" = "Tarikh tamat tempoh";

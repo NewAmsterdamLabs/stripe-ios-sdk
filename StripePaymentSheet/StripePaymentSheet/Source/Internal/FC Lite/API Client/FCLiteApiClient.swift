@@ -23,7 +23,9 @@ struct FCLiteAPIClient {
         }
     }
 
-    private let backingAPIClient: STPAPIClient
+    var consumerPublishableKey: String?
+
+    let backingAPIClient: STPAPIClient
 
     init(backingAPIClient: STPAPIClient) {
         self.backingAPIClient = backingAPIClient
@@ -37,6 +39,7 @@ struct FCLiteAPIClient {
             backingAPIClient.get(
                 resource: endpoint.path,
                 parameters: parameters,
+                consumerPublishableKey: consumerPublishableKey,
                 completion: { (result: Result<T, Error>) in
                     switch result {
                     case .success(let response):
@@ -57,6 +60,7 @@ struct FCLiteAPIClient {
             backingAPIClient.post(
                 resource: endpoint.path,
                 parameters: parameters,
+                consumerPublishableKey: consumerPublishableKey,
                 completion: { (result: Result<T, Error>) in
                     switch result {
                     case .success(let response):
@@ -73,13 +77,19 @@ struct FCLiteAPIClient {
 extension FCLiteAPIClient {
     func synchronize(
         clientSecret: String,
-        returnUrl: URL?
+        returnUrl: URL?,
+        canUseNativeLink: Bool,
+        secureWebviewFeatureFlagEnabled: Bool
     ) async throws -> SynchronizePayload {
         var mobileParameters: [String: Any] = [
             "fullscreen": true,
             "mobile_sdk_type": "FC_LITE",
         ]
         mobileParameters["app_return_url"] = returnUrl
+
+        if secureWebviewFeatureFlagEnabled, !canUseNativeLink {
+            mobileParameters["use_secure_webview_if_necessary"] = true
+        }
 
         let parameters: [String: Any] = [
             "client_secret": clientSecret,

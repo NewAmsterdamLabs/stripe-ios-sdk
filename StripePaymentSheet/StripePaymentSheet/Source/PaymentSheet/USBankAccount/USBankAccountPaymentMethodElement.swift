@@ -18,7 +18,7 @@ final class USBankAccountPaymentMethodElement: ContainerElement {
 
     var presentingViewControllerDelegate: PresentingViewControllerDelegate?
 
-    var delegate: ElementDelegate?
+    weak var delegate: ElementDelegate?
 
     var view: UIView {
         return formElement.view
@@ -91,6 +91,7 @@ final class USBankAccountPaymentMethodElement: ContainerElement {
         saveCheckboxElement: PaymentMethodElementWrapper<CheckboxElement>?,
         defaultCheckboxElement: Element?,
         savingAccount: BoolReference,
+        isSettingUp: Bool,
         merchantName: String,
         initialLinkedBank: FinancialConnectionsLinkedBank?,
         appearance: PaymentSheet.Appearance = .default
@@ -143,7 +144,7 @@ final class USBankAccountPaymentMethodElement: ContainerElement {
             guard let self = self else {
                 return
             }
-            self.mandateString = Self.attributedMandateText(for: self.linkedBank, merchantName: merchantName, isSaving: value, configuration: configuration, theme: theme)
+            self.mandateString = Self.attributedMandateText(for: self.linkedBank, merchantName: merchantName, isSaving: value || isSettingUp, configuration: configuration, theme: theme)
             self.delegate?.didUpdate(element: self)
         }
         updateLinkedBankUI(animated: false)
