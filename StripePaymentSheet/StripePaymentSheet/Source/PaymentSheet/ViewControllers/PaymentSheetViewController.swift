@@ -139,6 +139,7 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
     }()
 
     private var containingStackView = UIStackView()
+    private var containingStackViewBottomConstraint: NSLayoutConstraint?
 
     // MARK: - Init
 
@@ -243,15 +244,24 @@ class PaymentSheetViewController: UIViewController, PaymentSheetViewControllerPr
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
 
-        NSLayoutConstraint.activate([
-            containingStackView.topAnchor.constraint(equalTo: view.topAnchor),
-            containingStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            containingStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            containingStackView.bottomAnchor.constraint(
+        let footerHeight = footerView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height
+        let bottomConstant = -(40.0 + footerHeight)
+
+        if let existing = containingStackViewBottomConstraint {
+            existing.constant = bottomConstant
+        } else {
+            let bottom = containingStackView.bottomAnchor.constraint(
                 equalTo: view.bottomAnchor,
-                constant: -(40.0 + footerView.frame.height)
-            ),
-        ])
+                constant: bottomConstant
+            )
+            containingStackViewBottomConstraint = bottom
+            NSLayoutConstraint.activate([
+                containingStackView.topAnchor.constraint(equalTo: view.topAnchor),
+                containingStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                containingStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                bottom,
+            ])
+        }
     }
 
     func set(error: Error?) {
