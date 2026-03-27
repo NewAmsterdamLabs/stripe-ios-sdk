@@ -267,10 +267,6 @@ class BottomSheetViewController: UIViewController, BottomSheetPresentable {
         oldContentViewController.navigationBar.removeFromSuperview()
         navigationBarContainerView.addArrangedSubview(newContentViewController.navigationBar)
         navigationBarContainerView.layoutIfNeeded()
-        // Layout is mostly completed at this point. The new height is the navigation bar + content.
-        // Note: The content VC's view height already includes bottom padding that reserves space
-        // for the footer, so we must not add footerViewContainerView's height again.
-        let newHeight = newContentViewController.view.bounds.size.height + navigationBarContainerView.bounds.size.height
 
         // Force the old height, then force a layout pass
         if modalPresentationStyle == .custom { // Only if we're using the custom presentation style (e.g. pinned to the bottom)
@@ -286,7 +282,11 @@ class BottomSheetViewController: UIViewController, BottomSheetPresentable {
         animateHeightChange(forceAnimation: true, {
             // Fade new content in
             self.contentViewController.view.alpha = 1
-            self.manualHeightConstraint.constant = newHeight
+            // Deactivate the manual height constraint during the animation so
+            // natural Auto Layout constraints determine the final height.
+            // This avoids any discrepancy between a calculated height and the
+            // actual constraint-based height.
+            self.manualHeightConstraint.isActive = false
         }, completion: {_ in
             // If you are implementing your own container view controller, it must call the didMove(toParent:) method of the child view controller after the transition to the new controller is complete or, if there is no transition, immediately after calling the addChild(_:) method.
             self.contentViewController.didMove(toParent: self)
@@ -297,9 +297,6 @@ class BottomSheetViewController: UIViewController, BottomSheetPresentable {
 
             // Inform accessibility
             UIAccessibility.post(notification: .screenChanged, argument: self.contentViewController.view)
-
-            // We shouldn't need this constraint anymore.
-            self.manualHeightConstraint.isActive = false
 
             completion?()
         })
