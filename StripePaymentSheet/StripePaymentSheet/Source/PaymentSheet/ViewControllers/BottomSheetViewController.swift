@@ -267,8 +267,10 @@ class BottomSheetViewController: UIViewController, BottomSheetPresentable {
         oldContentViewController.navigationBar.removeFromSuperview()
         navigationBarContainerView.addArrangedSubview(newContentViewController.navigationBar)
         navigationBarContainerView.layoutIfNeeded()
-        // Layout is mostly completed at this point. The new height is the navigation bar + content + footer view + bottom safe area insets
-        let newHeight = newContentViewController.view.bounds.size.height + navigationBarContainerView.bounds.size.height + footerViewContainerView.bounds.size.height
+        // Layout is mostly completed at this point. The new height is the navigation bar + content.
+        // Note: The content VC's view height already includes bottom padding that reserves space
+        // for the footer, so we must not add footerViewContainerView's height again.
+        let newHeight = newContentViewController.view.bounds.size.height + navigationBarContainerView.bounds.size.height
 
         // Force the old height, then force a layout pass
         if modalPresentationStyle == .custom { // Only if we're using the custom presentation style (e.g. pinned to the bottom)
