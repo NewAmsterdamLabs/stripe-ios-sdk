@@ -33,9 +33,9 @@ extension PaymentSheetViewController {
     final class WalletHeaderView: UIView {
         struct Constants {
             /// Space between buttons
-            static let buttonSpacing: CGFloat = 8
+            static let buttonSpacing: CGFloat = 4
             /// Space between the separator label and the last button
-            static let labelSpacing: CGFloat = 24
+            static let labelSpacing: CGFloat = 12
             /// Height for the Apple Pay button
             static let applePayButtonHeight: CGFloat = 44
         }
