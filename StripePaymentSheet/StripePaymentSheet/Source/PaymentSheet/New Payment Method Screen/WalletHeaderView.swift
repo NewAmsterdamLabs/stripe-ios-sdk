@@ -35,9 +35,9 @@ extension PaymentSheetViewController {
     final class WalletHeaderView: UIView {
         struct Constants {
             /// Space between buttons
-            static let buttonSpacing: CGFloat = 8
+            static let buttonSpacing: CGFloat = 4
             /// Space between the separator label and the last button
-            static let labelSpacing: CGFloat = 24
+            static let labelSpacing: CGFloat = 12
             /// Height for the Apple Pay button
             static let applePayButtonHeight: CGFloat = 44
         }
@@ -60,6 +60,7 @@ extension PaymentSheetViewController {
         private let options: WalletOptions
         private let appearance: PaymentSheet.Appearance
         private let applePayButtonType: PKPaymentButtonType
+        private let walletSubview: UIView?
         private let isPaymentIntent: Bool
         private let linkBrandProvider: () -> LinkBrand
         private var linkBrand: LinkBrand {
@@ -124,6 +125,7 @@ extension PaymentSheetViewController {
              linkBrand: LinkBrand = .link,
              linkBrandProvider: (() -> LinkBrand)? = nil,
              isPaymentIntent: Bool = true,
+             walletSubview: UIView? = nil,
              delegate: WalletHeaderViewDelegate?) {
             self.options = options
             self.appearance = appearance
@@ -131,6 +133,7 @@ extension PaymentSheetViewController {
             self.linkBrand = linkBrand
             self.linkBrandProvider = linkBrandProvider ?? { linkBrand }
             self.isPaymentIntent = isPaymentIntent
+            self.walletSubview = walletSubview
             self.delegate = delegate
             super.init(frame: .zero)
 
@@ -172,13 +175,19 @@ extension PaymentSheetViewController {
             if supportsPayWithLink {
                 buttons.append(payWithLinkButton)
             }
-
-            stackView = UIStackView(arrangedSubviews: buttons + [separatorLabel])
+            
+            let arrangedSubviews = (buttons + [walletSubview] + [separatorLabel]).compactMap({ $0 })
+            
+            stackView = UIStackView(arrangedSubviews: arrangedSubviews)
             stackView.axis = .vertical
             stackView.spacing = Constants.buttonSpacing
 
-            if let lastButton = buttons.last {
+            if let walletSubview {
+                stackView.setCustomSpacing(Constants.labelSpacing, after: walletSubview)
+            } else if let lastButton = buttons.last {
                 stackView.setCustomSpacing(Constants.labelSpacing, after: lastButton)
+            }
+            if let lastButton = buttons.last {
                 isApplePayLastButton = lastButton == applePayButton
             }
 
