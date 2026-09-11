@@ -65,6 +65,13 @@ class NativeSheetContainerViewController: UIViewController, PaymentSheetContaine
         return UIStackView()
     }()
 
+    // VBC added properties
+    // Pinned to the bottom of the sheet, outside the scroll view, like BottomSheetViewController's.
+    // The content view controller reserves room for it at the bottom of its own view.
+    private lazy var footerViewContainerView: UIStackView = {
+        return UIStackView()
+    }()
+
     // Navigation updates this logical stack immediately; native presentation may defer the visible child change.
     private(set) var contentStack: [BottomSheetContentViewController] = []
 
@@ -144,6 +151,7 @@ class NativeSheetContainerViewController: UIViewController, PaymentSheetContaine
 
         addChild(contentViewController)
         contentViewController.didMove(toParent: self)
+        footerViewContainerView.addArrangedSubview(contentViewController.footerView)
         contentContainerView.addArrangedSubview(contentViewController.view)
         contentViewController.navigationBar.checkoutSessionID = checkoutSessionID
         contentViewController.navigationBar.systemNavigationItem = navigationItem
@@ -282,6 +290,12 @@ class NativeSheetContainerViewController: UIViewController, PaymentSheetContaine
         contentContainerView.addArrangedSubview(self.contentViewController.view)
 
         contentContainerView.layoutIfNeeded()
+
+        oldContentViewController.footerView.removeFromSuperview()
+        footerViewContainerView.subviews.forEach({ $0.removeFromSuperview() })
+        footerViewContainerView.addArrangedSubview(newContentViewController.footerView)
+        footerViewContainerView.layoutIfNeeded()
+
         scrollView.layoutIfNeeded()
         scrollView.updateConstraintsIfNeeded()
         oldContentViewController.navigationBar.removeFromSuperview()
@@ -490,8 +504,17 @@ class NativeSheetContainerViewController: UIViewController, PaymentSheetContaine
     public override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.addSubview(scrollView)
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        // Note: order matters, the footer sits above the scroll view
+        [scrollView, footerViewContainerView].forEach {
+            view.addSubview($0)
+            $0.translatesAutoresizingMaskIntoConstraints = false
+        }
+        // Use the safe area horizontally so the footer clears the iPhone Duo's vertical bar, like the scroll view.
+        NSLayoutConstraint.activate([
+            footerViewContainerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            footerViewContainerView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            footerViewContainerView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+        ])
 
         // Content view controllers already constrain their contents against the safe area.
         scrollView.contentInsetAdjustmentBehavior = .never

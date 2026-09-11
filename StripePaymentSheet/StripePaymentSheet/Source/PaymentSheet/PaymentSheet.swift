@@ -194,6 +194,35 @@ public class PaymentSheet {
             presentingViewController.presentAsSheet(bottomSheetViewController)
         }
     }
+    
+    // MARK: - VBC added methods
+    public func dismiss(animated: Bool, completion: @escaping () -> Void) {
+        if let presentingViewController = self.bottomSheetViewController.presentingViewController {
+            // Calling `dismiss()` on the presenting view controller causes
+            // the bottom sheet and any presented view controller by
+            // bottom sheet (i.e. Link) to be dismissed all at the same time.
+            presentingViewController.dismiss(animated: animated) {
+                completion()
+            }
+        } else {
+            // call completion regardless
+            completion()
+        }
+    }
+
+    public func confirmPayment() {
+        let psvc = self.findPaymentSheetViewController()
+        if let paymentViewController = psvc as? PaymentSheetViewController {
+            paymentViewController.confirmPayment()
+        }
+    }
+
+    public func presentError(_ error: Error) {
+        let psvc = self.findPaymentSheetViewController()
+        if let paymentViewController = psvc as? PaymentSheetViewController {
+            paymentViewController.presentError(error)
+        }
+    }
 
     private func dismissAndCompletePresentation(
         with result: PaymentSheetResult,
@@ -278,7 +307,8 @@ public class PaymentSheet {
     /// Loading View Controller
     lazy var loadingViewController = LoadingViewController(
         delegate: self,
-        appearance: configuration.appearance
+        appearance: configuration.appearance,
+        loadingViewHeight: configuration.actionSheetInitialHeight
     )
 
     /// The STPPaymentHandler instance
@@ -336,6 +366,7 @@ public class PaymentSheet {
                 configuration: configuration,
                 loadResult: loadResult,
                 analyticsHelper: analyticsHelper,
+                isConfirmed: configuration.delegate == nil,
                 delegate: self,
                 previousPaymentOption: previousPaymentOption
             )
@@ -458,6 +489,10 @@ extension PaymentSheet: PaymentSheetViewControllerDelegate {
         }
     }
 
+    func paymentSheetViewControllerDidTapBuy(_ paymentSheetViewController: PaymentSheetViewController) {
+        self.configuration.delegate?.paymentSheetDidTapBuy(self)
+    }
+
 }
 
 extension PaymentSheet: LoadingViewControllerDelegate {
@@ -497,4 +532,11 @@ protocol PaymentSheetViewControllerDelegate: AnyObject {
     )
     func paymentSheetViewControllerDidCancel(_ paymentSheetViewController: PaymentSheetViewControllerProtocol)
     func paymentSheetViewControllerDidSelectPayWithLink(_ paymentSheetViewController: PaymentSheetViewControllerProtocol)
+    func paymentSheetViewControllerDidTapBuy(_ paymentSheetViewController: PaymentSheetViewController)
+}
+
+// MARK: - PaymentSheetDelegate
+
+public protocol PaymentSheetDelegate: AnyObject {
+    func paymentSheetDidTapBuy(_ paymentSheet: PaymentSheet)
 }
