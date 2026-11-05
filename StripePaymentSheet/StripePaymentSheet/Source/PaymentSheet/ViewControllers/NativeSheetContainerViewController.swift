@@ -509,8 +509,20 @@ class NativeSheetContainerViewController: UIViewController, PaymentSheetContaine
             view.addSubview($0)
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
+        // A native sheet caps its height at the screen, so a tall form scrolls under the footer.
+        // Paint the footer, and the bottom safe area below it, so that content doesn't show through.
+        footerViewContainerView.backgroundColor = appearance.colors.background
+        let footerBackgroundView = UIView()
+        footerBackgroundView.backgroundColor = appearance.colors.background
+        footerBackgroundView.translatesAutoresizingMaskIntoConstraints = false
+        view.insertSubview(footerBackgroundView, belowSubview: footerViewContainerView)
         // Use the safe area horizontally so the footer clears the iPhone Duo's vertical bar, like the scroll view.
         NSLayoutConstraint.activate([
+            footerBackgroundView.topAnchor.constraint(equalTo: footerViewContainerView.topAnchor),
+            footerBackgroundView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            footerBackgroundView.leadingAnchor.constraint(equalTo: footerViewContainerView.leadingAnchor),
+            footerBackgroundView.trailingAnchor.constraint(equalTo: footerViewContainerView.trailingAnchor),
+
             footerViewContainerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             footerViewContainerView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             footerViewContainerView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
