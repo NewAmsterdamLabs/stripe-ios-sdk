@@ -360,6 +360,43 @@ class BottomSheetViewController: UIViewController, BottomSheetPresentable, Payme
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         (contentViewController.footerView as? SheetFooterView)?.updateBottomPadding(sheetBottomSafeArea: view.safeAreaInsets.bottom)
+        updateFormSheetPreferredContentSize()
+    }
+
+    // VBC added
+    private var formSheetContentSizeObservation: NSKeyValueObservation?
+
+    // VBC added: an iPad form sheet is as tall as what it shows (the saved cards, or the taller add-card form)
+    // instead of UIKit's fixed default size. UIKit caps it at the available height and animates each change.
+    // Only the form sheet: the custom bottom sheet (iPhone) already sizes itself with Auto Layout.
+    private func updateFormSheetPreferredContentSize() {
+        guard modalPresentationStyle == .formSheet, let window = view.window else { return }
+        let fittedSize: CGSize
+        if contentRequiresFullScreen || window.traitCollection.horizontalSizeClass == .compact {
+            // 3DS and Link ask for the full height, and a compact window adapts the form sheet into a full-width sheet:
+            // give UIKit back its default form sheet size (and width, for when the window is regular again)
+            fittedSize = .zero
+        } else {
+            let width = scrollView.bounds.width
+            guard width > 0 else { return }
+            // Measure the content itself, not this view: the keyboard handling moves the scroll view's bottom, and
+            // measuring through it would grow the sheet by the keyboard's height and feed back into it.
+            let contentHeight = contentContainerView.systemLayoutSizeFitting(
+                CGSize(width: width, height: UIView.layoutFittingCompressedSize.height),
+                withHorizontalFittingPriority: .required,
+                verticalFittingPriority: .fittingSizeLevel
+            ).height
+            let topHeight = appearance.navigationBarStyle.isGlass ? navigationBarHeight : navigationBarContainerView.bounds.height
+            // UIKit ignores a preferred size with a zero side, so keep the width UIKit gave the sheet before the first resize.
+            // Wait while the sheet still spans its container (a compact window turning regular hasn't re-laid it out yet).
+            let sheetWidth = preferredContentSize.width > 0 ? preferredContentSize.width : view.bounds.width
+            if let containerWidth = presentationController?.containerView?.bounds.width, sheetWidth >= containerWidth {
+                return
+            }
+            fittedSize = CGSize(width: sheetWidth, height: ceil(topHeight + contentHeight + view.safeAreaInsets.bottom))
+        }
+        guard abs(preferredContentSize.height - fittedSize.height) > 0.5 || abs(preferredContentSize.width - fittedSize.width) > 0.5 else { return }
+        preferredContentSize = fittedSize
     }
 
     /// :nodoc:
@@ -441,6 +478,12 @@ class BottomSheetViewController: UIViewController, BottomSheetPresentable, Payme
             contentContainerView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
             scrollViewHeightConstraint,
         ])
+        // VBC added: nested stacks can change the content's height without laying out this view (a field's error
+        // message, a row shown for a country). Ask for a layout so the iPad form sheet resizes to it.
+        formSheetContentSizeObservation = scrollView.observe(\.contentSize, options: [.old, .new]) { [weak self] _, change in
+            guard let self, self.modalPresentationStyle == .formSheet, change.oldValue?.height != change.newValue?.height else { return }
+            self.view.setNeedsLayout()
+        }
         let hideKeyboardGesture = UITapGestureRecognizer(
             target: self, action: #selector(didTapAnywhere))
         hideKeyboardGesture.cancelsTouchesInView = false
