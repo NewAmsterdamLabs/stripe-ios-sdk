@@ -372,6 +372,20 @@ class BottomSheetViewController: UIViewController, BottomSheetPresentable, Payme
             $0.translatesAutoresizingMaskIntoConstraints = false
         })
 
+        // VBC added: a form taller than the sheet (an iPad form sheet) scrolls under the pinned footer.
+        // Paint the footer, and the bottom safe area below it, so that content doesn't show through.
+        footerViewContainerView.backgroundColor = appearance.colors.background
+        let footerBackgroundView = UIView()
+        footerBackgroundView.backgroundColor = appearance.colors.background
+        footerBackgroundView.translatesAutoresizingMaskIntoConstraints = false
+        view.insertSubview(footerBackgroundView, belowSubview: footerViewContainerView)
+        NSLayoutConstraint.activate([
+            footerBackgroundView.topAnchor.constraint(equalTo: footerViewContainerView.topAnchor),
+            footerBackgroundView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            footerBackgroundView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            footerBackgroundView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+        ])
+
         // Our content VCs constrain against safeAreaLayoutGuide, we don't want the scroll view to adjust its content inset too. If `contentInsetAdjustmentBehavior` is left as the default (automatic),
         // it causes an infinite layout loop under certain conditions when the content exceeds the height of the screen.
         scrollView.contentInsetAdjustmentBehavior = .never
