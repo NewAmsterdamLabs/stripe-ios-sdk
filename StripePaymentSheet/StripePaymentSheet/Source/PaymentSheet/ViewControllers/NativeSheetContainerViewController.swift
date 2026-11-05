@@ -577,6 +577,8 @@ class NativeSheetContainerViewController: UIViewController, PaymentSheetContaine
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        // VBC added: the footer's bottom margin follows this sheet's own bottom safe area
+        (contentViewController.footerView as? SheetFooterView)?.updateBottomPadding(sheetBottomSafeArea: view.safeAreaInsets.bottom)
 
         if usesLiquidGlass, scrollView.contentInset.top != view.safeAreaInsets.top {
             // Reserve space for the native controls at rest while letting content scroll behind them.

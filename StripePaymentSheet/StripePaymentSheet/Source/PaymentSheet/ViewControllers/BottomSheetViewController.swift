@@ -356,6 +356,12 @@ class BottomSheetViewController: UIViewController, BottomSheetPresentable, Payme
         return manualHeightConstraint
     }()
 
+    // VBC added: the footer's bottom margin follows this sheet's own bottom safe area
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        (contentViewController.footerView as? SheetFooterView)?.updateBottomPadding(sheetBottomSafeArea: view.safeAreaInsets.bottom)
+    }
+
     /// :nodoc:
     public override func viewDidLoad() {
         super.viewDidLoad()

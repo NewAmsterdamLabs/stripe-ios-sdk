@@ -33,7 +33,12 @@ class SheetFooterView: UIView {
     }()
     
     private let button: UIView
-    
+
+    /// Space below the button when the sheet has no bottom safe area of its own (an iPad form sheet,
+    /// a device without a home indicator). With a bottom safe area, the safe area is the margin.
+    static let bottomPadding: CGFloat = 20.0
+    private var bottomConstraint: NSLayoutConstraint?
+
     // MARK: - Initializers
     
     init(button: UIView) {
@@ -103,11 +108,21 @@ class SheetFooterView: UIView {
             bottomConstraint = stackView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -20)
         }
         
+        self.bottomConstraint = bottomConstraint
         NSLayoutConstraint.activate([
             stackView.leadingAnchor.constraint(equalTo: leadingAnchor),
             stackView.trailingAnchor.constraint(equalTo: trailingAnchor),
             stackView.topAnchor.constraint(equalTo: topAnchor),
             bottomConstraint
         ])
+    }
+
+    /// Called by the sheet container with its own bottom safe area, which is what the footer sits on.
+    /// The window's safe area is wrong for an iPad form sheet: the window has a home indicator inset,
+    /// but the sheet ends above it, so the button would touch the sheet's bottom edge.
+    func updateBottomPadding(sheetBottomSafeArea: CGFloat) {
+        let constant = sheetBottomSafeArea > 0 ? 0.0 : -Self.bottomPadding
+        guard let bottomConstraint, bottomConstraint.constant != constant else { return }
+        bottomConstraint.constant = constant
     }
 }
